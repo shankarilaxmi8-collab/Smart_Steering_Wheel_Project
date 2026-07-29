@@ -14,26 +14,19 @@ current_index = 0
 def get_sensor_data():
     global current_index
 
-    # Get current row
-    data = df.iloc[current_index].to_dict()
-
     row = df.iloc[current_index]
 
     data = {
-    "timestamp": int(row["timestamp_offset"]),
-    "heart_rate": float(row["hr_rolling_mean"]),
-    "hrv": float(row["hr_rolling_std"]),
-    "gsr": float(row["gsr_rolling_mean"]),
-    "skin_temperature": float(row["temp_rolling_mean"]),
-    "condition": "NORMAL" if row["condition_label"] == 0 else "ALERT"
+        "timestamp": int(row["timestamp_offset"]),
+        "heart_rate": float(row["hr_rolling_mean"]),
+        "hrv": float(row["hr_rolling_std"]),
+        "gsr": float(row["gsr_rolling_mean"]),
+        "skin_temperature": float(row["temp_rolling_mean"]),
+        "condition": "NORMAL" if row["condition_label"] == 0 else "ALERT"
     }
 
-
-
-    # Move to next row
     current_index += 1
 
-    # If we reach the end, start again
     if current_index >= len(df):
         current_index = 0
 
