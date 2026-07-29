@@ -1,0 +1,50 @@
+.ecg-wave-container{
+
+    width:100%;
+    height:100%;
+
+    overflow:hidden;
+
+    position:relative;
+}
+
+.ecg-svg{
+
+    width:200%;
+    height:100%;
+
+    animation: scrollECG 6s linear infinite;
+}
+
+.ecg-line{
+
+    fill:none;
+
+    stroke:#34d399;
+
+    stroke-width:3;
+
+    stroke-linecap: round;
+    
+    stroke-linejoin: round;
+
+    filter:
+    drop-shadow(0 0 4px #34d399)
+    drop-shadow(0 0 12px #34d399)
+    drop-shadow(0 0 24px rgba(52,211,153,.35));
+}
+
+@keyframes scrollECG{
+
+    from{
+
+        transform:translateX(0);
+
+    }
+
+    to{
+
+        transform:translateX(-50%);
+    }
+
+}

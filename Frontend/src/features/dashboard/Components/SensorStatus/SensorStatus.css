@@ -1,0 +1,37 @@
+.sensor-card {
+  background: #161b2e;
+  border: 1px solid #2b3248;
+  border-radius: 22px;
+
+  padding: 28px;
+  height: 250px;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.sensor-title {
+  color: #d1d5db;
+  font-size: 14px;
+  letter-spacing: 2px;
+  margin-bottom: 35px;
+}
+
+.sensor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30px;
+}
+
+.sensor-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  color: #e5e7eb;
+  font-size: 18px;
+}
+
+.sensor-icon {
+  color: #6ee7b7;
+}
