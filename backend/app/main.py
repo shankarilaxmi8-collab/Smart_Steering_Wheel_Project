@@ -14,7 +14,7 @@ app = FastAPI(
 def root():
     return {"message": "Backend is running"}
 
-@app.get("/api/v1/status", response_model=DriverStatus)
+@app.get("/api/v1/health")
 def health():
     return {
         "status": "healthy",
@@ -31,16 +31,10 @@ async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
 
     try:
-
         while True:
-
             data = get_sensor_data()
-
             await manager.send_json(data)
-
             await asyncio.sleep(1)
 
     except Exception:
-
         manager.disconnect(websocket)
-        
