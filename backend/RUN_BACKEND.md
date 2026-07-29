@@ -1,111 +1,73 @@
-# Backend Setup Guide
+1. Open the project in VS Code.
 
-Follow these steps to run the backend on your system.
+2. Navigate to the backend folder:
 
-## Step 1: Open the Backend Folder
+cd backend
 
-Open the project in VS Code and open a terminal inside the **backend** folder.
+3. Create a virtual environment:
 
----
-
-## Step 2: Create a Virtual Environment
-
-```bash
 python -m venv venv
-```
 
----
+4. Activate it.
+source venv/bin/activate
 
-## Step 3: Activate the Virtual Environment
+5. Install dependencies:
 
-### Windows
-
-```bash
-venv\Scripts\activate
-```
-
-If activated successfully, you will see:
-
-```text
-(venv)
-```
-
-at the beginning of the terminal.
-
----
-
-## Step 4: Install Required Packages
-
-```bash
 pip install -r requirements.txt
-```
 
-This installs all the libraries required for the project.
+6. Run the server:
 
----
-
-## Step 5: Start the FastAPI Server
-
-```bash
 uvicorn app.main:app --reload
-```
 
-If everything is working, you should see:
+## Step 5: Open the Forwarded Port (GitHub Codespaces)
+
+After starting the FastAPI server, open the **Ports** tab in VS Code (usually located in the bottom panel).
+
+1. Locate **Port 8000** in the list.
+2. Click the **🌐 Open in Browser** (or globe) icon next to Port **8000**.
+
+This will open a URL similar to:
 
 ```text
-INFO: Uvicorn running on http://127.0.0.1:8000
+https://your-codespace-name-8000.app.github.dev
 ```
+
+> **Note:** The URL will be different for each Codespace.
 
 ---
 
-## Step 6: Verify the API
+## Step 6: Open the API Documentation
 
-Open your browser and visit:
+Append **`/docs`** to the forwarded URL:
 
 ```text
-http://127.0.0.1:8000/docs
+https://your-codespace-name-8000.app.github.dev/docs
 ```
 
-If the FastAPI Swagger UI opens, the backend is running successfully.
+If everything is configured correctly, the **FastAPI Swagger UI** will open, allowing you to view and test all available API endpoints directly from your browser.
+## Step 5: Open the Forwarded Port (GitHub Codespaces)
+
+After starting the FastAPI server, open the **Ports** tab in VS Code (usually located in the bottom panel).
+
+1. Locate **Port 8000** in the list.
+2. Click the **🌐 Open in Browser** (or globe) icon next to Port **8000**.
+
+This will open a URL similar to:
+
+```text
+https://your-codespace-name-8000.app.github.dev
+```
+
+> **Note:** The URL will be different for each Codespace.
 
 ---
 
-## Available API Endpoints
+## Step 6: Open the API Documentation
 
-| Endpoint         | Purpose            |
-| ---------------- | ------------------ |
-| `/`              | API status         |
-| `/api/v1/health` | Health check       |
-| `/api/v1/status` | Driver sensor data |
-
----
-
-## Common Issues
-
-### 'pip' not recognized
-
-Ensure Python is installed and added to the system PATH.
-
-### ModuleNotFoundError
-
-Run:
-
-```bash
-pip install -r requirements.txt
-```
-
-again to install missing packages.
-
-### Port 8000 already in use
-
-Run the server on another port:
-
-```bash
-uvicorn app.main:app --reload --port 8001
-```
-
-Then open:
+Append **`/docs`** to the forwarded URL:
 
 ```text
-http://127.0.0.1:8001/docs
+https://your-codespace-name-8000.app.github.dev/docs
 ```
+
+If everything is configured correctly, the **FastAPI Swagger UI** will open, allowing you to view and test all available API endpoints directly from your browser.
