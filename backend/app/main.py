@@ -4,6 +4,7 @@ from app.models.schemas import DriverStatus
 from fastapi import WebSocket
 from app.websocket.manager import manager
 import asyncio
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="Smart Steering Wheel API",
@@ -38,3 +39,13 @@ async def websocket_endpoint(websocket: WebSocket):
 
     except Exception:
         manager.disconnect(websocket)
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
