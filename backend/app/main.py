@@ -5,6 +5,7 @@ from fastapi import WebSocket
 from app.websocket.manager import manager
 import asyncio
 from fastapi.middleware.cors import CORSMiddleware
+from AIML.Week4.predict_risk import predict_risk
 
 app = FastAPI(
     title="Smart Steering Wheel API",
@@ -49,3 +50,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+sensor = get_sensor_data()
+prediction = predict(sensor)
