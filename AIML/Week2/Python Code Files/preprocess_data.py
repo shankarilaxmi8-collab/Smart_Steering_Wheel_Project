@@ -4,8 +4,8 @@ import os
 
 # Dynamically target the exact folder paths
 BASE_DIR = "D:/ITR_PROJECT_FINAL"
-input_file = os.path.join(BASE_DIR, "Week 1", "Datasets", "mock_driver_vitals.csv")
-output_file = os.path.join(BASE_DIR, "Week 2", "processed_driver_features.csv")
+input_file = os.path.join(BASE_DIR, "Week1", "Datasets", "mock_driver_vitals.csv")
+output_file = os.path.join(BASE_DIR, "Week2", "processed_driver_features.csv")
 WINDOW_SIZE = 5  # 5-second rolling window
 
 print(f"Starting Week 2 Feature Engineering on {input_file}...")
