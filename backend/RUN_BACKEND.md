@@ -1,73 +1,198 @@
-1. Open the project in VS Code.
+# Backend Setup & Execution
 
-2. Navigate to the backend folder:
+The backend can be run from the **main project folder** using:
 
-cd backend
+* **Option 1:** GitHub Codespaces
+* **Option 2:** Local VS Code (Windows)
 
-3. Create a virtual environment:
+---
 
+# Option 1: Run in GitHub Codespaces
+
+## Step 1: Open the Project
+
+Open the repository in **GitHub Codespaces**.
+
+The terminal should be opened at the main project folder:
+
+```text
+Smart_Steering_Wheel_Project
+```
+
+---
+
+## Step 2: Create Virtual Environment
+
+```bash
 python -m venv venv
+```
 
-4. Activate it.
+---
+
+## Step 3: Activate Virtual Environment
+
+```bash
 source venv/bin/activate
+```
 
-5. Install dependencies:
+---
 
-pip install -r requirements.txt
+## Step 4: Install Dependencies
 
-6. Run the server:
+```bash
+pip install -r backend/requirements.txt
+```
 
-uvicorn app.main:app --reload
+---
 
-## Step 5: Open the Forwarded Port (GitHub Codespaces)
+## Step 5: Run FastAPI Server
 
-After starting the FastAPI server, open the **Ports** tab in VS Code (usually located in the bottom panel).
+Run from the **main project folder**:
 
-1. Locate **Port 8000** in the list.
-2. Click the **🌐 Open in Browser** (or globe) icon next to Port **8000**.
+```bash
+uvicorn backend.app.main:app --reload
+```
 
-This will open a URL similar to:
+The backend server will start.
+
+---
+
+## Step 6: Open Port 8000
+
+After starting FastAPI:
+
+1. Open the **Ports** tab in VS Code.
+2. Locate **Port 8000**.
+3. Click **Open in Browser**.
+
+The URL will look like:
 
 ```text
 https://your-codespace-name-8000.app.github.dev
 ```
 
-> **Note:** The URL will be different for each Codespace.
-
 ---
 
-## Step 6: Open the API Documentation
+## Step 7: Open API Documentation
 
-Append **`/docs`** to the forwarded URL:
+Add `/docs` to the forwarded URL:
 
 ```text
 https://your-codespace-name-8000.app.github.dev/docs
 ```
 
-If everything is configured correctly, the **FastAPI Swagger UI** will open, allowing you to view and test all available API endpoints directly from your browser.
-## Step 5: Open the Forwarded Port (GitHub Codespaces)
-
-After starting the FastAPI server, open the **Ports** tab in VS Code (usually located in the bottom panel).
-
-1. Locate **Port 8000** in the list.
-2. Click the **🌐 Open in Browser** (or globe) icon next to Port **8000**.
-
-This will open a URL similar to:
-
-```text
-https://your-codespace-name-8000.app.github.dev
-```
-
-> **Note:** The URL will be different for each Codespace.
+FastAPI Swagger UI will open.
 
 ---
 
-## Step 6: Open the API Documentation
+# Option 2: Run Locally in VS Code (Windows)
 
-Append **`/docs`** to the forwarded URL:
+## Step 1: Open Project Folder
+
+Open the project in VS Code.
+
+The terminal should be at:
 
 ```text
-https://your-codespace-name-8000.app.github.dev/docs
+D:\project\Smart_Steering_Wheel_Project
 ```
 
-If everything is configured correctly, the **FastAPI Swagger UI** will open, allowing you to view and test all available API endpoints directly from your browser.
+---
+
+## Step 2: Create Virtual Environment
+
+```powershell
+py -m venv venv
+```
+
+or:
+
+```powershell
+python -m venv venv
+```
+
+---
+
+## Step 3: Activate Virtual Environment
+
+For PowerShell:
+
+```powershell
+.\venv\Scripts\Activate.ps1
+```
+
+If execution policy error occurs:
+
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
+```
+
+Activate again:
+
+```powershell
+.\venv\Scripts\Activate.ps1
+```
+
+Successful activation:
+
+```text
+(venv)
+```
+
+---
+
+## Step 4: Install Dependencies
+
+Run from the main project folder:
+
+```powershell
+pip install -r backend/requirements.txt
+```
+
+---
+
+## Step 5: Run FastAPI Server
+
+Run:
+
+```powershell
+uvicorn backend.app.main:app --reload
+```
+
+The backend will start at:
+
+```text
+http://127.0.0.1:8000
+```
+
+---
+
+## Step 6: Open API Documentation
+
+Open:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+The FastAPI Swagger UI will open.
+
+---
+
+# Stop Server
+
+To stop the backend server:
+
+```text
+Ctrl + C
+```
+
+---
+
+# Deactivate Virtual Environment
+
+When finished:
+
+```bash
+deactivate
+```

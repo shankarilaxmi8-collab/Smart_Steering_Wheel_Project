@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DriverTwinTelemetryV1",
+  "type": "object",
+  "required": ["schema_version", "event_time_ns", "sequence", "wheel_angle_deg", "heart_rate_bpm", "risk"],
+  "properties": {
+    "schema_version": {"const": "driver-twin.v1"},
+    "event_time_ns": {"type": "integer", "minimum": 0},
+    "sequence": {"type": "integer", "minimum": 0},
+    "wheel_angle_deg": {"type": "number", "minimum": -540, "maximum": 540},
+    "heart_rate_bpm": {"type": "number", "minimum": 0, "maximum": 260},
+    "gsr_us": {"type": "number", "minimum": 0},
+    "risk": {"enum": ["NORMAL", "WARNING", "CRITICAL", "UNKNOWN"]}
+  }
+}

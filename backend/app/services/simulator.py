@@ -10,7 +10,6 @@ df = pd.read_csv(DATA_PATH)
 # Keeps track of the current row
 current_index = 0
 
-
 def get_sensor_data():
     global current_index
 
@@ -21,6 +20,7 @@ def get_sensor_data():
         "heart_rate": float(row["hr_rolling_mean"]),
         "hrv": float(row["hr_rolling_std"]),
         "gsr": float(row["gsr_rolling_mean"]),
+        "grip_pressure": 4.0,
         "skin_temperature": float(row["temp_rolling_mean"]),
         "condition": "NORMAL" if row["condition_label"] == 0 else "ALERT"
     }

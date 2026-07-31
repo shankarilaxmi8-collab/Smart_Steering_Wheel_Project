@@ -19,9 +19,9 @@ import {
 
 function DashboardLayout() {
 
-  /*const { data, loading, error } = useDriverData();
+  const { data, loading, error } = useDriverData();
 
-  if (loading) {
+  /*if (loading) {
     return <h2 className="text-green p-6">Loading...</h2>;
   }
 
@@ -63,7 +63,7 @@ function DashboardLayout() {
 
                   <MetricCard
                     title="Heart Rate"
-                    value="72"
+                    value={data.vitals.heartRate}
                     unit="BPM"
                     status="Normal"
                     lastUpdated="Just now"
@@ -72,7 +72,7 @@ function DashboardLayout() {
 
                   <MetricCard
                     title="HRV"
-                    value="45"
+                    value={data.vitals.hrv}
                     unit="ms"
                     status="Stable"
                     lastUpdated="Just now"
@@ -81,7 +81,7 @@ function DashboardLayout() {
 
                   <MetricCard
                     title="Sweat"
-                    value="2.4"
+                    value={data.vitals.sweat}
                     unit="µS"
                     status="Normal"
                     lastUpdated="Just now"
@@ -90,7 +90,7 @@ function DashboardLayout() {
 
                   <MetricCard
                     title="Palm Temp"
-                    value="36.6"
+                    value={data.vitals.palmTemp}
                     unit="°C"
                     status="Normal"
                     lastUpdated="Just now"

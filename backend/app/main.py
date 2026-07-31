@@ -1,11 +1,12 @@
 from fastapi import FastAPI
-from app.services.simulator import get_sensor_data
-from app.models.schemas import DriverStatus
+from backend.app.services.simulator import get_sensor_data
+from backend.app.models.schemas import DriverStatus
 from fastapi import WebSocket
-from app.websocket.manager import manager
+from backend.app.websocket.manager import manager
 import asyncio
 from fastapi.middleware.cors import CORSMiddleware
 from AIML.Week4.predict_risk import predict_risk
+
 
 app = FastAPI(
     title="Smart Steering Wheel API",
@@ -25,7 +26,24 @@ def health():
 
 @app.get("/api/v1/status", response_model=DriverStatus)
 def status():
-    return get_sensor_data()
+    print("AI STATUS ROUTE RUNNING")
+
+    sensor = get_sensor_data()
+
+    features = [
+        sensor["heart_rate"],
+        sensor["gsr"],
+        sensor["grip_pressure"],
+        sensor["skin_temperature"]
+    ]
+
+    prediction = predict_risk(features)
+
+    print("PREDICTION:", prediction)
+
+    sensor["prediction"] = prediction
+
+    return sensor
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -41,7 +59,6 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception:
         manager.disconnect(websocket)
 
-app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
@@ -50,6 +67,3 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-sensor = get_sensor_data()
-prediction = predict(sensor)
