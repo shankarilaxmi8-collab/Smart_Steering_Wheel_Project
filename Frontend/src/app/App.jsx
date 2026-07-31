@@ -8,7 +8,7 @@ import { getDriverStatus } from "../services/api/api";
 
 function App() {
 
-  useEffect(() => {
+  /*useEffect(() => {
 
     async function load() {
 
@@ -28,7 +28,7 @@ function App() {
 
     load();
 
-  }, []);
+  }, []);*/
 
   return (
     <DashboardLayout />

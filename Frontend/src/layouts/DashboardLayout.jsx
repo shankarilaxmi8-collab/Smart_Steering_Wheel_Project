@@ -19,7 +19,7 @@ import {
 
 function DashboardLayout() {
 
-  const { data, loading, error } = useDriverData();
+  /*const { data, loading, error } = useDriverData();
 
   if (loading) {
     return <h2 className="text-green p-6">Loading...</h2>;
@@ -27,7 +27,7 @@ function DashboardLayout() {
 
   if (error) {
     return <h2 className="text-red-500 p-6">Backend Connection Failed</h2>;
-  }
+  }*/
 
   return (
     <div className="h-screen flex flex-col">
