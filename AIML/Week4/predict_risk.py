@@ -1,68 +1,75 @@
 import os
 import sys
-from pathlib import Path
-
-print("=== STARTING WEEK 4 INFERENCE TEST ===")
-
-try:
-    import joblib
-    print("Joblib loaded successfully.")
-except ImportError:
-    print("ERROR: joblib is not installed! Run 'pip install joblib'")
-    sys.exit(1)
-
+import joblib
 from collections import deque
 
-BASE_DIR = Path(__file__).resolve().parents[1]
-model_file = BASE_DIR / "Week3" / "Model Output" / "cardiac_model.joblib"
-
-print(f"Checking for model file at: {model_file}")
-
-if not os.path.exists(model_file):
-    print("ERROR: Model file missing! Check your Week 3 output folder.")
-    sys.exit(1)
-
-print("Model file found! Loading model into memory...")
-model = joblib.load(model_file)
-print("Model successfully loaded!")
-
 class CardiacInferenceEngine:
-    def __init__(self, trained_model, buffer_size=3):
-        self.model = trained_model
+    def __init__(self, model_path=None, buffer_size=3):
+        """
+        Inference engine with Hysteresis / Stabilization Filter.
+        """
+        if model_path is None:
+            # Determine path relative to this script's directory
+            SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+            PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, "..", ".."))
+            model_path = os.path.join(PROJECT_ROOT, "AIML", "Week3", "ModelOutput", "cardiac_model.joblib")
+
+        if not os.path.exists(model_path):
+            raise FileNotFoundError(f"Model file not found at: {model_path}")
+
+        self.model = joblib.load(model_path)
         self.buffer_size = buffer_size
         self.prediction_history = deque(maxlen=buffer_size)
         self.current_stable_state = 0
         self.labels = {0: "Normal", 1: "Warning", 2: "Critical"}
 
     def process_sample(self, features):
+        """
+        Processes a single feature vector [hr_mean, hr_std, gsr_mean, temp_mean]
+        and returns stabilized risk analysis.
+        """
         raw_pred = int(self.model.predict([features])[0])
         self.prediction_history.append(raw_pred)
 
+        # Hysteresis Filter Logic
         if len(self.prediction_history) == self.buffer_size:
             if all(p == raw_pred for p in self.prediction_history):
                 self.current_stable_state = raw_pred
 
         return {
-            "raw": self.labels[raw_pred],
-            "stabilized": self.labels[self.current_stable_state],
-            "buffer": list(self.prediction_history)
+            "raw_prediction": raw_pred,
+            "raw_label": self.labels[raw_pred],
+            "stabilized_state": self.current_stable_state,
+            "stabilized_label": self.labels[self.current_stable_state],
+            "buffer_history": list(self.prediction_history)
         }
 
-engine = CardiacInferenceEngine(model, buffer_size=3)
 
-sample_stream = [
-    [72.5, 2.1, 4.2, 36.6],    # Normal
-    [73.0, 2.0, 4.1, 36.5],    # Normal
-    [145.0, 15.2, 18.5, 38.9],  # Sudden noisy spike
-    [74.0, 2.2, 4.3, 36.6],    # Back to Normal
-    [150.0, 16.0, 19.0, 39.1],  # Critical Start
-    [152.0, 16.5, 19.2, 39.2],  # Critical Persistent
-    [151.0, 16.1, 19.1, 39.0],  # Critical Confirmed
-]
+# --- GLOBAL SINGLETON FOR EASY BACKEND IMPORT ---
+_engine_instance = None
 
-print("\n--- STABILIZATION INFERENCE RESULTS ---")
-for i, sample in enumerate(sample_stream, 1):
-    res = engine.process_sample(sample)
-    print(f"Sec {i}: Raw = {res['raw']:<8} | Stabilized = {res['stabilized']:<8} | Buffer = {res['buffer']}")
+def get_engine():
+    global _engine_instance
+    if _engine_instance is None:
+        _engine_instance = CardiacInferenceEngine()
+    return _engine_instance
 
-print("\n=== WEEK 4 INFERENCE TEST COMPLETE ===")
+
+def predict_risk(features):
+    """
+    Backend Handoff Function:
+    Accepts raw features [hr_mean, hr_std, gsr_mean, temp_mean]
+    and returns stabilized risk prediction dictionary.
+    """
+    engine = get_engine()
+    return engine.process_sample(features)
+
+
+# --- OPTIONAL TEST RUNNER ---
+if __name__ == "__main__":
+    print("=== TESTING BACKEND PREDICT_RISK FUNCTION ===")
+    test_vitals = [72.5, 2.1, 4.2, 36.6]
+    result = predict_risk(test_vitals)
+    print(f"Sample Input: {test_vitals}")
+    print(f"Prediction Output: {result}")
+    print("=== TEST PASSED ===")

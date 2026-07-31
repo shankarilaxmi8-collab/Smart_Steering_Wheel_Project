@@ -8,7 +8,7 @@ from sklearn.metrics import classification_report, confusion_matrix
 # 1. Define Exact File Paths matching your folder tree
 BASE_DIR = "D:/ITR_PROJECT_FINAL/AIML"
 
-data_path = os.path.join(BASE_DIR, "Week 2", "Dataset Processed", "processed_driver_features.csv")
+data_path = os.path.join(BASE_DIR, "Week2", "DatasetProcessed", "processed_driver_features.csv")
 
 # Create a Model Output subfolder in Week 3 if it doesn't exist
 week3_dir = os.path.join(BASE_DIR, "Week 3")

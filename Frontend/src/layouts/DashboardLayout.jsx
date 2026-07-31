@@ -8,6 +8,7 @@ import SensorStatus from "../features/dashboard/components/SensorStatus/SensorSt
 import AlertsPanel from "../features/dashboard/components/AlertsPanel/AlertsPanel";
 import DriverProfile from "../features/dashboard/components/DriverProfile/DriverProfile";
 import driverData from "../data/driverData";
+import useDriverData from "../hooks/useDriverData";
 
 import {
   Heart,
@@ -17,6 +18,17 @@ import {
 } from "lucide-react";
 
 function DashboardLayout() {
+
+  const { data, loading, error } = useDriverData();
+
+  if (loading) {
+    return <h2 className="text-green p-6">Loading...</h2>;
+  }
+
+  if (error) {
+    return <h2 className="text-red-500 p-6">Backend Connection Failed</h2>;
+  }
+
   return (
     <div className="h-screen flex flex-col">
 
@@ -51,30 +63,38 @@ function DashboardLayout() {
 
                   <MetricCard
                     title="Heart Rate"
-                    value={driverData.vitals.heartRate}
+                    value="72"
                     unit="BPM"
-                    icon={<Heart className="text-emerald-400" size={34} />}
+                    status="Normal"
+                    lastUpdated="Just now"
+                    icon={<Heart size={26} />}
                   />
 
                   <MetricCard
                     title="HRV"
-                    value={driverData.vitals.hrv}
+                    value="45"
                     unit="ms"
-                    icon={<Activity className="text-emerald-400" size={34} />}
+                    status="Stable"
+                    lastUpdated="Just now"
+                    icon={<Activity size={26} />}
                   />
 
                   <MetricCard
                     title="Sweat"
-                    value={driverData.vitals.sweat}
+                    value="2.4"
                     unit="µS"
-                    icon={<Droplets className="text-emerald-400" size={34} />}
+                    status="Normal"
+                    lastUpdated="Just now"
+                    icon={<Droplets size={26} />}
                   />
 
                   <MetricCard
                     title="Palm Temp"
-                    value={driverData.vitals.palmTemp}
+                    value="36.6"
                     unit="°C"
-                    icon={<Thermometer className="text-emerald-400" size={34} />}
+                    status="Normal"
+                    lastUpdated="Just now"
+                    icon={<Thermometer size={26} />}
                   />
 
                 </div>

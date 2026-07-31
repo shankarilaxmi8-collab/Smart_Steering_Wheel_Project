@@ -1,3 +1,4 @@
+import { useContext } from "react";
 import {
   LayoutDashboard,
   HeartPulse,
@@ -6,42 +7,134 @@ import {
   Settings,
 } from "lucide-react";
 
-function Sidebar() {
-  return (
-    <aside className="w-72 bg-[#111827] text-white">
+import { ThemeContext } from "../../../app/providers";
 
-      <div className="p-6 text-xl font-bold">
-        Navigation
+function Sidebar() {
+  const { theme } = useContext(ThemeContext);
+
+  const menuItems = [
+    { icon: LayoutDashboard, label: "Dashboard", active: true },
+    { icon: HeartPulse, label: "Vitals" },
+    { icon: ChartColumn, label: "Analytics" },
+    { icon: History, label: "History" },
+    { icon: Settings, label: "Settings" },
+  ];
+
+  return (
+    <aside
+      className="w-72 flex flex-col justify-between transition-all duration-300"
+      style={{
+        backgroundColor: theme.surface,
+        borderRight: `1px solid ${theme.border}`,
+      }}
+    >
+      {/* Top */}
+
+      <div>
+
+        <div className="p-8">
+
+          <h2
+            className="text-xl font-bold"
+            style={{ color: theme.text }}
+          >
+            Steering AI
+          </h2>
+
+          <p
+            className="text-sm mt-1"
+            style={{ color: theme.textSecondary }}
+          >
+            Vehicle Dashboard
+          </p>
+
+        </div>
+
+        <nav className="px-4 space-y-2">
+
+          {menuItems.map(({ icon: Icon, label, active }) => (
+            <button
+              key={label}
+              className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300"
+              style={{
+                backgroundColor: active
+                  ? theme.primary
+                  : "transparent",
+
+                color: active
+                  ? "#FFFFFF"
+                  : theme.textSecondary,
+              }}
+            >
+              <Icon size={20} />
+
+              <span className="font-medium">
+                {label}
+              </span>
+            </button>
+          ))}
+
+        </nav>
+
       </div>
 
-      <nav className="space-y-2 px-4">
+      {/* Bottom */}
 
-        <button className="w-full flex items-center gap-3 p-4 rounded-lg bg-emerald-600">
-          <LayoutDashboard size={20} />
-          Dashboard
-        </button>
+      <div
+        className="m-5 p-5 rounded-2xl"
+        style={{
+          backgroundColor: theme.surfaceSecondary,
+        }}
+      >
 
-        <button className="w-full flex items-center gap-3 p-4 rounded-lg hover:bg-slate-800">
-          <HeartPulse size={20} />
-          Vitals
-        </button>
+        <p
+          className="text-xs uppercase tracking-widest mb-3"
+          style={{
+            color: theme.textSecondary,
+          }}
+        >
+          System
+        </p>
 
-        <button className="w-full flex items-center gap-3 p-4 rounded-lg hover:bg-slate-800">
-          <ChartColumn size={20} />
-          Analytics
-        </button>
+        <div className="flex items-center gap-2">
 
-        <button className="w-full flex items-center gap-3 p-4 rounded-lg hover:bg-slate-800">
-          <History size={20} />
-          History
-        </button>
+          <div
+            className="w-3 h-3 rounded-full animate-pulse"
+            style={{
+              backgroundColor: theme.success,
+            }}
+          />
 
-        <button className="w-full flex items-center gap-3 p-4 rounded-lg hover:bg-slate-800">
-          <Settings size={20} />
-          Settings
-        </button>
+          <span
+            className="font-semibold"
+            style={{
+              color: theme.success,
+            }}
+          >
+            Online
+          </span>
 
-      </nav>
+        </div>
+
+        <p
+          className="mt-3 text-sm"
+          style={{
+            color: theme.textSecondary,
+          }}
+        >
+          Driver Status
+        </p>
+
+        <p
+          className="font-semibold mt-1"
+          style={{
+            color: theme.text,
+          }}
+        >
+          Alert
+        </p>
+
+      </div>
 
     </aside>
   );
