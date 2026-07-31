@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import os
 import sys
 import joblib
@@ -73,3 +74,68 @@ if __name__ == "__main__":
     print(f"Sample Input: {test_vitals}")
     print(f"Prediction Output: {result}")
     print("=== TEST PASSED ===")
+=======
+import os
+import sys
+import joblib
+import pandas as pd
+from collections import deque
+
+class CardiacInferenceEngine:
+    def __init__(self, model_path=None, buffer_size=3):
+        if model_path is None:
+            SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+            PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, "..", ".."))
+            model_path = os.path.join(PROJECT_ROOT, "AIML", "Week3", "ModelOutput", "cardiac_model.joblib")
+            if not os.path.exists(model_path):
+                model_path = os.path.join(PROJECT_ROOT, "AIML", "Week 3", "Model Output", "cardiac_model.joblib")
+
+        if not os.path.exists(model_path):
+            raise FileNotFoundError(f"Model file not found at: {model_path}")
+
+        self.model = joblib.load(model_path)
+        self.buffer_size = buffer_size
+        self.prediction_history = deque(maxlen=buffer_size)
+        self.current_stable_state = 0
+        self.labels = {0: "Normal", 1: "Warning", 2: "Critical"}
+        self.feature_names = ["hr_rolling_mean", "hr_rolling_std", "gsr_rolling_mean", "temp_rolling_mean"]
+
+        # Warmup model execution
+        dummy_df = pd.DataFrame([[70.0, 2.0, 4.0, 36.5]], columns=self.feature_names)
+        self.model.predict(dummy_df)
+
+    def process_sample(self, features):
+        if isinstance(features, list):
+            features_df = pd.DataFrame([features], columns=self.feature_names)
+        else:
+            features_df = features
+
+        raw_pred = int(self.model.predict(features_df)[0])
+        self.prediction_history.append(raw_pred)
+
+        if len(self.prediction_history) == self.buffer_size:
+            if all(p == raw_pred for p in self.prediction_history):
+                self.current_stable_state = raw_pred
+
+        return {
+            "raw_prediction": raw_pred,
+            "raw_label": self.labels[raw_pred],
+            "stabilized_state": self.current_stable_state,
+            "stabilized_label": self.labels[self.current_stable_state],
+            "buffer_history": list(self.prediction_history)
+        }
+
+
+_engine_instance = None
+
+def get_engine():
+    global _engine_instance
+    if _engine_instance is None:
+        _engine_instance = CardiacInferenceEngine()
+    return _engine_instance
+
+
+def predict_risk(features):
+    engine = get_engine()
+    return engine.process_sample(features)
+>>>>>>> 8d0a8e8 (commit all files)

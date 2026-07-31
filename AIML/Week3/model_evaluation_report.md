@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Week 3 AI Model Evaluation Report
 
 ## Model Architecture
@@ -16,5 +17,18 @@ Critical (2)       1.00      1.00      1.00        16
     accuracy                           0.98        60
    macro avg       0.99      0.96      0.97        60
 weighted avg       0.98      0.98      0.98        60
+=======
+# Model Evaluation Report
+
+```
+              precision    recall  f1-score   support
+
+           0       0.98      0.98      0.98        48
+           1       0.92      0.92      0.92        12
+
+    accuracy                           0.97        60
+   macro avg       0.95      0.95      0.95        60
+weighted avg       0.97      0.97      0.97        60
+>>>>>>> 8d0a8e8 (commit all files)
 
 ```
