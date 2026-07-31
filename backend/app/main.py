@@ -1,11 +1,13 @@
 from fastapi import FastAPI
-from app.services.simulator import get_sensor_data
-from app.models.schemas import DriverStatus
+from backend.app.services.simulator import get_sensor_data
+from backend.app.models.schemas import DriverStatus
 from fastapi import WebSocket
-from app.websocket.manager import manager
+from backend.app.websocket.manager import manager
 import asyncio
 from fastapi.middleware.cors import CORSMiddleware
 from AIML.Week4.predict_risk import predict_risk
+from backend.app.models.schemas import DriverStatus
+from backend.app.websocket.manager import manager
 
 app = FastAPI(
     title="Smart Steering Wheel API",
