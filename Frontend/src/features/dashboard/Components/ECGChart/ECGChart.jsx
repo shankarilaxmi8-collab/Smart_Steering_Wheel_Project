@@ -4,7 +4,7 @@ import ECGWaveform from "../ECGWaveform/ECGWaveform";
 
 function ECGChart() {
   return (
-    <div className="bg-[#111827] rounded-3xl border border-gray-800 shadow-xl p-6 h-[420px] flex flex-col">
+    <div className="style={{ backgroundColor: theme.surface, border: `1px solid ${theme.border}`,}} rounded-3xl border border-gray-800 shadow-xl p-6 h-[420px] flex flex-col">
 
       {/* Header */}
       <div className="flex justify-between items-center mb-5">

@@ -1,22 +1,80 @@
-function MetricCard({ title, value, unit, icon }) {
-  return (
-    <div className="bg-[#111827] border border-gray-800 rounded-2xl p-6 shadow-lg flex flex-col justify-center items-center h-44">
+import { useContext } from "react";
+import { ThemeContext } from "../../../../app/providers";
 
-      <div className="text-3xl mb-3">
-        {icon}
+function MetricCard({
+  title,
+  value,
+  unit,
+  icon,
+  status = "Normal",
+  lastUpdated = "Just now",
+}) {
+  const { theme } = useContext(ThemeContext);
+
+  return (
+    <div
+      className="rounded-3xl p-6 h-52 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+      style={{
+        backgroundColor: theme.surface,
+        border: `1px solid ${theme.border}`,
+      }}
+    >
+      {/* Top */}
+      <div className="flex items-center justify-between">
+        <div
+          className="w-12 h-12 rounded-2xl flex items-center justify-center"
+          style={{
+            backgroundColor: theme.surfaceSecondary,
+            color: theme.primary,
+          }}
+        >
+          {icon}
+        </div>
+
+        <span
+          className="px-3 py-1 rounded-full text-xs font-semibold"
+          style={{
+            backgroundColor: theme.success + "20",
+            color: theme.success,
+          }}
+        >
+          {status}
+        </span>
       </div>
 
-      <h3 className="text-gray-400 text-sm uppercase tracking-wider">
-        {title}
-      </h3>
+      {/* Middle */}
+      <div>
+        <p
+          className="text-sm mb-2"
+          style={{ color: theme.textSecondary }}
+        >
+          {title}
+        </p>
 
-      <p className="text-white text-3xl font-bold mt-3">
-        {value}
-        <span className="text-lg ml-1 text-gray-400">
-          {unit}
-        </span>
-      </p>
+        <div className="flex items-end gap-2">
+          <span
+            className="text-4xl font-bold"
+            style={{ color: theme.text }}
+          >
+            {value}
+          </span>
 
+          <span
+            className="text-base mb-1"
+            style={{ color: theme.textSecondary }}
+          >
+            {unit}
+          </span>
+        </div>
+      </div>
+
+      {/* Bottom */}
+      <div
+        className="text-xs"
+        style={{ color: theme.textSecondary }}
+      >
+        Updated {lastUpdated}
+      </div>
     </div>
   );
 }
