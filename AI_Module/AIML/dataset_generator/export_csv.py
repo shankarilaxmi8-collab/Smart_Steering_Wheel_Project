@@ -1,25 +1,32 @@
 import pandas as pd
 
-from generator import generate_driver
+from AI_Module.AIML.dataset_generator.generator import generate_driver
+
 
 all_rows = []
 
-NUMBER_OF_DRIVERS = 30
+driver_count = 10
 
-for driver_id in range(1, NUMBER_OF_DRIVERS + 1):
+
+for driver_id in range(driver_count):
 
     rows = generate_driver(driver_id)
 
     all_rows.extend(rows)
 
+
 df = pd.DataFrame(all_rows)
 
-df.to_csv("generated_dataset.csv", index=False)
 
 print(df.head())
 
-print()
+print("\nDataset Shape :", df.shape)
 
-print("Dataset Shape :", df.shape)
+
+df.to_csv(
+    "AI_Module/AIML/dataset_generator/generated_dataset.csv",
+    index=False
+)
+
 
 print("Saved Successfully")

@@ -1,15 +1,7 @@
 import random
-from physiology import Driver
 
-STATES = [
-
-    ("NORMAL", 180),
-
-    ("WARNING", 40),
-
-    ("CARDIAC_EVENT", 80)
-
-]
+from AI_Module.AIML.dataset_generator.physiology import Driver
+from AI_Module.AIML.dataset_generator.scenarios import SCENARIOS
 
 
 def generate_driver(driver_id):
@@ -18,30 +10,49 @@ def generate_driver(driver_id):
 
     rows = []
 
-    timestamp = 0
+    states = [
+        "NORMAL",
+        "WARNING",
+        "CARDIAC_EVENT"
+    ]
 
-    for state, duration in STATES:
+    for state in states:
 
-        for _ in range(duration):
+        scenario = SCENARIOS[state]
 
-            values = driver.update(state)
+        for i in range(3000):
 
-            values["driver_id"] = driver_id
+            data = driver.update(state)
 
-            values["timestamp_offset"] = timestamp
+            row = {
 
-            values["condition_label"] = {
+                "heart_rate_bpm": data["heart_rate_bpm"],
 
-                "NORMAL":0,
+                "sweat_microsiemens": data["sweat_microsiemens"],
 
-                "WARNING":1,
+                "skin_temp_celsius": data["skin_temp_celsius"],
 
-                "CARDIAC_EVENT":2
+                "grip_force_newton": data["grip_force_newton"],
 
-            }[state]
+                # ECG FEATURE ADDED
+                "ecg_signal": data["ecg_signal"],
 
-            rows.append(values)
+                "rr_interval_ms": data["rr_interval_ms"],
 
-            timestamp += 1
+                "qrs_duration_ms": data["qrs_duration_ms"],
+
+                "st_deviation_mv": data["st_deviation_mv"],
+
+                "qt_interval_ms": data["qt_interval_ms"],
+
+                "driver_id": driver_id,
+
+                "timestamp_offset": i,
+
+                "condition_label": scenario["label"]
+
+            }
+
+            rows.append(row)
 
     return rows

@@ -22,6 +22,7 @@ SCENARIOS = {
 
     },
 
+
     "WARNING": {
 
         "label": 1,
@@ -43,6 +44,7 @@ SCENARIOS = {
         "qt": (390, 450)
 
     },
+
 
     "CARDIAC_EVENT": {
 
