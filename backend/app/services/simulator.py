@@ -31,3 +31,42 @@ def get_sensor_data():
         current_index = 0
 
     return data
+
+import math
+import numpy as np
+
+def generate_ecg_chunk(heart_rate: int, num_samples: int = 50) -> list[float]:
+    """
+    Generates a realistic PQRST ECG wave segment.
+    """
+    bpm = max(40, min(180, heart_rate))
+    frequency = bpm / 60.0  # Hz
+    t = np.linspace(0, 1 / frequency, num_samples)
+    
+    # Base baseline wave
+    ecg = 0.05 * np.sin(2 * np.pi * frequency * t)
+    
+    # Simple synthetic P-Q-R-S-T component approximation
+    for i, ti in enumerate(t):
+        phase = (ti * frequency) % 1.0
+        # P wave
+        if 0.10 <= phase <= 0.20:
+            ecg[i] += 0.15 * math.sin(np.pi * (phase - 0.10) / 0.10)
+        # Q wave
+        elif 0.32 <= phase <= 0.35:
+            ecg[i] -= 0.15
+        # R wave (sharp spike)
+        elif 0.35 < phase <= 0.40:
+            ecg[i] += 1.2 * math.sin(np.pi * (phase - 0.35) / 0.05)
+        # S wave
+        elif 0.40 < phase <= 0.45:
+            ecg[i] -= 0.25
+        # T wave
+        elif 0.60 <= phase <= 0.75:
+            ecg[i] += 0.25 * math.sin(np.pi * (phase - 0.60) / 0.15)
+            
+    # Add slight random noise for realism
+    noise = np.random.normal(0, 0.02, num_samples)
+    ecg_signal = (ecg + noise).round(3).tolist()
+    
+    return ecg_signal
