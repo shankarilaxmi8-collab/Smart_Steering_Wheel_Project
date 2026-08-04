@@ -3,3 +3,8 @@ __pycache__/
 *.pyc
 .pytest_cache/
 .vscode/
+
+__pycache__/
+*.pyc
+venv/
+telemetry.db
