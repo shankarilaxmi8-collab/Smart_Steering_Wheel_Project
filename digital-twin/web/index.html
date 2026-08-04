@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Wheel Digital Twin</title>
+    <link rel="stylesheet" href="/assets/styles.css" />
+  </head>
+  <body>
+    <main>
+      <section class="scene-wrap"><canvas id="scene"></canvas><div class="badge" id="connection">Connecting…</div></section>
+      <aside>
+        <p class="eyebrow">INTERNAL MVP · DIGITAL TWIN</p><h1>Smart Steering Wheel</h1>
+        <div class="risk" id="risk">NORMAL</div><p id="alert">No active alert</p>
+        <div class="metrics">
+          <div><span>Heart rate</span><strong id="hr">--</strong><small>BPM</small></div>
+          <div><span>GSR</span><strong id="gsr">--</strong><small>µS</small></div>
+          <div><span>Wheel angle</span><strong id="wheel">--</strong><small>degrees</small></div>
+          <div><span>Lane offset</span><strong id="lane">--</strong><small>metres</small></div>
+        </div>
+        <label for="steering">Steering input <output id="steeringOut">0%</output></label>
+        <input id="steering" type="range" min="-100" max="100" value="0" />
+        <p class="help">Use A / D keys or the slider. The scene and telemetry share one live stream.</p>
+        <div class="actions"><button data-scenario="normal">Normal</button><button data-scenario="warning">Warning</button><button data-scenario="critical">Critical</button></div>
+        <footer><span id="speed">-- km/h</span><span id="sequence">packet --</span></footer>
+      </aside>
+    </main>
+    <script type="module" src="/assets/app.js"></script>
+  </body>
+</html>
