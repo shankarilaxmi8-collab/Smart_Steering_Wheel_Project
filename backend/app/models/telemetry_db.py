@@ -14,3 +14,4 @@ class TelemetryLog(Base):
     skin_temperature = Column(Float, nullable=False)
     raw_prediction = Column(String, nullable=False)
     stabilized_prediction = Column(String, nullable=False)
+    alert_level = Column(String, default="NORMAL")  # Stores 'NORMAL', 'WARNING', or 'CRITICAL'

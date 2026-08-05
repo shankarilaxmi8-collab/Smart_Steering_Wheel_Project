@@ -1,17 +1,15 @@
-# backend/app/services/ros_bridge.py
 import asyncio
 
-# Safe import for rclpy on Windows environments
 try:
     import rclpy
     from rclpy.node import Node
-    from std_msgs.msg import Float32, Int32
+    from std_msgs.msg import Float32, Int32, String
     ROS2_AVAILABLE = True
 except ImportError:
     ROS2_AVAILABLE = False
-    Node = object  # Dummy base class when ROS 2 is not available
+    Node = object
 
-from AIML.Week4.predict_risk import predict_risk
+from AI_Module.AIML.Week4.predict_risk import predict_risk
 from backend.app.websocket.manager import manager
 from backend.app.database import SessionLocal
 from backend.app.models.telemetry_db import TelemetryLog
@@ -19,17 +17,17 @@ from backend.app.models.telemetry_db import TelemetryLog
 
 class ROS2BridgeNode(Node):
     def __init__(self, loop):
+        self.loop = loop
+        self.emergency_publisher = None
+
         if ROS2_AVAILABLE:
             super().__init__('ros2_fastapi_bridge')
-            # ROS 2 Topic Subscriptions
             self.create_subscription(Int32, '/heart_rate', self.hr_callback, 10)
             self.create_subscription(Float32, '/skin_temperature', self.temp_callback, 10)
             self.create_subscription(Float32, '/gsr', self.gsr_callback, 10)
             self.create_subscription(Float32, '/grip_pressure', self.grip_callback, 10)
+            self.emergency_publisher = self.create_publisher(String, '/vehicle/emergency_stop', 10)
 
-        self.loop = loop
-
-        # In-memory buffer for current telemetry frame
         self.current_frame = {
             "heart_rate": 75.0,
             "gsr": 2.0,
@@ -38,8 +36,16 @@ class ROS2BridgeNode(Node):
             "prediction": {}
         }
 
+    def _trigger_emergency_stop(self, status: str):
+        if ROS2_AVAILABLE and self.emergency_publisher:
+            msg = String()
+            msg.data = f"EMERGENCY_STOP_ACTIVE: Driver Risk Level is {status}"
+            self.emergency_publisher.publish(msg)
+            self.get_logger().error(f"🚨 CRITICAL ALERT PUBLISHED: {msg.data}")
+        else:
+            print(f"🚨 [MOCK EMERGENCY TRIGGER]: Status is {status}")
+
     def _process_and_broadcast(self):
-        # 1. Prepare feature vector for ML model
         features = [
             self.current_frame["heart_rate"],
             self.current_frame["gsr"],
@@ -47,17 +53,19 @@ class ROS2BridgeNode(Node):
             self.current_frame["skin_temperature"]
         ]
 
-        # 2. Run ML prediction engine
         prediction = predict_risk(features)
         self.current_frame["prediction"] = prediction
 
-        # 3. Broadcast to WebSocket clients
+        status = prediction.get("stabilized_prediction", "Normal").upper()
+
+        if status == "CRITICAL":
+            self._trigger_emergency_stop(status)
+
         asyncio.run_coroutine_threadsafe(
             manager.send_json(self.current_frame),
             self.loop
         )
 
-        # 4. Save entry to Database
         db = SessionLocal()
         try:
             log_entry = TelemetryLog(
@@ -66,16 +74,14 @@ class ROS2BridgeNode(Node):
                 grip_pressure=self.current_frame["grip_pressure"],
                 skin_temperature=self.current_frame["skin_temperature"],
                 raw_prediction=prediction.get("raw_prediction", "Normal"),
-                stabilized_prediction=prediction.get("stabilized_prediction", "Normal")
+                stabilized_prediction=prediction.get("stabilized_prediction", "Normal"),
+                alert_level=status
             )
             db.add(log_entry)
             db.commit()
         except Exception as err:
             db.rollback()
-            if ROS2_AVAILABLE:
-                self.get_logger().error(f"DB Write Error: {err}")
-            else:
-                print(f"DB Write Error: {err}")
+            print(f"DB Write Error: {err}")
         finally:
             db.close()
 

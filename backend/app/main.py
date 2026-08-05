@@ -5,7 +5,6 @@ from fastapi import FastAPI, WebSocket, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
-# Safe import for rclpy
 try:
     import rclpy
     ROS2_AVAILABLE = True
@@ -15,7 +14,7 @@ except ImportError:
 from backend.app.services.simulator import get_sensor_data
 from backend.app.models.schemas import DriverStatus
 from backend.app.websocket.manager import manager
-from AIML.Week4.predict_risk import predict_risk
+from AI_Module.AIML.Week4.predict_risk import predict_risk
 from backend.app.services.ros_bridge import ROS2BridgeNode
 from backend.app.database import Base, engine, get_db
 from backend.app.models.telemetry_db import TelemetryLog
@@ -28,10 +27,9 @@ def spin_ros(node):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialize DB Tables
+    # Ensure database tables exist
     Base.metadata.create_all(bind=engine)
 
-    # Initialize ROS 2 Node if rclpy is available
     if ROS2_AVAILABLE:
         rclpy.init()
         loop = asyncio.get_running_loop()
@@ -40,7 +38,7 @@ async def lifespan(app: FastAPI):
         ros_thread.start()
         print("🚀 ROS 2 Bridge started successfully.")
     else:
-        print("⚠️ rclpy not found! Running backend in Windows standalone/simulation mode.")
+        print("⚠️ rclpy not found! Running backend in standalone mode.")
 
     yield
 
@@ -56,7 +54,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -70,10 +68,7 @@ def root():
 
 @app.get("/api/v1/health")
 def health():
-    return {
-        "status": "healthy",
-        "version": "1.0"
-    }
+    return {"status": "healthy", "version": "1.0"}
 
 
 @app.get("/api/v1/status", response_model=DriverStatus)
@@ -92,16 +87,68 @@ def status():
 
 @app.get("/api/v1/history")
 def get_history(limit: int = 50, db: Session = Depends(get_db)):
-    logs = db.query(TelemetryLog).order_by(TelemetryLog.timestamp.desc()).limit(limit).all()
-    return logs[::-1]
+    try:
+        logs = db.query(TelemetryLog).order_by(TelemetryLog.timestamp.desc()).limit(limit).all()
+        return [
+            {
+                "id": log.id,
+                "timestamp": str(log.timestamp) if log.timestamp else None,
+                "heart_rate": log.heart_rate,
+                "gsr": log.gsr,
+                "grip_pressure": log.grip_pressure,
+                "skin_temperature": log.skin_temperature,
+                "raw_prediction": log.raw_prediction,
+                "stabilized_prediction": log.stabilized_prediction,
+                "alert_level": getattr(log, "alert_level", "NORMAL")
+            }
+            for log in logs
+        ][::-1]
+    except Exception as e:
+        return {"error": f"Database Query Error: {str(e)}"}
 
 
 @app.get("/api/v1/sensors")
 def get_latest_sensors(db: Session = Depends(get_db)):
-    latest_log = db.query(TelemetryLog).order_by(TelemetryLog.timestamp.desc()).first()
-    if not latest_log:
-        return {"message": "No sensor data available yet"}
-    return latest_log
+    try:
+        log = db.query(TelemetryLog).order_by(TelemetryLog.timestamp.desc()).first()
+        if not log:
+            return {"message": "No sensor data logged yet."}
+
+        return {
+            "id": log.id,
+            "timestamp": str(log.timestamp) if log.timestamp else None,
+            "heart_rate": log.heart_rate,
+            "gsr": log.gsr,
+            "grip_pressure": log.grip_pressure,
+            "skin_temperature": log.skin_temperature,
+            "raw_prediction": log.raw_prediction,
+            "stabilized_prediction": log.stabilized_prediction,
+            "alert_level": getattr(log, "alert_level", "NORMAL")
+        }
+    except Exception as e:
+        return {"error": f"Database Query Error: {str(e)}"}
+
+
+@app.get("/api/v1/alerts")
+def get_critical_alerts(db: Session = Depends(get_db)):
+    try:
+        alerts = db.query(TelemetryLog).filter(TelemetryLog.alert_level == "CRITICAL").order_by(TelemetryLog.timestamp.desc()).all()
+        return [
+            {
+                "id": log.id,
+                "timestamp": str(log.timestamp) if log.timestamp else None,
+                "heart_rate": log.heart_rate,
+                "gsr": log.gsr,
+                "grip_pressure": log.grip_pressure,
+                "skin_temperature": log.skin_temperature,
+                "raw_prediction": log.raw_prediction,
+                "stabilized_prediction": log.stabilized_prediction,
+                "alert_level": log.alert_level
+            }
+            for log in alerts
+        ]
+    except Exception as e:
+        return {"error": f"Database Query Error: {str(e)}"}
 
 
 @app.websocket("/ws")
