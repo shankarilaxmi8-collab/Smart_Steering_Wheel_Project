@@ -55,9 +55,8 @@ function Header() {
           className="text-4xl font-bold tracking-wide"
           style={{ color: theme.text }}
         >
-          <h1 className="text-4xl font-bold tracking-wide">
             Smart-<span style={{ color: theme.primary }}>Steering</span> Wheel
-          </h1>
+        
         </h1>
 
         <p

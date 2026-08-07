@@ -1,0 +1,24 @@
+{
+  "name": "Smart Steering Wheel - AI/ML Environment",
+  "image": "mcr.microsoft.com/devcontainers/python:1-3.10-bullseye",
+  
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.formatting.provider": "black",
+        "editor.formatOnSave": true
+      },
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-toolsai.jupyter",
+        "njpwerner.autodocstring"
+      ]
+    }
+  },
+
+  "postCreateCommand": "pip install --upgrade pip && pip install -r requirements.txt",
+
+  "remoteUser": "vscode"
+}
