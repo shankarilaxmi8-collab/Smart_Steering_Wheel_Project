@@ -9,18 +9,18 @@ function ECGChart() {
   const { theme } = useContext(ThemeContext);
 
   return (
-    <div className= "rounded-3xl border border-gray-800 shadow-xl p-6 h-[480px] flex flex-col"
+    <div className = "rounded-3xl border shadow-xl p-4 h-[438px] flex flex-col"
       style={{ backgroundColor: theme.surface, border: `1px solid ${theme.border}`,}} >
 
       {/* Header */}
-      <div className="flex justify-between items-center mb-5">
+      <div className="flex justify-between items-center mb-2">
 
         <div>
           <h2
-            className="text-xl font-bold flex items-center gap-3"
+            className="text-lg font-bold flex items-center gap-3"
             style={{ color: theme.text }}
           >
-            <Activity size={20} color={theme.primary} />
+            <Activity size={18} color={theme.primary} />
             ECG Monitor
           </h2>
 
@@ -35,7 +35,7 @@ function ECGChart() {
         <div className="flex flex-col items-end">
 
           <div
-            className="flex items-center gap-2 px-4 py-2 rounded-full"
+            className="flex items-center gap-2 px-3 py-1 rounded-full"
             style={{
               backgroundColor: theme.success + "20",
               border: `1px solid ${theme.success}40`,
@@ -67,7 +67,7 @@ function ECGChart() {
 
       {/* ECG Display */}
       <div
-        className="flex-1 rounded-2xl flex items-center justify-center relative overflow-hidden"
+        className="flex-1 rounded-xl relative overflow-hidden"
         style={{
           backgroundColor: "#0F172A",
           border: `1px solid ${theme.border}`,
@@ -99,45 +99,45 @@ function ECGChart() {
       </div>
 
       {/* Footer */}
-      <div className="grid grid-cols-4 gap-6 mt-8">
+      <div className="grid grid-cols-4 gap-4 mt-3 pt-2 border-t border-slate-700">
 
         <div>
           <p
-            className="text-xs uppercase"
+            className="text-2xl semi-bold"
             style={{ color: theme.textSecondary }}
           >
             Heart Rate
           </p>
 
           <p
-            className="text-2xl font-bold"
+            className="text-lg font-bold"
             style={{ color: theme.text }}
           >
             {driverData.ecg.bpm} BPM
           </p>
         </div>
         <div>
-          <p className="text-xs uppercase" style={{ color: theme.textSecondary }}>
+          <p className="text-2xl font-semibold" style={{ color: theme.textSecondary }}>
             Signal
           </p>
 
-          <p className="font-semibold" style={{ color: theme.text }}>
+          <p className="text-lg font-bold" style={{ color: theme.text }}>
             {driverData.ecg.signal}
           </p>
         </div>
 
         <div>
-          <p className="text-xs uppercase" style={{ color: theme.textSecondary }}>
+          <p className="text-2xl font-semibold" style={{ color: theme.textSecondary }}>
             Sampling
           </p>
 
-          <p className="font-semibold" style={{ color: theme.text }}>
+          <p className="text-lg font-bold" style={{ color: theme.text }}>
             {driverData.ecg.sampling}
           </p>
         </div>
 
         <div>
-          <p className="text-xs uppercase" style={{ color: theme.textSecondary }}>
+          <p className="text-2xl font-semibold" style={{ color: theme.textSecondary }}>
             Status
           </p>
 

@@ -1,12 +1,14 @@
-/*import DashboardLayout from "../layouts/DashboardLayout";
-import DashboardPage from "../features/dashboard/DashboardPage";*/
+import { useEffect, useState } from "react";
 
 import DashboardLayout from "../layouts/DashboardLayout";
+import DriverSetup from "../pages/DriverSetupPage";
 
-import { useEffect } from "react";
 import { getDriverStatus } from "../services/api/api";
+import { getDriverProfile } from "../utils/storage";
 
 function App() {
+
+  const [profile, setProfile] = useState(null);
 
   useEffect(() => {
 
@@ -14,14 +16,18 @@ function App() {
 
       try {
 
+        const savedProfile = getDriverProfile();
+
+        setProfile(savedProfile);
+
         const data = await getDriverStatus();
 
         console.log(data);
 
       } catch (err) {
+
         console.error("API Error:", err);
-        alert(err.message);
-        setError(err);
+
       }
 
     }
@@ -30,9 +36,12 @@ function App() {
 
   }, []);
 
-  return (
-    <DashboardLayout />
+  return profile ? (
+    <DashboardLayout profile={profile} />
+  ) : (
+    <DriverSetup />
   );
+
 }
 
 export default App;

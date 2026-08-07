@@ -6,7 +6,7 @@
 
   padding: 28px;
 
-  min-height: 540px;
+  min-height: 430px;
 
 }
 
@@ -29,16 +29,19 @@
   justify-content: center;
   align-items: center;
 
-  gap: 15px;
+  gap:18px;
+  text-align:center;
+  transition:.3s;
 
   color: #6EE7B7;
 
 }
 
-.alert-success span {
+.alert-success span{
 
-  color: white;
-  font-size: 24px;
+  font-size:26px;
+
+  font-weight:700;
 
 }
 
@@ -79,5 +82,17 @@
 .message {
 
   color: #9ca3af;
+
+}
+
+.alert-success p{
+
+  font-size:14px;
+
+  max-width:280px;
+
+  line-height:1.6;
+
+  margin:0;
 
 }

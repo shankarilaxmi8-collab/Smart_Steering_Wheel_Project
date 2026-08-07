@@ -26,7 +26,33 @@ export default function useDriverData() {
 
         palmTemp: apiData.skin_temperature,
 
+        heartRateHistory: [
+          ...prev.vitals.heartRateHistory,
+          apiData.heart_rate,
+        ].slice(-60),
+
+        hrvHistory: [
+          ...prev.vitals.hrvHistory,
+          apiData.hrv,
+        ].slice(-60),
+
+        sweatHistory: [
+          ...prev.vitals.sweatHistory,
+          apiData.gsr,
+        ].slice(-60),
+
+        palmTempHistory: [
+          ...prev.vitals.palmTempHistory,
+          apiData.skin_temperature,
+        ].slice(-60),
+
       },
+
+      grip_pressure: apiData.grip_pressure,
+
+      condition: apiData.condition,
+
+      prediction: apiData.prediction,
 
 
       profile: {

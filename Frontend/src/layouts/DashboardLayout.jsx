@@ -1,33 +1,20 @@
+import { useState } from "react";
+
 import Header from "../components/layout/Header/Header";
 import Sidebar from "../components/layout/Sidebar/Sidebar";
-import StatusBanner from "../features/dashboard/components/StatusBanner/StatusBanner";
-import ECGChart from "../features/dashboard/components/ECGChart/ECGChart";
-import MetricCard from "../features/dashboard/components/MetricCard/MetricCard";
-import RiskAssessment from "../features/dashboard/components/RiskAssessment/RiskAssessment";
-import SensorStatus from "../features/dashboard/components/SensorStatus/SensorStatus";
-import AlertsPanel from "../features/dashboard/components/AlertsPanel/AlertsPanel";
-import DriverProfile from "../features/dashboard/components/DriverProfile/DriverProfile";
-import driverData from "../data/driverData";
+
 import useDriverData from "../hooks/useDriverData";
+import DashboardPage from "../pages/DashboardPage";
+import VitalsPage from "../pages/VitalsPage";
+import AnalyticsPage from "../pages/AnalyticsPage";
+import HistoryPage from "../pages/HistoryPage";
+import SettingsPage from "../pages/SettingsPage";
 
-import {
-  Heart,
-  Activity,
-  Thermometer,
-  Droplets,
-} from "lucide-react";
-
-function DashboardLayout() {
+function DashboardLayout({ profile }) {
 
   const { data, loading, error } = useDriverData();
 
-  /*if (loading) {
-    return <h2 className="text-green p-6">Loading...</h2>;
-  }
-
-  if (error) {
-    return <h2 className="text-red-500 p-6">Backend Connection Failed</h2>;
-  }*/
+  const [activeTab, setActiveTab] = useState("Dashboard");
 
   return (
     <div className="h-screen flex flex-col">
@@ -36,82 +23,52 @@ function DashboardLayout() {
 
       <div className="flex flex-1">
 
-        <Sidebar />
+        <Sidebar
+            profile={profile}
+            data={data}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+        />
 
         <main className="flex-1 bg-[#0D1117] p-6 overflow-auto">
 
-          <div className="grid grid-cols-12 gap-6">
+          {activeTab === "Dashboard" && (
+              <DashboardPage
+                  profile={profile}
+                  data={data}
+                  loading={loading}
+                  error={error}
+              />
+          )}
 
-            <div className="col-span-12">
-              <StatusBanner />
-            </div>
+          {activeTab === "Vitals" && (
+              <VitalsPage
+                  data={data}
+                  loading={loading}
+                  error={error}
+              />
+          )}
 
-            <div className="col-span-8">
-              <ECGChart />
+          {activeTab === "Analytics" && (
+              <AnalyticsPage
+                  data={data}
+                  loading={loading}
+                  error={error}
+              />
+          )}
 
-              <div className="grid grid-cols-2 gap-6 mt-6">
-                <RiskAssessment />
-                <SensorStatus />
-              </div>
-            </div>
+          {activeTab === "History" && (
+              <HistoryPage
+                  profile={profile}
+                  data={data}
+              />
+          )}
 
-            <div className="col-span-4">
-
-              <div className="flex flex-col gap-6">
-
-                <div className="grid grid-cols-2 gap-4">
-
-                  <MetricCard
-                    title="Heart Rate"
-                    value={data.vitals.heartRate}
-                    unit="BPM"
-                    status="Normal"
-                    lastUpdated="Just now"
-                    icon={<Heart size={26} />}
-                  />
-
-                  <MetricCard
-                    title="HRV"
-                    value={data.vitals.hrv}
-                    unit="ms"
-                    status="Stable"
-                    lastUpdated="Just now"
-                    icon={<Activity size={26} />}
-                  />
-
-                  <MetricCard
-                    title="Sweat"
-                    value={data.vitals.sweat}
-                    unit="µS"
-                    status="Normal"
-                    lastUpdated="Just now"
-                    icon={<Droplets size={26} />}
-                  />
-
-                  <MetricCard
-                    title="Palm Temp"
-                    value={data.vitals.palmTemp}
-                    unit="°C"
-                    status="Normal"
-                    lastUpdated="Just now"
-                    icon={<Thermometer size={26} />}
-                  />
-
-                </div>
-
-                <AlertsPanel />
-
-                <DriverProfile />
-
-              </div>
-
-            </div>
-
-            <div className="col-span-4">
-              Alerts
-            </div>
-
-          </div>
+          {activeTab === "Settings" && (
+              <SettingsPage
+                  profile={profile}
+              />
+          )}
 
         </main>
 

@@ -11,6 +11,31 @@ function MetricCard({
 }) {
   const { theme } = useContext(ThemeContext);
 
+  const getStatusColor = () => {
+    switch (status) {
+      case "Low":
+        return "#60A5FA"; // Blue
+
+      case "Healthy":
+      case "Normal":
+        return "#84D8A4"; // Soft green
+
+      case "Stable":
+        return "#7DD3FC"; // Cyan
+
+      case "High":
+        return "#F59E0B"; // Amber
+
+      case "Critical":
+        return "#EF4444"; // Red
+
+      default:
+        return theme.success;
+    }
+  };
+
+  const statusColor = getStatusColor();
+
   return (
     <div
       className="rounded-3xl p-6 h-52 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
@@ -34,8 +59,8 @@ function MetricCard({
         <span
           className="px-3 py-1 rounded-full text-xs font-semibold"
           style={{
-            backgroundColor: theme.success + "20",
-            color: theme.success,
+            backgroundColor: statusColor + "20",
+            color: statusColor,
           }}
         >
           {status}

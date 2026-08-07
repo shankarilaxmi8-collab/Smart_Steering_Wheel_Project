@@ -1,19 +1,31 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import {
   LayoutDashboard,
   HeartPulse,
   ChartColumn,
   History,
   Settings,
+  Menu,
+  ChevronLeft,
+  UserCircle,
+  Pencil,
+  LogOut,
 } from "lucide-react";
 
 import { ThemeContext } from "../../../app/providers";
 
-function Sidebar() {
+function Sidebar({
+  profile,
+  data,
+  activeTab,
+  setActiveTab,
+}) {
   const { theme } = useContext(ThemeContext);
 
+  const [collapsed, setCollapsed] = useState(false);
+
   const menuItems = [
-    { icon: LayoutDashboard, label: "Dashboard", active: true },
+    { icon: LayoutDashboard, label: "Dashboard" },
     { icon: HeartPulse, label: "Vitals" },
     { icon: ChartColumn, label: "Analytics" },
     { icon: History, label: "History" },
@@ -22,120 +34,249 @@ function Sidebar() {
 
   return (
     <aside
-      className="w-72 flex flex-col justify-between transition-all duration-300"
+      className={`${
+        collapsed ? "w-20" : "w-72"
+      } flex flex-col transition-all duration-300`}
       style={{
         backgroundColor: theme.surface,
         borderRight: `1px solid ${theme.border}`,
       }}
     >
-      {/* Top */}
+      {/* Header */}
 
-      <div>
+      <div className="px-6 pt-6 pb-5">
 
-        <div className="p-8">
+        <div className="flex items-center justify-between">
 
-          <h2
-            className="text-xl font-bold"
-            style={{ color: theme.text }}
+          {!collapsed && (
+
+            <div>
+
+              <h2
+                className="text-xl font-bold"
+                style={{ color: theme.text }}
+              >
+                Steering AI
+              </h2>
+
+              <p
+                className="text-sm mt-1"
+                style={{ color: theme.textSecondary }}
+              >
+                Vehicle Dashboard
+              </p>
+
+            </div>
+
+          )}
+
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className="p-2 rounded-xl hover:bg-white/5 transition"
           >
-            Steering AI
-          </h2>
-
-          <p
-            className="text-sm mt-1"
-            style={{ color: theme.textSecondary }}
-          >
-            Vehicle Dashboard
-          </p>
+            {collapsed ? (
+              <Menu size={22} color={theme.text} />
+            ) : (
+              <ChevronLeft size={22} color={theme.text} />
+            )}
+          </button>
 
         </div>
 
-        <nav className="px-4 space-y-2">
+      </div>
 
-          {menuItems.map(({ icon: Icon, label, active }) => (
-            <button
-              key={label}
-              className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300"
-              style={{
-                backgroundColor: active
-                  ? theme.primary
-                  : "transparent",
+      <div className="flex-1 flex flex-col px-4">
 
-                color: active
-                  ? "#FFFFFF"
-                  : theme.textSecondary,
-              }}
-            >
-              <Icon size={20} />
+        {!collapsed && (
+          <div
+            className="mb-6 rounded-2xl p-4"
+            style={{
+              backgroundColor: theme.surfaceSecondary,
+            }}
+          >
+            {/* Profile */}
 
+            <div className="flex items-center gap-3">
+
+              <UserCircle
+                size={52}
+                color={theme.primary}
+                className="flex-shrink-0"
+              />
+
+              <div className="flex-1 min-w-0">
+
+                <h3
+                  className="font-semibold text-lg truncate"
+                  style={{ color: theme.text }}
+                >
+                  {profile?.name || "Driver"}
+                </h3>
+
+                <p
+                  className="text-xs truncate"
+                  style={{ color: theme.textSecondary }}
+                >
+                  License: {profile?.licenseNumber || "--"}
+                </p>
+
+              </div>
+
+            </div>
+
+            {/* Buttons */}
+
+            <div className="mt-5 flex gap-3">
+
+              <button
+                className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl transition"
+                style={{
+                  backgroundColor: theme.primary,
+                  color: "#fff",
+                }}
+              >
+                <Pencil size={16}/>
+                Edit
+              </button>
+
+              <button
+                className="flex items-center justify-center w-12 rounded-xl transition hover:bg-red-500/20"
+              >
+                <LogOut size={18}/>
+              </button>
+
+            </div>
+
+          </div>
+        )}
+
+      {!collapsed && (
+        <p
+          className="px-7 mb-3 text-[11px] uppercase tracking-[0.25em]"
+          style={{ color: theme.textSecondary }}
+        >
+          Navigation
+        </p>
+      )}
+
+      <nav className="space-y-3 flex-1">
+
+        {menuItems.map(({ icon: Icon, label, active }) => (
+
+          <button
+            key={label}
+            className={`w-full flex items-center ${
+              collapsed ? "justify-center" : "gap-4"
+            } px-4 py-3.5 rounded-2xl transition-all duration-300 hover:bg-white/5`}
+            style={{
+              backgroundColor:
+                activeTab === label
+                    ? theme.primary
+                    : "transparent",
+
+              color:
+                activeTab === label
+                    ? "#fff"
+                    : theme.textSecondary,
+            }}
+            onClick={() => setActiveTab(label)}
+          >
+
+            <Icon size={20} />
+
+            {!collapsed && (
               <span className="font-medium">
                 {label}
               </span>
-            </button>
-          ))}
+            )}
 
-        </nav>
+          </button>
+
+        ))}
+
+      </nav>
 
       </div>
 
       {/* Bottom */}
 
       <div
-        className="m-5 p-5 rounded-2xl"
+        className="mx-4 mb-5 mt-8 rounded-2xl p-4"
         style={{
           backgroundColor: theme.surfaceSecondary,
         }}
       >
 
-        <p
-          className="text-xs uppercase tracking-widest mb-3"
-          style={{
-            color: theme.textSecondary,
-          }}
-        >
-          System
-        </p>
+        {collapsed ? (
 
-        <div className="flex items-center gap-2">
+          <div className="flex justify-center">
 
-          <div
-            className="w-3 h-3 rounded-full animate-pulse"
-            style={{
-              backgroundColor: theme.success,
-            }}
-          />
+            <div
+              className="w-3 h-3 rounded-full animate-pulse"
+              style={{
+                backgroundColor: theme.success,
+              }}
+            />
 
-          <span
-            className="font-semibold"
-            style={{
-              color: theme.success,
-            }}
-          >
-            Online
-          </span>
+          </div>
 
-        </div>
+        ) : (
 
-        <p
-          className="mt-3 text-sm"
-          style={{
-            color: theme.textSecondary,
-          }}
-        >
-          Driver Status
-        </p>
+          <>
 
-        <p
-          className="font-semibold mt-1"
-          style={{
-            color: theme.text,
-          }}
-        >
-          Alert
-        </p>
+            <p
+              className="text-xs uppercase tracking-widest mb-3"
+              style={{
+                color: theme.textSecondary,
+              }}
+            >
+              System
+            </p>
+
+            <div className="flex items-center gap-2">
+
+              <div
+                className="w-3 h-3 rounded-full animate-pulse"
+                style={{
+                  backgroundColor: theme.success,
+                }}
+              />
+
+              <span
+                className="font-semibold text-lg truncate"
+                style={{
+                  color: theme.success,
+                }}
+              >
+                Online
+              </span>
+
+            </div>
+
+            <p
+              className="mt-3 text-sm"
+              style={{
+                color: theme.textSecondary,
+              }}
+            >
+              Driver Status
+            </p>
+
+            <p
+              className="font-semibold mt-1"
+              style={{
+                color: theme.text,
+              }}
+            >
+              Alert
+            </p>
+
+          </>
+
+        )}
 
       </div>
-
+    
     </aside>
   );
 }

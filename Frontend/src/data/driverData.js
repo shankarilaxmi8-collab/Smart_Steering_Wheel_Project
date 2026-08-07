@@ -12,6 +12,11 @@ const driverData = {
     hrv: 45,
     sweat: 2.4,
     palmTemp: 36.6,
+
+    heartRateHistory: [72],
+    hrvHistory: [45],
+    sweatHistory: [2.4],
+    palmTempHistory: [36.6],
   },
 
   ecg: {
