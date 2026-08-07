@@ -33,6 +33,11 @@ class ROS2BridgeNode(Node):
             "gsr": 2.0,
             "grip_pressure": 4.0,
             "skin_temperature": 36.6,
+            "rr_interval": 780.0,
+            "qrs_duration": 94.0,
+            "st_deviation": 0.03,
+            "qt_interval": 395.0,
+            "ecg_status": 0.0,
             "prediction": {}
         }
 
@@ -46,11 +51,17 @@ class ROS2BridgeNode(Node):
             print(f"🚨 [MOCK EMERGENCY TRIGGER]: Status is {status}")
 
     def _process_and_broadcast(self):
+        # Build 9-element feature vector
         features = [
-            self.current_frame["heart_rate"],
-            self.current_frame["gsr"],
-            self.current_frame["grip_pressure"],
-            self.current_frame["skin_temperature"]
+            self.current_frame.get("heart_rate", 75.0),
+            self.current_frame.get("gsr", 2.0),
+            self.current_frame.get("grip_pressure", 4.0),
+            self.current_frame.get("skin_temperature", 36.6),
+            self.current_frame.get("rr_interval", 780.0),
+            self.current_frame.get("qrs_duration", 94.0),
+            self.current_frame.get("st_deviation", 0.03),
+            self.current_frame.get("qt_interval", 395.0),
+            self.current_frame.get("ecg_status", 0.0)
         ]
 
         prediction = predict_risk(features)
