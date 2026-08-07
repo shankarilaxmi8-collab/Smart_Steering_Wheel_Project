@@ -27,7 +27,6 @@ def spin_ros(node):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Ensure database tables exist
     Base.metadata.create_all(bind=engine)
 
     if ROS2_AVAILABLE:
@@ -74,11 +73,17 @@ def health():
 @app.get("/api/v1/status", response_model=DriverStatus)
 def status():
     sensor = get_sensor_data()
+    # Construct 9-feature vector matching the trained model requirement
     features = [
-        sensor["heart_rate"],
-        sensor["gsr"],
-        sensor["grip_pressure"],
-        sensor["skin_temperature"]
+        sensor.get("heart_rate", 75.0),
+        sensor.get("gsr", 2.0),
+        sensor.get("grip_pressure", 4.0),
+        sensor.get("skin_temperature", 36.6),
+        sensor.get("rr_interval", 780.0),
+        sensor.get("qrs_duration", 94.0),
+        sensor.get("st_deviation", 0.03),
+        sensor.get("qt_interval", 395.0),
+        sensor.get("ecg_status", 0.0)
     ]
     prediction = predict_risk(features)
     sensor["prediction"] = prediction
@@ -107,6 +112,39 @@ def get_history(limit: int = 50, db: Session = Depends(get_db)):
         return {"error": f"Database Query Error: {str(e)}"}
 
 
+@app.post("/api/v1/sensors")
+def receive_sensor_data(data: dict, db: Session = Depends(get_db)):
+    # Step 1: Run the AI prediction
+    from AI_Module.AIML.Week4.predict_risk import predict_risk
+    ai_result = predict_risk(data)
+    
+    # Step 2: Save it to the database!
+    new_log = TelemetryLog(
+        heart_rate=data.get("heart_rate", 75.0),
+        gsr=data.get("gsr", 3.0),
+        grip_pressure=data.get("grip_pressure", 15.0),
+        skin_temperature=data.get("skin_temperature", 33.0),
+        ecg_signal=data.get("ecg_signal", 0.0),
+        rr_interval=data.get("rr_interval", 800.0),
+        qrs_duration=data.get("qrs_duration", 90.0),
+        st_deviation=data.get("st_deviation", 0.0),
+        qt_interval=data.get("qt_interval", 390.0),
+        
+        raw_prediction=ai_result["raw_prediction"],
+        stabilized_prediction=ai_result["stabilized_prediction"],
+        confidence=ai_result["confidence"],
+        alert_level=ai_result["stabilized_prediction"]
+    )
+    
+    db.add(new_log)
+    db.commit()
+    
+    return {
+        "message": "Data successfully saved to database!",
+        "prediction": ai_result
+    }
+
+
 @app.get("/api/v1/sensors")
 def get_latest_sensors(db: Session = Depends(get_db)):
     try:
@@ -121,6 +159,16 @@ def get_latest_sensors(db: Session = Depends(get_db)):
             "gsr": log.gsr,
             "grip_pressure": log.grip_pressure,
             "skin_temperature": log.skin_temperature,
+            
+            # --- NEW FIELDS FOR THE AI / FRONTEND ---
+            "ecg_signal": getattr(log, "ecg_signal", 0.0),
+            "rr_interval": getattr(log, "rr_interval", 0.0),
+            "qrs_duration": getattr(log, "qrs_duration", 0.0),
+            "st_deviation": getattr(log, "st_deviation", 0.0),
+            "qt_interval": getattr(log, "qt_interval", 0.0),
+            "confidence": getattr(log, "confidence", 0.0),
+            # ----------------------------------------
+            
             "raw_prediction": log.raw_prediction,
             "stabilized_prediction": log.stabilized_prediction,
             "alert_level": getattr(log, "alert_level", "NORMAL")
