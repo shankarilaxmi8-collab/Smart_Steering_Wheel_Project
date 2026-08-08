@@ -97,3 +97,10 @@ def run_evaluation():
 
 if __name__ == "__main__":
     run_evaluation()
+
+
+    ***To run the simulator:
+        1. Open your terminal.
+        2. Type in the command:  $ uvicorn AI_Module.simulator.backend_app:app --host 0.0.0.0 --port 8000 --reload .
+        3. Open the ports section.
+        4. Follow the port 8000 link.

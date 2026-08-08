@@ -2,8 +2,9 @@ import random
 from pathlib import Path
 import sys
 from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 BASE_DIR = Path(__file__).resolve().parents[2]
@@ -12,9 +13,19 @@ sys.path.append(str(BASE_DIR))
 from AI_Module.AIML.Week4.predict_risk import CardiacInferenceEngine
 
 app = FastAPI()
+
+# 1. Enable CORS so Codespaces browser proxies don't block API fetch calls
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 engine = CardiacInferenceEngine()
 
-# Mount the static directory to serve demo_video.mp4
+# Mount the static directory
 SIMULATOR_DIR = Path(__file__).parent
 app.mount("/static", StaticFiles(directory=SIMULATOR_DIR), name="static")
 
@@ -60,10 +71,11 @@ class TelemetryInput(BaseModel):
     speed: float
     stress_mode: str
 
-@app.get("/", response_class=HTMLResponse)
+# 2. Return FileResponse for robust HTML delivery
+@app.get("/")
 def serve_dashboard():
     html_path = SIMULATOR_DIR / "index.html"
-    return html_path.read_text()
+    return FileResponse(html_path)
 
 @app.post("/api/telemetry")
 def process_telemetry(data: TelemetryInput):
