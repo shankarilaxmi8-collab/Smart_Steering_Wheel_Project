@@ -54,14 +54,6 @@ function JourneySummary({
                 />
 
                 <JourneyItem
-                    label="Session Started"
-                    value={new Date(loginTime).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                    })}
-                />
-
-                <JourneyItem
                     label="Drive Mode"
                     value={profile?.driveMode ?? "Normal"}
                 />

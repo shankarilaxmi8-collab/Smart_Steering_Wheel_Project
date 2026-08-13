@@ -15,41 +15,9 @@ function AlertsPanel({ data, loading, error }) {
 
   const [history, setHistory] = useState([]);
 
-    if (loading) {
-    return (
-      <div
-        className="alerts-panel"
-        style={{
-          background: theme.surface,
-          border: `1px solid ${theme.border}`,
-          color: theme.text,
-        }}
-      >
-        Loading Alerts...
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div
-        className="alerts-panel"
-        style={{
-          background: "#7F1D1D",
-          color: "#fff",
-        }}
-      >
-        Unable to load alerts.
-      </div>
-    );
-  }
-
   const vitals = data?.vitals || {};
 
-  let title = "No Critical Alerts";
-  let message = "All monitored vitals are within safe operating limits.";
-  let color = "#84D8A4";
-  let icon = <CheckCircle2 size={42} />;
+  const alerts = [];
 
   if (vitals.heartRate < 60)
     alerts.push({
@@ -123,13 +91,32 @@ function AlertsPanel({ data, loading, error }) {
       icon: <ShieldAlert size={42} />,
     });
 
+  const severityOrder = {
+      critical: 3,
+      warning: 2,
+      info: 1,
+  };
+
+  alerts.sort(
+      (a, b) => severityOrder[b.severity] - severityOrder[a.severity]
+  );
+
+  const currentAlert =
+      alerts[0] || {
+          title: "No Critical Alerts",
+          message: "All monitored vitals are within safe operating limits.",
+          severity: "normal",
+          color: "#22C55E",
+          icon: <CheckCircle2 size={42} />,
+      };
+
   useEffect(() => {
 
-      if (!title) return;
+      if (!currentAlert.title) return;
 
       setHistory(prev => {
 
-          if (prev[0]?.title === title)
+          if (prev[0]?.title === currentAlert.title)
               return prev;
 
           return [
@@ -138,15 +125,49 @@ function AlertsPanel({ data, loading, error }) {
                       hour: "2-digit",
                       minute: "2-digit",
                   }),
-                  title,
-                  message,
+                  title: currentAlert.title,
+                  message: currentAlert.message,
+                  severity: currentAlert.severity,
               },
               ...prev,
           ].slice(0, 6);
 
       });
 
-  }, [title, message]);
+  }, [
+      currentAlert.title,
+      currentAlert.message,
+      currentAlert.severity,
+  ]);
+
+  if (loading) {
+    return (
+      <div
+        className="alerts-panel"
+        style={{
+          background: theme.surface,
+          border: `1px solid ${theme.border}`,
+          color: theme.text,
+        }}
+      >
+        Loading Alerts...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div
+        className="alerts-panel"
+        style={{
+          background: "#7F1D1D",
+          color: "#fff",
+        }}
+      >
+        Unable to load alerts.
+      </div>
+    );
+  }
 
   return (
 
@@ -154,7 +175,7 @@ function AlertsPanel({ data, loading, error }) {
       className="rounded-3xl p-5 h-full min-h-[430px]"
       style={{
         background: theme.surface,
-        border: `1px solid ${color}40`,
+        border: `1px solid ${currentAlert.color}40`
       }}
     >
 
@@ -164,19 +185,17 @@ function AlertsPanel({ data, loading, error }) {
 
       <div
         className="alert-success"
-        style={{
-          color,
-        }}
+        style={{ color: currentAlert.color }}
       >
 
-        {icon}
+        {currentAlert.icon}
 
         <span
           style={{
             color: theme.text,
           }}
         >
-          {title}
+          {currentAlert.title}
         </span>
 
         <p
@@ -187,7 +206,7 @@ function AlertsPanel({ data, loading, error }) {
             lineHeight: 1.5,
           }}
         >
-          {message}
+          {currentAlert.message}
         </p>
 
       </div>
@@ -217,9 +236,13 @@ function AlertsPanel({ data, loading, error }) {
                   className="w-2 h-2 rounded-full mt-1"
                   style={{
                       backgroundColor:
-                          item.title === "No Critical Alerts"
-                              ? "#22C55E"
-                              : "#F59E0B",
+                          item.severity === "critical"
+                              ? "#EF4444"
+                              : item.severity === "warning"
+                              ? "#F59E0B"
+                              : item.severity === "info"
+                              ? "#60A5FA"
+                              : "#22C55E"
                   }}
               />
 

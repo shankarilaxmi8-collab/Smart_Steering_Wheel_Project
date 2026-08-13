@@ -1,22 +1,16 @@
 import { useState, useContext } from "react";
 import { ThemeContext } from "../app/providers";
-import { saveDriverProfile } from "../utils/storage";
+import {
+  saveDriverProfile,
+  DEFAULT_DRIVER_PROFILE,
+  startDriverSession,
+} from "../utils/storage";;
 
-function DriverSetupPage() {
+function DriverSetupPage({ onLogin }) {
 
   const { theme } = useContext(ThemeContext);
 
-  const [form, setForm] = useState({
-    name: "",
-    age: "",
-    gender: "",
-    bloodGroup: "",
-    licenseNumber: "",
-    emergencyName: "",
-    emergencyPhone: "",
-    medicalConditions: "",
-    medications: "",
-  });
+  const [form, setForm] = useState(DEFAULT_DRIVER_PROFILE);
 
   function handleChange(e) {
     setForm({
@@ -26,11 +20,15 @@ function DriverSetupPage() {
   }
 
   function handleSubmit(e) {
+
     e.preventDefault();
 
     saveDriverProfile(form);
 
-    window.location.reload();
+    startDriverSession();
+
+    onLogin(form);
+
   }
 
   return (

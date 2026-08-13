@@ -8,60 +8,49 @@ function AnalyticsPage({
 
     const getHeartRateStatus = (hr) => {
         if (hr == null) return "--";
-
         if (hr < 60) return "Low";
-
         if (hr <= 100) return "Normal";
-
         return "High";
     };
 
     const getHRVStatus = (hrv) => {
         if (hrv == null) return "--";
-
         if (hrv < 30) return "Low";
-
         if (hrv <= 70) return "Healthy";
-
         return "High";
     };
 
     const getTempStatus = (temp) => {
         if (temp == null) return "--";
-
         if (temp < 35.5) return "Low";
-
         if (temp <= 37.5) return "Normal";
-
         return "High";
     };
 
     const getSweatStatus = (gsr) => {
         if (gsr == null) return "--";
-
         if (gsr < 2) return "Low";
-
         if (gsr <= 5) return "Normal";
-
         return "High";
     };
 
-    if (loading)
+    if (loading) {
         return (
-            <div className="text-white">
+            <div className="flex items-center justify-center min-h-[400px] text-slate-400">
                 Loading analytics...
             </div>
         );
+    }
 
-    if (error)
+    if (error) {
         return (
-            <div className="text-red-400">
+            <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-5 text-red-400">
                 {error}
             </div>
         );
+    }
 
     const calculateDriverScore = () => {
-
         if (!data?.vitals) return 0;
 
         let score = 100;
@@ -79,11 +68,9 @@ function AnalyticsPage({
             score -= 15;
 
         return Math.max(score, 0);
-
     };
 
     const calculateFatigue = () => {
-
         if (!data?.vitals) return "--";
 
         let fatigue = 0;
@@ -101,236 +88,469 @@ function AnalyticsPage({
             fatigue += 10;
 
         return fatigue;
-
     };
 
     const getAlertness = () => {
-
         const fatigue = calculateFatigue();
 
-        if (fatigue < 25)
-            return "Excellent";
-
-        if (fatigue < 50)
-            return "Good";
-
-        if (fatigue < 75)
-            return "Reduced";
-
+        if (fatigue < 25) return "Excellent";
+        if (fatigue < 50) return "Good";
+        if (fatigue < 75) return "Reduced";
         return "Poor";
-
     };
 
-    const getRiskLevel = () => {
-
+    const getStability = () => {
         const score = calculateDriverScore();
 
-        if (score >= 80)
-            return "Low";
-
-        if (score >= 60)
-            return "Moderate";
-
-        return "High";
-
+        if (score >= 80) return "Stable";
+        if (score >= 60) return "Watch";
+        return "Unstable";
     };
 
-    return (
+    const getRecommendation = () => {
+        const fatigue = calculateFatigue();
 
-        <div className="space-y-6">
+        if (fatigue >= 75)
+            return "Fatigue indicators are elevated. A rest period is recommended before continuing the journey.";
+
+        if (fatigue >= 50)
+            return "Early fatigue indicators are present. Continue monitoring physiological trends closely.";
+
+        if (fatigue >= 25)
+            return "Minor physiological changes detected. Maintain normal monitoring.";
+
+        return "Physiological trends are currently stable. Continue real-time monitoring.";
+    };
+
+    const driverScore = calculateDriverScore();
+    const fatigue = calculateFatigue();
+    const alertness = getAlertness();
+    const stability = getStability();
+
+    const stabilityColor =
+        stability === "Stable"
+            ? "text-emerald-400"
+            : stability === "Watch"
+            ? "text-amber-400"
+            : "text-red-400";
+
+    return (
+        <div className="space-y-6 text-white">
+
+            {/* =========================================================
+                PAGE HEADER
+            ========================================================== */}
 
             <div>
+                <div className="flex items-center gap-3">
 
-                <h1 className="text-3xl font-bold text-white">
-                    Driver Analytics
-                </h1>
+                    <div className="w-1 h-7 rounded-full bg-teal-400" />
 
-                <p className="text-slate-400 mt-2">
-                    AI-generated insights from live physiological data
-                </p>
+                    <div>
+                        <h1 className="text-3xl font-semibold tracking-tight text-white">
+                            Driver Analytics
+                        </h1>
 
+                        <p className="text-slate-400 mt-1 text-sm">
+                            Real-time physiological intelligence
+                        </p>
+                    </div>
+
+                </div>
             </div>
 
-            <div className="grid grid-cols-4 gap-6">
+
+            {/* =========================================================
+                ANALYTICAL SUMMARY
+            ========================================================== */}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
 
                 <AnalyticsCard
                     title="Driver Score"
-                    value={`${calculateDriverScore()}%`}
-                    color="text-green-400"
+                    value={driverScore === "--" ? "--" : `${driverScore}%`}
+                    accent="emerald"
+                    description="Overall physiological score"
                 />
 
                 <AnalyticsCard
                     title="Fatigue Index"
-                    value={`${calculateFatigue()}%`}
-                    color="text-yellow-400"
+                    value={fatigue === "--" ? "--" : `${fatigue}%`}
+                    accent="amber"
+                    description="Current fatigue indicators"
                 />
 
                 <AnalyticsCard
                     title="Alertness"
-                    value={getAlertness()}
-                    color="text-blue-400"
+                    value={alertness}
+                    accent="teal"
+                    description="Estimated driver alertness"
                 />
 
                 <AnalyticsCard
-                    title="Risk Level"
-                    value={getRiskLevel()}
-                    color="text-red-400"
+                    title="Stability"
+                    value={stability}
+                    accent={
+                        stability === "Stable"
+                            ? "emerald"
+                            : stability === "Watch"
+                            ? "amber"
+                            : "red"
+                    }
+                    description="Current physiological stability"
                 />
-
             </div>
 
-            {/* Driver Insights */}
 
-            <div className="grid grid-cols-2 gap-6">
+            {/* =========================================================
+                OVERVIEW + RECOMMENDATION
+            ========================================================== */}
 
-                {/* AI Insight */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
 
-                <div className="bg-[#111827] rounded-3xl p-6">
+                {/* Physiological Overview */}
 
-                    <h2 className="text-xl font-semibold text-white mb-4">
-                        Driver Insights
-                    </h2>
+                <section className="bg-[#121826] border border-slate-800/80 rounded-2xl p-5">
 
-                    <ul className="space-y-4">
+                    <div className="flex items-start justify-between mb-5">
 
-                        <InsightRow
+                        <div>
+                            <h2 className="text-lg font-semibold text-white">
+                                Physiological Overview
+                            </h2>
+
+                            <p className="text-slate-500 text-sm mt-1">
+                                Current signals contributing to analytics
+                            </p>
+                        </div>
+
+                        <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-400/10 border border-emerald-400/10">
+
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+
+                            <span className="text-[10px] font-semibold tracking-wider text-emerald-400">
+                                LIVE
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+                        <AnalyticsSignal
                             label="Heart Rate"
                             value={`${data?.vitals?.heartRate ?? "--"} BPM`}
                             status={getHeartRateStatus(data?.vitals?.heartRate)}
                         />
 
-                        <InsightRow
+                        <AnalyticsSignal
                             label="HRV"
                             value={`${data?.vitals?.hrv ?? "--"} ms`}
                             status={getHRVStatus(data?.vitals?.hrv)}
                         />
 
-                        <InsightRow
+                        <AnalyticsSignal
                             label="Palm Temperature"
                             value={`${data?.vitals?.palmTemp ?? "--"} °C`}
                             status={getTempStatus(data?.vitals?.palmTemp)}
                         />
 
-                        <InsightRow
+                        <AnalyticsSignal
                             label="Sweat Activity"
                             value={`${data?.vitals?.sweat ?? "--"} µS`}
                             status={getSweatStatus(data?.vitals?.sweat)}
                         />
 
-                    </ul>
+                    </div>
 
-                </div>
+                </section>
 
-                {/* Recommendation */}
 
-                <div className="bg-[#111827] rounded-3xl p-6">
+                {/* Analytics Recommendation */}
 
-                    <h2 className="text-xl font-semibold text-white mb-4">
-                        Recommendation
-                    </h2>
+                <section className="bg-[#121826] border border-slate-800/80 rounded-2xl p-5">
 
-                    <p className="text-slate-300 leading-8">
+                    <div className="flex items-start justify-between mb-5">
 
-                        {getRiskLevel() === "Low" &&
-                            "Driver condition is stable. Continue monitoring physiological signals in real time."
-                        }
+                        <div>
+                            <h2 className="text-lg font-semibold text-white">
+                                Analytics Recommendation
+                            </h2>
 
-                        {getRiskLevel() === "Moderate" &&
-                            "Driver is showing early signs of fatigue. Consider taking a short break if symptoms continue."
-                        }
+                            <p className="text-slate-500 text-sm mt-1">
+                                Interpretation of current physiological trends
+                            </p>
+                        </div>
 
-                        {getRiskLevel() === "High" &&
-                            "High physiological risk detected. Immediate rest is recommended before continuing the journey."
-                        }
+                        <div className="flex items-center gap-2 text-[10px] font-medium text-slate-500">
+                            <span className="w-1.5 h-1.5 rounded-full bg-teal-400" />
+                            LIVE ANALYSIS
+                        </div>
 
-                    </p>
+                    </div>
 
-                </div>
+                    <div className="min-h-[100px] flex items-center">
+
+                        <p className="text-slate-300 leading-7 text-sm max-w-2xl">
+                            {getRecommendation()}
+                        </p>
+
+                    </div>
+
+                    <div className="mt-5 pt-4 border-t border-slate-800/80 flex items-center justify-between">
+
+                        <div>
+                            <p className="text-[10px] uppercase tracking-wider text-slate-600">
+                                Analysis Status
+                            </p>
+
+                            <p className="text-xs text-slate-500 mt-1">
+                                Based on current live signals
+                            </p>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+
+                            <span
+                                className={`w-1.5 h-1.5 rounded-full ${
+                                    stability === "Stable"
+                                        ? "bg-emerald-400"
+                                        : stability === "Watch"
+                                        ? "bg-amber-400"
+                                        : "bg-red-400"
+                                }`}
+                            />
+
+                            <span className={`text-xs font-semibold ${stabilityColor}`}>
+                                {stability}
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </section>
 
             </div>
 
-            {/* Physiological Trends */}
 
-            <div className="bg-[#111827] rounded-3xl p-6">
+            {/* =========================================================
+                PHYSIOLOGICAL TRENDS
+            ========================================================== */}
 
-                <h2 className="text-xl font-semibold text-white mb-5">
-                    Physiological Trends
-                </h2>
+            <section className="bg-[#121826] border border-slate-800/80 rounded-2xl p-5">
 
-                <AnalyticsPanel
-                    data={data}
-                    loading={loading}
-                    error={error}
-                />
+                <div className="flex items-start justify-between mb-5">
 
-            </div>
+                    <div>
+                        <h2 className="text-lg font-semibold tracking-tight text-white">
+                            Physiological Trends
+                        </h2>
+
+                        <p className="text-slate-500 text-sm mt-1">
+                            Live physiological signals over time
+                        </p>
+                    </div>
+
+                    <div className="hidden sm:flex items-center gap-2 text-xs text-slate-500">
+
+                        <span className="w-1.5 h-1.5 rounded-full bg-teal-400" />
+
+                        Monitoring
+
+                    </div>
+
+                </div>
+
+                <AnalyticsPanel data={data} />
+
+            </section>
 
         </div>
-
     );
 }
 
-function InsightRow({
+
+/* =============================================================
+   ANALYTICS SIGNAL
+============================================================= */
+
+function AnalyticsSignal({
     label,
     value,
     status,
 }) {
 
     const statusColor = {
-        Normal: "text-green-400",
-        Healthy: "text-green-400",
-        Low: "text-yellow-400",
+        Normal: "text-emerald-400",
+        Healthy: "text-emerald-400",
+        Low: "text-amber-400",
         High: "text-red-400",
     };
 
+    const statusDot = {
+        Normal: "bg-emerald-400",
+        Healthy: "bg-emerald-400",
+        Low: "bg-amber-400",
+        High: "bg-red-400",
+    };
+
     return (
+        <div
+            className="
+                rounded-xl
+                px-4
+                py-3.5
+                border
+                border-slate-800/80
+                bg-[#0B1018]
+                transition-all
+                duration-200
+                hover:border-slate-700
+            "
+        >
 
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="flex items-center justify-between">
 
-            <div>
-
-                <p className="text-slate-400 text-sm">
+                <p className="text-xs text-slate-500">
                     {label}
                 </p>
 
-                <p className="text-white font-semibold">
-                    {value}
-                </p>
+                <div className="flex items-center gap-1.5">
+
+                    {status !== "--" && (
+                        <span
+                            className={`w-1.5 h-1.5 rounded-full ${
+                                statusDot[status] || "bg-slate-500"
+                            }`}
+                        />
+                    )}
+
+                    <span
+                        className={`text-[11px] font-medium ${
+                            statusColor[status] || "text-slate-500"
+                        }`}
+                    >
+                        {status}
+                    </span>
+
+                </div>
 
             </div>
 
-            <span className={`font-semibold ${statusColor[status] || "text-slate-300"}`}>
-                {status}
-            </span>
+            <p className="text-white font-semibold text-base mt-2">
+                {value}
+            </p>
 
         </div>
-
     );
-
 }
+
+
+/* =============================================================
+   ANALYTICS SUMMARY CARD
+============================================================= */
 
 function AnalyticsCard({
     title,
     value,
-    color,
+    accent,
+    description,
 }) {
 
+    const accentStyles = {
+        teal: {
+            text: "text-teal-300",
+            dot: "bg-teal-400",
+            line: "bg-teal-400",
+        },
+
+        emerald: {
+            text: "text-emerald-400",
+            dot: "bg-emerald-400",
+            line: "bg-emerald-400",
+        },
+
+        amber: {
+            text: "text-amber-400",
+            dot: "bg-amber-400",
+            line: "bg-amber-400",
+        },
+
+        red: {
+            text: "text-red-400",
+            dot: "bg-red-400",
+            line: "bg-red-400",
+        },
+    };
+
+    const style = accentStyles[accent] || accentStyles.teal;
+
     return (
+        <div
+            className="
+                group
+                relative
+                overflow-hidden
+                bg-[#121826]
+                border border-slate-800/80
+                rounded-2xl
+                px-5
+                py-4
+                transition-all
+                duration-200
+                hover:border-slate-700
+            "
+        >
 
-        <div className="bg-[#111827] rounded-3xl p-6">
+            {/* subtle bottom accent */}
 
-            <p className="text-slate-400 text-sm">
+            <div
+                className={`
+                    absolute
+                    bottom-0
+                    left-0
+                    h-px
+                    w-0
+                    ${style.line}
+                    opacity-60
+                    transition-all
+                    duration-300
+                    group-hover:w-full
+                `}
+            />
+
+            <p className="text-[10px] uppercase tracking-[0.16em] font-medium text-slate-500">
                 {title}
             </p>
 
-            <h1 className={`text-4xl font-bold mt-4 ${color}`}>
+            <p
+                className={`
+                    text-3xl
+                    font-semibold
+                    tracking-tight
+                    mt-2
+                    ${style.text}
+                `}
+            >
                 {value}
-            </h1>
+            </p>
+
+            <div className="flex items-center gap-2 mt-3">
+
+                <span
+                    className={`w-1.5 h-1.5 rounded-full ${style.dot}`}
+                />
+
+                <span className="text-[11px] text-slate-600">
+                    {description}
+                </span>
+
+            </div>
 
         </div>
-
     );
-
 }
 
 export default AnalyticsPage;

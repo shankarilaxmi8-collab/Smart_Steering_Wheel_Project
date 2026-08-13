@@ -11,7 +11,10 @@ try:
 except ImportError:
     ROS2_AVAILABLE = False
 
-from backend.app.services.simulator import get_sensor_data
+from backend.app.services.simulator import (
+    get_sensor_data,
+    generate_ecg_chunk,
+)
 from backend.app.models.schemas import DriverStatus
 from backend.app.websocket.manager import manager
 from AI_Module.AIML.Week4.predict_risk import predict_risk
@@ -74,18 +77,38 @@ def health():
 def status():
     sensor = get_sensor_data()
     # Construct 9-feature vector matching the trained model requirement
-    features = [
-        sensor.get("heart_rate", 75.0),
-        sensor.get("gsr", 2.0),
-        sensor.get("grip_pressure", 4.0),
-        sensor.get("skin_temperature", 36.6),
-        sensor.get("rr_interval", 780.0),
-        sensor.get("qrs_duration", 94.0),
-        sensor.get("st_deviation", 0.03),
-        sensor.get("qt_interval", 395.0),
-        sensor.get("ecg_status", 0.0)
-    ]
-    prediction = predict_risk(features)
+    ai_input = {
+
+        "heart_rate":
+            sensor.get("heart_rate", 75.0),
+
+        "gsr":
+            sensor.get("gsr", 2.0),
+
+        "skin_temperature":
+            sensor.get("skin_temperature", 36.6),
+
+        "grip_pressure":
+            sensor.get("grip_pressure", 4.0),
+
+        "ecg_signal":
+            sensor.get("ecg_signal", 0.0),
+
+        "rr_interval":
+            sensor.get("rr_interval", 780.0),
+
+        "qrs_duration":
+            sensor.get("qrs_duration", 94.0),
+
+        "st_deviation":
+            sensor.get("st_deviation", 0.03),
+
+        "qt_interval":
+            sensor.get("qt_interval", 395.0),
+
+    }
+
+    prediction = predict_risk(ai_input)
     sensor["prediction"] = prediction
     return sensor
 
@@ -201,9 +224,221 @@ def get_critical_alerts(db: Session = Depends(get_db)):
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
+
     await manager.connect(websocket)
+
+    print("========================================")
+    print("✅ FRONTEND WEBSOCKET CONNECTED")
+    print("========================================")
+
+
     try:
+
         while True:
-            await asyncio.sleep(1)
-    except Exception:
-        manager.disconnect(websocket)
+
+            # --------------------------------------------------------------
+            # SENSOR DATA
+            # --------------------------------------------------------------
+
+            sensor = get_sensor_data()
+
+            print(
+                "📊 Sensor data:",
+                sensor
+            )
+
+
+            heart_rate = sensor.get(
+                "heart_rate",
+                75.0
+            )
+
+
+            # --------------------------------------------------------------
+            # ECG
+            # --------------------------------------------------------------
+
+            try:
+
+                ecg_samples = generate_ecg_chunk(
+                    heart_rate=int(heart_rate),
+                    num_samples=50,
+                )
+
+            except Exception as ecg_error:
+
+                print(
+                    "❌ ECG generation error:",
+                    ecg_error
+                )
+
+                ecg_samples = []
+
+
+            # --------------------------------------------------------------
+            # AI
+            # --------------------------------------------------------------
+
+            try:
+
+                features = [
+
+                    sensor.get(
+                        "heart_rate",
+                        75.0
+                    ),
+
+                    sensor.get(
+                        "gsr",
+                        2.0
+                    ),
+
+                    sensor.get(
+                        "grip_pressure",
+                        4.0
+                    ),
+
+                    sensor.get(
+                        "skin_temperature",
+                        36.6
+                    ),
+
+                    sensor.get(
+                        "rr_interval",
+                        780.0
+                    ),
+
+                    sensor.get(
+                        "qrs_duration",
+                        94.0
+                    ),
+
+                    sensor.get(
+                        "st_deviation",
+                        0.03
+                    ),
+
+                    sensor.get(
+                        "qt_interval",
+                        395.0
+                    ),
+
+                    sensor.get(
+                        "ecg_status",
+                        0.0
+                    ),
+
+                ]
+
+
+                prediction = predict_risk(
+                    features
+                )
+
+
+            except Exception as prediction_error:
+
+                print(
+                    "⚠️ AI prediction error:",
+                    prediction_error
+                )
+
+
+                prediction = {
+
+                    "raw_prediction":
+                        "NORMAL",
+
+                    "stabilized_prediction":
+                        "NORMAL",
+
+                    "confidence":
+                        0.0,
+
+                }
+
+
+            # --------------------------------------------------------------
+            # PAYLOAD
+            # --------------------------------------------------------------
+
+            payload = {
+
+                **sensor,
+
+
+                # ECG
+                "ecg": ecg_samples,
+
+                "ecg_sampling_rate": 250,
+
+                "ecg_status": 0.0,
+
+
+                # AI
+                "prediction": prediction,
+
+
+                # Connection
+                "sensor_status": "Connected",
+
+
+                # Timestamp
+                "timestamp":
+                    sensor.get(
+                        "timestamp"
+                    ),
+
+            }
+
+            # --------------------------------------------------------------
+            # SEND
+            # --------------------------------------------------------------
+
+            await websocket.send_json(
+                payload
+            )
+
+
+            """print(
+                f"📡 SENT → "
+                f"HR={heart_rate}, "
+                f"ECG={len(ecg_samples)} samples"
+            )"""
+            print("\n================ WEBSOCKET PAYLOAD ================")
+            print("Heart Rate:", payload.get("heart_rate"))
+            print("HRV:", payload.get("hrv"))
+            print("GSR:", payload.get("gsr"))
+            print("Grip:", payload.get("grip_pressure"))
+            print("Temperature:", payload.get("skin_temperature"))
+            print("Condition:", payload.get("condition"))
+            print("Prediction:", payload.get("prediction"))
+            print("Sensor Status:", payload.get("sensor_status"))
+            print("====================================================\n")
+
+
+            await asyncio.sleep(
+                0.2
+            )
+
+
+    except Exception as e:
+
+        print(
+            "❌ WEBSOCKET ERROR:",
+            repr(e)
+        )
+
+
+    finally:
+
+        if websocket in manager.active_connections:
+
+            manager.disconnect(
+                websocket
+            )
+
+
+        print(
+            "🔌 FRONTEND WEBSOCKET CLOSED"
+        )
