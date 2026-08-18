@@ -2,7 +2,6 @@ import VitalMetricCard from "../features/vitals/components/VitalMetricCard/Vital
 import ECGVitalsCard from "../features/vitals/components/ECGVitalsCard/ECGVitalsCard";
 import { useContext } from "react";
 import { ThemeContext } from "../app/providers";
-import { connectWebSocket } from "../services/websocket/websocket";
 
 import {
     Heart,
@@ -17,65 +16,52 @@ function VitalsPage({
     error,
     wsStatus,
 }) {
-
     const { theme } = useContext(ThemeContext);
-    
-    console.log(data);
-    console.log(data?.vitals);
-    console.log(data?.vitals?.hrv);
 
     const getHeartRateStatus = (hr) => {
-      if (hr == null) return "--";
-      if (hr < 60) return "Low";
-      if (hr <= 100) return "Normal";
-      return "High";
+        if (hr == null) return "--";
+        if (hr < 60) return "Low";
+        if (hr <= 100) return "Normal";
+        return "High";
     };
 
     const getTempStatus = (temp) => {
-      if (temp == null) return "--";
-      if (temp < 35.5) return "Low";
-      if (temp <= 37.5) return "Normal";
-      return "High";
+        if (temp == null) return "--";
+        if (temp < 35.5) return "Low";
+        if (temp <= 37.5) return "Normal";
+        return "High";
     };
 
     const getSweatStatus = (gsr) => {
-      if (gsr == null) return "--";
-      if (gsr < 2) return "Low";
-      if (gsr <= 5) return "Normal";
-      return "High";
+        if (gsr == null) return "--";
+        if (gsr < 2) return "Low";
+        if (gsr <= 5) return "Normal";
+        return "High";
     };
 
     const getHRVStatus = (hrv) => {
-      if (hrv == null) return "--";
-
-      if (hrv < 30) return "Low";
-
-      if (hrv <= 70) return "Healthy";
-
-      return "High";
+        if (hrv == null) return "--";
+        if (hrv < 30) return "Low";
+        if (hrv <= 70) return "Healthy";
+        return "High";
     };
 
-    const lastUpdated = new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-    });
+    const getStatusColor = (status) => {
+        switch (status) {
+            case "Normal":
+            case "Healthy":
+                return theme.success;
 
-    if (loading)
-      return (
-          <div className="text-white">
-              Loading driver vitals...
-          </div>
-      );
+            case "Low":
+            case "High":
+                return theme.warning;
 
-    if (error)
-      return (
-          <div className="text-red-400">
-              {error}
-          </div>
-      );
+            default:
+                return theme.textSecondary;
+        }
+    };
 
     const getDriverCondition = () => {
-
         let score = 0;
 
         const hr = data?.vitals?.heartRate;
@@ -84,52 +70,86 @@ function VitalsPage({
         const temp = data?.vitals?.palmTemp;
 
         if (hr > 100) score++;
-
         if (hrv < 30) score++;
-
         if (sweat > 5) score++;
-
         if (temp > 37.5) score++;
 
-        if (score >= 3)
+        if (score >= 3) {
             return {
                 status: "CRITICAL",
-                color: "text-red-400",
-                message: "Immediate attention recommended."
+                color: theme.danger,
+                message: "Immediate attention recommended.",
             };
+        }
 
-        if (score >= 1)
+        if (score >= 1) {
             return {
-                status: "CAUTION",
-                color: "text-yellow-400",
-                message: "Monitor driver condition closely."
+                status: "WARNING",
+                color: theme.warning,
+                message: "Monitor driver condition closely.",
             };
+        }
 
         return {
-            status: "SAFE",
-            color: "text-green-400",
-            message: "All vital signs are within acceptable limits."
+            status: "NORMAL",
+            color: theme.success,
+            message: "All vital signs are within acceptable limits.",
         };
-
     };
 
-  const condition = getDriverCondition();
+    const condition = getDriverCondition();
+
+    if (loading) {
+        return (
+            <div
+                className="flex items-center justify-center min-h-[300px]"
+                style={{ color: theme.textSecondary }}
+            >
+                Loading driver vitals...
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div
+                className="flex items-center justify-center min-h-[300px]"
+                style={{ color: theme.danger }}
+            >
+                {error}
+            </div>
+        );
+    }
 
     return (
-
-        <div className="space-y-6">
+        <div
+            className="space-y-6"
+            style={{ color: theme.text }}
+        >
+            {/* =========================
+                Page Header
+            ========================== */}
 
             <div>
-
-                <h1 className="text-3xl font-bold text-white">
+                <h1
+                    className="text-3xl font-bold"
+                    style={{ color: theme.text }}
+                >
                     Driver Vitals
                 </h1>
 
-                <p className="text-slate-400 mt-2">
+                <p
+                    className="mt-2"
+                    style={{ color: theme.textSecondary }}
+                >
                     Real-time physiological monitoring
                 </p>
-
             </div>
+
+
+            {/* =========================
+                Vital Metric Cards
+            ========================== */}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mt-6">
 
@@ -177,24 +197,25 @@ function VitalsPage({
                     change={0.4}
                 />
 
-
             </div>
 
-            {/* ECG */}
+
+            {/* =========================
+                ECG
+            ========================== */}
 
             <div className="mt-5">
-
                 <ECGVitalsCard
                     data={data}
                     loading={loading}
                     wsStatus={wsStatus}
                 />
-
             </div>
+
 
             {/* =========================
                 Current Health Summary
-            ========================= */}
+            ========================== */}
 
             <div
                 className="
@@ -213,7 +234,7 @@ function VitalsPage({
                 }}
             >
 
-                {/* Subtle ambient glow */}
+                {/* Ambient status glow */}
 
                 <div
                     className="
@@ -228,42 +249,29 @@ function VitalsPage({
                         pointer-events-none
                     "
                     style={{
-                        background:
-                            condition.status === "SAFE"
-                                ? theme.success
-                                : condition.status === "CAUTION"
-                                ? "#F59E0B"
-                                : "#EF4444",
+                        background: condition.color,
                     }}
                 />
 
 
-                {/* =========================
-                    Header
-                ========================== */}
+                {/* Header */}
 
                 <div className="relative flex items-center justify-between">
 
                     <div>
-
                         <h2
                             className="text-lg font-semibold"
-                            style={{
-                                color: theme.text,
-                            }}
+                            style={{ color: theme.text }}
                         >
                             Current Health Summary
                         </h2>
 
                         <p
                             className="text-xs mt-1"
-                            style={{
-                                color: theme.textSecondary,
-                            }}
+                            style={{ color: theme.textSecondary }}
                         >
                             Overall physiological status
                         </p>
-
                     </div>
 
 
@@ -281,51 +289,25 @@ function VitalsPage({
                             font-semibold
                         "
                         style={{
-                            background:
-                                condition.status === "SAFE"
-                                    ? "#22C55E20"
-                                    : condition.status === "CAUTION"
-                                    ? "#F59E0B20"
-                                    : "#EF444420",
-
-                            color:
-                                condition.status === "SAFE"
-                                    ? "#22C55E"
-                                    : condition.status === "CAUTION"
-                                    ? "#F59E0B"
-                                    : "#EF4444",
-
-                            border:
-                                condition.status === "SAFE"
-                                    ? "1px solid #22C55E35"
-                                    : condition.status === "CAUTION"
-                                    ? "1px solid #F59E0B35"
-                                    : "1px solid #EF444435",
+                            background: `${condition.color}20`,
+                            color: condition.color,
+                            border: `1px solid ${condition.color}35`,
                         }}
                     >
-
                         <span
                             className="w-2 h-2 rounded-full"
                             style={{
-                                background:
-                                    condition.status === "SAFE"
-                                        ? "#22C55E"
-                                        : condition.status === "CAUTION"
-                                        ? "#F59E0B"
-                                        : "#EF4444",
+                                background: condition.color,
                             }}
                         />
 
                         {condition.status}
-
                     </div>
 
                 </div>
 
 
-                {/* =========================
-                    Main Content
-                ========================== */}
+                {/* Main Content */}
 
                 <div
                     className="
@@ -338,9 +320,7 @@ function VitalsPage({
                     "
                 >
 
-                    {/* =========================
-                        Vital Status List
-                    ========================== */}
+                    {/* Vital Status List */}
 
                     <div
                         className="
@@ -357,52 +337,42 @@ function VitalsPage({
                             title="Heart Rate"
                             value={`${data?.vitals?.heartRate ?? "--"} BPM`}
                             status={getHeartRateStatus(data?.vitals?.heartRate)}
-                            color={
-                                getHeartRateStatus(data?.vitals?.heartRate) === "Normal"
-                                    ? "#22C55E"
-                                    : "#F59E0B"
-                            }
+                            color={getStatusColor(
+                                getHeartRateStatus(data?.vitals?.heartRate)
+                            )}
                         />
 
                         <SummaryRow
                             title="HRV"
                             value={`${data?.vitals?.hrv ?? "--"} ms`}
                             status={getHRVStatus(data?.vitals?.hrv)}
-                            color={
-                                getHRVStatus(data?.vitals?.hrv) === "Healthy"
-                                    ? "#22C55E"
-                                    : "#F59E0B"
-                            }
+                            color={getStatusColor(
+                                getHRVStatus(data?.vitals?.hrv)
+                            )}
                         />
 
                         <SummaryRow
                             title="Palm Temperature"
                             value={`${data?.vitals?.palmTemp ?? "--"} °C`}
                             status={getTempStatus(data?.vitals?.palmTemp)}
-                            color={
-                                getTempStatus(data?.vitals?.palmTemp) === "Normal"
-                                    ? "#22C55E"
-                                    : "#F59E0B"
-                            }
+                            color={getStatusColor(
+                                getTempStatus(data?.vitals?.palmTemp)
+                            )}
                         />
 
                         <SummaryRow
                             title="Sweat Activity"
                             value={`${data?.vitals?.sweat ?? "--"} µS`}
                             status={getSweatStatus(data?.vitals?.sweat)}
-                            color={
-                                getSweatStatus(data?.vitals?.sweat) === "Normal"
-                                    ? "#22C55E"
-                                    : "#F59E0B"
-                            }
+                            color={getStatusColor(
+                                getSweatStatus(data?.vitals?.sweat)
+                            )}
                         />
 
                     </div>
 
 
-                    {/* =========================
-                        Overall Condition
-                    ========================== */}
+                    {/* Overall Condition */}
 
                     <div
                         className="
@@ -434,12 +404,7 @@ function VitalsPage({
                                 opacity-15
                             "
                             style={{
-                                background:
-                                    condition.status === "SAFE"
-                                        ? "#22C55E"
-                                        : condition.status === "CAUTION"
-                                        ? "#F59E0B"
-                                        : "#EF4444",
+                                background: condition.color,
                             }}
                         />
 
@@ -458,24 +423,14 @@ function VitalsPage({
                             <div
                                 className="w-3 h-3 rounded-full animate-pulse"
                                 style={{
-                                    background:
-                                        condition.status === "SAFE"
-                                            ? "#22C55E"
-                                            : condition.status === "CAUTION"
-                                            ? "#F59E0B"
-                                            : "#EF4444",
+                                    background: condition.color,
                                 }}
                             />
 
                             <h3
                                 className="text-3xl font-bold"
                                 style={{
-                                    color:
-                                        condition.status === "SAFE"
-                                            ? "#22C55E"
-                                            : condition.status === "CAUTION"
-                                            ? "#F59E0B"
-                                            : "#EF4444",
+                                    color: condition.color,
                                 }}
                             >
                                 {condition.status}
@@ -500,9 +455,9 @@ function VitalsPage({
             </div>
 
         </div>
-
     );
 }
+
 
 function SummaryRow({
     title,
@@ -523,7 +478,6 @@ function SummaryRow({
                 rounded-xl
                 transition-all
                 duration-200
-                hover:bg-white/5
             "
         >
 

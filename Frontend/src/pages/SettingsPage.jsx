@@ -12,15 +12,78 @@ import {
 } from "lucide-react";
 
 import { ThemeContext } from "../app/providers";
+
 import {
     getDriverProfile,
     saveDriverProfile,
 } from "../utils/storage";
 
 
+/*
+|--------------------------------------------------------------------------
+| DEFAULT SETTINGS
+|--------------------------------------------------------------------------
+*/
+
+const DEFAULT_MONITORING = {
+    realTime: true,
+    fatigueDetection: true,
+    automaticMonitoring: true,
+};
+
+const DEFAULT_NOTIFICATIONS = {
+    criticalAlerts: true,
+    warningAlerts: true,
+    recommendations: true,
+};
+
+const DEFAULT_PREFERENCES = {
+    units: "Metric",
+    updateInterval: "Real-time",
+};
+
+
+/*
+|--------------------------------------------------------------------------
+| SAFE LOCAL STORAGE PARSER
+|--------------------------------------------------------------------------
+*/
+
+function getStoredSettings(key, fallback) {
+    try {
+        const saved = localStorage.getItem(key);
+
+        if (!saved) {
+            return fallback;
+        }
+
+        const parsed = JSON.parse(saved);
+
+        return {
+            ...fallback,
+            ...parsed,
+        };
+    } catch (error) {
+        console.warn(
+            `Unable to read localStorage setting: ${key}`,
+            error
+        );
+
+        return fallback;
+    }
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| SETTINGS PAGE
+|--------------------------------------------------------------------------
+*/
+
 function SettingsPage() {
 
     const {
+        theme,
         themeMode,
         setTheme,
     } = useContext(ThemeContext);
@@ -62,20 +125,12 @@ function SettingsPage() {
     |--------------------------------------------------------------------------
     */
 
-    const [monitoring, setMonitoring] = useState(() => {
-
-        const saved = localStorage.getItem(
-            "driver_monitoring_settings"
-        );
-
-        return saved
-            ? JSON.parse(saved)
-            : {
-                realTime: true,
-                fatigueDetection: true,
-                automaticMonitoring: true,
-            };
-    });
+    const [monitoring, setMonitoring] = useState(() =>
+        getStoredSettings(
+            "driver_monitoring_settings",
+            DEFAULT_MONITORING
+        )
+    );
 
 
     /*
@@ -84,20 +139,12 @@ function SettingsPage() {
     |--------------------------------------------------------------------------
     */
 
-    const [notifications, setNotifications] = useState(() => {
-
-        const saved = localStorage.getItem(
-            "driver_notification_settings"
-        );
-
-        return saved
-            ? JSON.parse(saved)
-            : {
-                criticalAlerts: true,
-                warningAlerts: true,
-                recommendations: true,
-            };
-    });
+    const [notifications, setNotifications] = useState(() =>
+        getStoredSettings(
+            "driver_notification_settings",
+            DEFAULT_NOTIFICATIONS
+        )
+    );
 
 
     /*
@@ -106,19 +153,12 @@ function SettingsPage() {
     |--------------------------------------------------------------------------
     */
 
-    const [preferences, setPreferences] = useState(() => {
-
-        const saved = localStorage.getItem(
-            "driver_preferences"
-        );
-
-        return saved
-            ? JSON.parse(saved)
-            : {
-                units: "Metric",
-                updateInterval: "Real-time",
-            };
-    });
+    const [preferences, setPreferences] = useState(() =>
+        getStoredSettings(
+            "driver_preferences",
+            DEFAULT_PREFERENCES
+        )
+    );
 
 
     /*
@@ -197,14 +237,6 @@ function SettingsPage() {
 
     const handleThemeChange = (value) => {
 
-        /*
-         * ThemeContext is now responsible for:
-         *
-         * 1. Changing the application theme
-         * 2. Keeping the theme available across pages
-         * 3. Saving the theme to localStorage
-         */
-
         setTheme(value);
 
         setSaved(false);
@@ -213,7 +245,7 @@ function SettingsPage() {
 
     /*
     |--------------------------------------------------------------------------
-    | SAVE
+    | SAVE SETTINGS
     |--------------------------------------------------------------------------
     */
 
@@ -221,9 +253,6 @@ function SettingsPage() {
 
         /*
          * Save driver profile.
-         *
-         * This is important because Dashboard/Profile and
-         * Settings now use the same localStorage profile.
          */
 
         saveDriverProfile(profile);
@@ -260,7 +289,10 @@ function SettingsPage() {
 
 
         /*
-         * Theme is already persisted by ThemeContext.
+         * Keep theme storage synchronized.
+         *
+         * ThemeContext also handles theme persistence,
+         * but this keeps the settings page explicit.
          */
 
         localStorage.setItem(
@@ -268,6 +300,10 @@ function SettingsPage() {
             themeMode
         );
 
+
+        /*
+         * Show confirmation.
+         */
 
         setSaved(true);
 
@@ -280,14 +316,14 @@ function SettingsPage() {
 
     /*
     |--------------------------------------------------------------------------
-    | RESET
+    | RESET SETTINGS
     |--------------------------------------------------------------------------
     */
 
     const handleReset = () => {
 
         /*
-         * Keep the actual driver's registration information.
+         * Keep actual driver registration information.
          */
 
         const savedProfile = getDriverProfile();
@@ -318,9 +354,7 @@ function SettingsPage() {
          */
 
         setMonitoring({
-            realTime: true,
-            fatigueDetection: true,
-            automaticMonitoring: true,
+            ...DEFAULT_MONITORING,
         });
 
 
@@ -329,9 +363,7 @@ function SettingsPage() {
          */
 
         setNotifications({
-            criticalAlerts: true,
-            warningAlerts: true,
-            recommendations: true,
+            ...DEFAULT_NOTIFICATIONS,
         });
 
 
@@ -340,8 +372,7 @@ function SettingsPage() {
          */
 
         setPreferences({
-            units: "Metric",
-            updateInterval: "Real-time",
+            ...DEFAULT_PREFERENCES,
         });
 
 
@@ -353,35 +384,42 @@ function SettingsPage() {
 
 
         /*
-         * Persist reset values immediately.
+         * Persist monitoring reset.
          */
 
         localStorage.setItem(
             "driver_monitoring_settings",
-            JSON.stringify({
-                realTime: true,
-                fatigueDetection: true,
-                automaticMonitoring: true,
-            })
+            JSON.stringify(DEFAULT_MONITORING)
         );
 
+
+        /*
+         * Persist notification reset.
+         */
 
         localStorage.setItem(
             "driver_notification_settings",
-            JSON.stringify({
-                criticalAlerts: true,
-                warningAlerts: true,
-                recommendations: true,
-            })
+            JSON.stringify(DEFAULT_NOTIFICATIONS)
         );
 
 
+        /*
+         * Persist preference reset.
+         */
+
         localStorage.setItem(
             "driver_preferences",
-            JSON.stringify({
-                units: "Metric",
-                updateInterval: "Real-time",
-            })
+            JSON.stringify(DEFAULT_PREFERENCES)
+        );
+
+
+        /*
+         * Persist theme reset.
+         */
+
+        localStorage.setItem(
+            "app_theme",
+            "dark"
         );
 
 
@@ -397,7 +435,12 @@ function SettingsPage() {
 
     return (
 
-        <div className="space-y-6 text-white">
+        <div
+            className="space-y-6"
+            style={{
+                color: theme.text,
+            }}
+        >
 
             {/* =====================================================
                 PAGE HEADER
@@ -407,15 +450,30 @@ function SettingsPage() {
 
                 <div className="flex items-center gap-3">
 
-                    <div className="w-1 h-7 rounded-full bg-teal-400" />
+                    <div
+                        className="w-1 h-7 rounded-full"
+                        style={{
+                            background: theme.primary,
+                        }}
+                    />
 
                     <div>
 
-                        <h1 className="text-3xl font-semibold tracking-tight">
+                        <h1
+                            className="text-3xl font-semibold tracking-tight"
+                            style={{
+                                color: theme.text,
+                            }}
+                        >
                             Settings
                         </h1>
 
-                        <p className="text-slate-400 mt-1 text-sm">
+                        <p
+                            className="mt-1 text-sm"
+                            style={{
+                                color: theme.textSecondary,
+                            }}
+                        >
                             Manage your driver profile, monitoring
                             preferences, notifications, and application
                             behavior
@@ -475,6 +533,7 @@ function SettingsPage() {
                     <SettingsInput
                         label="Age"
                         value={profile.age}
+                        type="number"
                         onChange={(value) =>
                             handleProfileChange(
                                 "age",
@@ -508,6 +567,7 @@ function SettingsPage() {
                     <SettingsInput
                         label="Emergency Contact"
                         value={profile.emergencyPhone}
+                        type="tel"
                         onChange={(value) =>
                             handleProfileChange(
                                 "emergencyPhone",
@@ -645,7 +705,12 @@ function SettingsPage() {
                 description="Configure how information is displayed and updated"
             >
 
-                <div className="divide-y divide-slate-800/80">
+                <div
+                    className="divide-y"
+                    style={{
+                        borderColor: theme.border,
+                    }}
+                >
 
                     <SettingsSelect
                         label="Measurement Units"
@@ -720,13 +785,14 @@ function SettingsPage() {
                     sm:items-center
                     justify-between
                     gap-4
-                    bg-[#121826]
-                    border
-                    border-slate-800/80
                     rounded-2xl
                     px-5
                     py-4
                 "
+                style={{
+                    background: theme.surface,
+                    border: `1px solid ${theme.border}`,
+                }}
             >
 
                 <div className="flex items-center gap-3">
@@ -736,14 +802,15 @@ function SettingsPage() {
                             w-9
                             h-9
                             rounded-xl
-                            bg-teal-400/10
-                            border
-                            border-teal-400/10
                             flex
                             items-center
                             justify-center
-                            text-teal-400
                         "
+                        style={{
+                            background: `${theme.primary}18`,
+                            border: `1px solid ${theme.primary}25`,
+                            color: theme.primary,
+                        }}
                     >
 
                         {saved ? (
@@ -757,7 +824,12 @@ function SettingsPage() {
 
                     <div>
 
-                        <p className="text-sm font-medium text-slate-200">
+                        <p
+                            className="text-sm font-medium"
+                            style={{
+                                color: theme.text,
+                            }}
+                        >
 
                             {saved
                                 ? "Settings saved"
@@ -766,7 +838,12 @@ function SettingsPage() {
                         </p>
 
 
-                        <p className="text-xs text-slate-600 mt-0.5">
+                        <p
+                            className="text-xs mt-0.5"
+                            style={{
+                                color: theme.textSecondary,
+                            }}
+                        >
 
                             {saved
                                 ? "Your preferences have been updated."
@@ -790,18 +867,28 @@ function SettingsPage() {
                         px-4
                         py-2.5
                         rounded-xl
-                        bg-teal-400
-                        text-[#071014]
                         text-sm
                         font-semibold
-                        hover:bg-teal-300
-                        transition-colors
+                        transition-all
                     "
+                    style={{
+                        background: theme.primary,
+                        color:
+                            theme.mode === "dark"
+                                ? "#071014"
+                                : "#FFFFFF",
+                    }}
                 >
 
-                    <Save size={15} />
+                    {saved ? (
+                        <Check size={15} />
+                    ) : (
+                        <Save size={15} />
+                    )}
 
-                    Save Changes
+                    {saved
+                        ? "Saved"
+                        : "Save Changes"}
 
                 </button>
 
@@ -833,11 +920,21 @@ function SettingsPage() {
 
                     <div>
 
-                        <p className="text-sm font-medium text-slate-300">
+                        <p
+                            className="text-sm font-medium"
+                            style={{
+                                color: theme.text,
+                            }}
+                        >
                             Reset preferences
                         </p>
 
-                        <p className="text-xs text-slate-600 mt-1 max-w-xl">
+                        <p
+                            className="text-xs mt-1 max-w-xl"
+                            style={{
+                                color: theme.textSecondary,
+                            }}
+                        >
                             Restore monitoring, notification, display,
                             and theme settings to their default values.
                         </p>
@@ -857,16 +954,16 @@ function SettingsPage() {
                             py-2.5
                             rounded-xl
                             border
-                            border-slate-800
-                            bg-[#0B1018]
                             text-xs
                             font-medium
-                            text-slate-400
-                            hover:text-white
-                            hover:border-slate-700
                             transition-colors
                             whitespace-nowrap
                         "
+                        style={{
+                            background: theme.background,
+                            borderColor: theme.border,
+                            color: theme.textSecondary,
+                        }}
                     >
 
                         <RotateCcw size={14} />
@@ -898,22 +995,25 @@ function SettingsSection({
     danger = false,
 }) {
 
+    const { theme } = useContext(ThemeContext);
+
     return (
 
         <section
             className="
-                bg-[#121826]
-                border
-                border-slate-800/80
                 rounded-2xl
                 p-5
             "
+            style={{
+                background: theme.surface,
+                border: `1px solid ${theme.border}`,
+            }}
         >
 
             <div className="flex items-start gap-3 mb-5">
 
                 <div
-                    className={`
+                    className="
                         w-9
                         h-9
                         rounded-xl
@@ -921,12 +1021,20 @@ function SettingsSection({
                         items-center
                         justify-center
                         border
-                        ${
-                            danger
-                                ? "bg-red-400/10 border-red-400/10 text-red-400"
-                                : "bg-teal-400/10 border-teal-400/10 text-teal-400"
-                        }
-                    `}
+                    "
+                    style={{
+                        background: danger
+                            ? `${theme.danger}18`
+                            : `${theme.primary}18`,
+
+                        borderColor: danger
+                            ? `${theme.danger}30`
+                            : `${theme.primary}30`,
+
+                        color: danger
+                            ? theme.danger
+                            : theme.icon,
+                    }}
                 >
 
                     {icon}
@@ -936,11 +1044,21 @@ function SettingsSection({
 
                 <div>
 
-                    <h2 className="text-lg font-semibold tracking-tight text-white">
+                    <h2
+                        className="text-lg font-semibold tracking-tight"
+                        style={{
+                            color: theme.text,
+                        }}
+                    >
                         {title}
                     </h2>
 
-                    <p className="text-slate-500 text-sm mt-1">
+                    <p
+                        className="text-sm mt-1"
+                        style={{
+                            color: theme.textSecondary,
+                        }}
+                    >
                         {description}
                     </p>
 
@@ -969,6 +1087,8 @@ function SettingsInput({
     disabled = false,
 }) {
 
+    const { theme } = useContext(ThemeContext);
+
     return (
 
         <div>
@@ -980,8 +1100,10 @@ function SettingsInput({
                         text-[10px]
                         uppercase
                         tracking-widest
-                        text-slate-500
                     "
+                    style={{
+                        color: theme.textSecondary,
+                    }}
                 >
                     {label}
                 </span>
@@ -994,26 +1116,26 @@ function SettingsInput({
                     onChange={(e) =>
                         onChange?.(e.target.value)
                     }
-                    className={`
+                    className="
                         mt-2
                         w-full
-                        bg-[#0B1018]
                         border
-                        border-slate-800
                         rounded-xl
                         px-4
                         py-2.5
                         text-sm
-                        text-slate-200
                         outline-none
                         transition-colors
-
-                        ${
-                            disabled
-                                ? "opacity-50 cursor-not-allowed"
-                                : "focus:border-teal-400/40"
-                        }
-                    `}
+                    "
+                    style={{
+                        background: theme.background,
+                        borderColor: theme.border,
+                        color: theme.text,
+                        opacity: disabled ? 0.55 : 1,
+                        cursor: disabled
+                            ? "not-allowed"
+                            : "text",
+                    }}
                 />
 
             </label>
@@ -1036,6 +1158,8 @@ function SettingsToggle({
     onChange,
 }) {
 
+    const { theme } = useContext(ThemeContext);
+
     return (
 
         <div
@@ -1047,18 +1171,27 @@ function SettingsToggle({
                 px-3
                 py-3
                 rounded-xl
-                hover:bg-white/[0.02]
                 transition-colors
             "
         >
 
             <div className="min-w-0">
 
-                <p className="text-sm text-slate-300 font-medium">
+                <p
+                    className="text-sm font-medium"
+                    style={{
+                        color: theme.text,
+                    }}
+                >
                     {label}
                 </p>
 
-                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                <p
+                    className="text-xs mt-1 leading-relaxed"
+                    style={{
+                        color: theme.textSecondary,
+                    }}
+                >
                     {description}
                 </p>
 
@@ -1070,7 +1203,7 @@ function SettingsToggle({
                 role="switch"
                 aria-checked={enabled}
                 onClick={onChange}
-                className={`
+                className="
                     relative
                     shrink-0
                     w-11
@@ -1079,17 +1212,20 @@ function SettingsToggle({
                     border
                     transition-all
                     duration-200
+                "
+                style={{
+                    background: enabled
+                        ? `${theme.primary}25`
+                        : theme.background,
 
-                    ${
-                        enabled
-                            ? "bg-teal-400/20 border-teal-400/30"
-                            : "bg-[#0B1018] border-slate-800"
-                    }
-                `}
+                    borderColor: enabled
+                        ? `${theme.primary}50`
+                        : theme.border,
+                }}
             >
 
                 <span
-                    className={`
+                    className="
                         absolute
                         top-1/2
                         -translate-y-1/2
@@ -1098,13 +1234,16 @@ function SettingsToggle({
                         rounded-full
                         transition-all
                         duration-200
+                    "
+                    style={{
+                        left: enabled
+                            ? "22px"
+                            : "3px",
 
-                        ${
-                            enabled
-                                ? "left-[22px] bg-teal-400"
-                                : "left-[3px] bg-slate-600"
-                        }
-                    `}
+                        background: enabled
+                            ? theme.primary
+                            : theme.textSecondary,
+                    }}
                 />
 
             </button>
@@ -1129,6 +1268,8 @@ function SettingsSelect({
     onChange,
 }) {
 
+    const { theme } = useContext(ThemeContext);
+
     return (
 
         <div
@@ -1145,11 +1286,22 @@ function SettingsSelect({
 
             <div>
 
-                <p className="text-sm font-medium text-slate-300">
+                <p
+                    className="text-sm font-medium"
+                    style={{
+                        color: theme.text,
+                    }}
+                >
                     {label}
                 </p>
 
-                <p className="text-xs text-slate-600 mt-1">
+
+                <p
+                    className="text-xs mt-1"
+                    style={{
+                        color: theme.textSecondary,
+                    }}
+                >
                     {description}
                 </p>
 
@@ -1163,18 +1315,20 @@ function SettingsSelect({
                 }
                 className="
                     min-w-[170px]
-                    bg-[#0B1018]
                     border
-                    border-slate-800
                     rounded-xl
                     px-3
                     py-2.5
                     text-sm
-                    text-slate-300
                     outline-none
-                    focus:border-teal-400/40
                     transition-colors
+                    cursor-pointer
                 "
+                style={{
+                    background: theme.background,
+                    borderColor: theme.border,
+                    color: theme.text,
+                }}
             >
 
                 {options.map((option) => (

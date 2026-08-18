@@ -1,10 +1,13 @@
+import { useContext } from "react";
 import AnalyticsPanel from "../features/dashboard/components/AnalyticsPanel/AnalyticsPanel";
+import { ThemeContext } from "../app/providers";
 
 function AnalyticsPage({
     data,
     loading,
     error,
 }) {
+    const { theme } = useContext(ThemeContext);
 
     const getHeartRateStatus = (hr) => {
         if (hr == null) return "--";
@@ -34,9 +37,30 @@ function AnalyticsPage({
         return "High";
     };
 
+    const getStatusColor = (status) => {
+        switch (status) {
+            case "Normal":
+            case "Healthy":
+                return theme.success;
+
+            case "Low":
+            case "High":
+                return theme.warning;
+
+            case "Critical":
+                return theme.danger;
+
+            default:
+                return theme.textSecondary;
+        }
+    };
+
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-[400px] text-slate-400">
+            <div
+                className="flex items-center justify-center min-h-[400px]"
+                style={{ color: theme.textSecondary }}
+            >
                 Loading analytics...
             </div>
         );
@@ -44,7 +68,14 @@ function AnalyticsPage({
 
     if (error) {
         return (
-            <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-5 text-red-400">
+            <div
+                className="rounded-xl p-5"
+                style={{
+                    background: `${theme.danger}08`,
+                    border: `1px solid ${theme.danger}20`,
+                    color: theme.danger,
+                }}
+            >
                 {error}
             </div>
         );
@@ -129,13 +160,18 @@ function AnalyticsPage({
 
     const stabilityColor =
         stability === "Stable"
-            ? "text-emerald-400"
+            ? theme.success
             : stability === "Watch"
-            ? "text-amber-400"
-            : "text-red-400";
+            ? theme.warning
+            : theme.danger;
+
+    const stabilityStatusColor = stabilityColor;
 
     return (
-        <div className="space-y-6 text-white">
+        <div
+            className="space-y-6"
+            style={{ color: theme.text }}
+        >
 
             {/* =========================================================
                 PAGE HEADER
@@ -144,14 +180,23 @@ function AnalyticsPage({
             <div>
                 <div className="flex items-center gap-3">
 
-                    <div className="w-1 h-7 rounded-full bg-teal-400" />
+                    <div
+                        className="w-1 h-7 rounded-full"
+                        style={{ background: theme.primary }}
+                    />
 
                     <div>
-                        <h1 className="text-3xl font-semibold tracking-tight text-white">
+                        <h1
+                            className="text-3xl font-semibold tracking-tight"
+                            style={{ color: theme.text }}
+                        >
                             Driver Analytics
                         </h1>
 
-                        <p className="text-slate-400 mt-1 text-sm">
+                        <p
+                            className="mt-1 text-sm"
+                            style={{ color: theme.textSecondary }}
+                        >
                             Real-time physiological intelligence
                         </p>
                     </div>
@@ -168,22 +213,22 @@ function AnalyticsPage({
 
                 <AnalyticsCard
                     title="Driver Score"
-                    value={driverScore === "--" ? "--" : `${driverScore}%`}
-                    accent="emerald"
+                    value={`${driverScore}%`}
+                    accent="success"
                     description="Overall physiological score"
                 />
 
                 <AnalyticsCard
                     title="Fatigue Index"
                     value={fatigue === "--" ? "--" : `${fatigue}%`}
-                    accent="amber"
+                    accent="warning"
                     description="Current fatigue indicators"
                 />
 
                 <AnalyticsCard
                     title="Alertness"
                     value={alertness}
-                    accent="teal"
+                    accent="primary"
                     description="Estimated driver alertness"
                 />
 
@@ -192,13 +237,14 @@ function AnalyticsPage({
                     value={stability}
                     accent={
                         stability === "Stable"
-                            ? "emerald"
+                            ? "success"
                             : stability === "Watch"
-                            ? "amber"
-                            : "red"
+                            ? "warning"
+                            : "danger"
                     }
                     description="Current physiological stability"
                 />
+
             </div>
 
 
@@ -210,25 +256,56 @@ function AnalyticsPage({
 
                 {/* Physiological Overview */}
 
-                <section className="bg-[#121826] border border-slate-800/80 rounded-2xl p-5">
+                <section
+                    className="rounded-2xl p-5"
+                    style={{
+                        background: theme.surface,
+                        border: `1px solid ${theme.border}`,
+                    }}
+                >
 
                     <div className="flex items-start justify-between mb-5">
 
                         <div>
-                            <h2 className="text-lg font-semibold text-white">
+                            <h2
+                                className="text-lg font-semibold"
+                                style={{ color: theme.text }}
+                            >
                                 Physiological Overview
                             </h2>
 
-                            <p className="text-slate-500 text-sm mt-1">
+                            <p
+                                className="text-sm mt-1"
+                                style={{ color: theme.textSecondary }}
+                            >
                                 Current signals contributing to analytics
                             </p>
                         </div>
 
-                        <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-400/10 border border-emerald-400/10">
+                        <div
+                            className="
+                                flex
+                                items-center
+                                gap-2
+                                px-2.5
+                                py-1
+                                rounded-full
+                            "
+                            style={{
+                                background: `${theme.success}10`,
+                                border: `1px solid ${theme.success}18`,
+                            }}
+                        >
 
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                            <span
+                                className="w-1.5 h-1.5 rounded-full"
+                                style={{ background: theme.success }}
+                            />
 
-                            <span className="text-[10px] font-semibold tracking-wider text-emerald-400">
+                            <span
+                                className="text-[10px] font-semibold tracking-wider"
+                                style={{ color: theme.success }}
+                            >
                                 LIVE
                             </span>
 
@@ -236,30 +313,41 @@ function AnalyticsPage({
 
                     </div>
 
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 
                         <AnalyticsSignal
                             label="Heart Rate"
                             value={`${data?.vitals?.heartRate ?? "--"} BPM`}
-                            status={getHeartRateStatus(data?.vitals?.heartRate)}
+                            status={getHeartRateStatus(
+                                data?.vitals?.heartRate
+                            )}
+                            theme={theme}
                         />
 
                         <AnalyticsSignal
                             label="HRV"
                             value={`${data?.vitals?.hrv ?? "--"} ms`}
                             status={getHRVStatus(data?.vitals?.hrv)}
+                            theme={theme}
                         />
 
                         <AnalyticsSignal
                             label="Palm Temperature"
                             value={`${data?.vitals?.palmTemp ?? "--"} °C`}
-                            status={getTempStatus(data?.vitals?.palmTemp)}
+                            status={getTempStatus(
+                                data?.vitals?.palmTemp
+                            )}
+                            theme={theme}
                         />
 
                         <AnalyticsSignal
                             label="Sweat Activity"
                             value={`${data?.vitals?.sweat ?? "--"} µS`}
-                            status={getSweatStatus(data?.vitals?.sweat)}
+                            status={getSweatStatus(
+                                data?.vitals?.sweat
+                            )}
+                            theme={theme}
                         />
 
                     </div>
@@ -269,43 +357,84 @@ function AnalyticsPage({
 
                 {/* Analytics Recommendation */}
 
-                <section className="bg-[#121826] border border-slate-800/80 rounded-2xl p-5">
+                <section
+                    className="rounded-2xl p-5"
+                    style={{
+                        background: theme.surface,
+                        border: `1px solid ${theme.border}`,
+                    }}
+                >
 
                     <div className="flex items-start justify-between mb-5">
 
                         <div>
-                            <h2 className="text-lg font-semibold text-white">
+                            <h2
+                                className="text-lg font-semibold"
+                                style={{ color: theme.text }}
+                            >
                                 Analytics Recommendation
                             </h2>
 
-                            <p className="text-slate-500 text-sm mt-1">
+                            <p
+                                className="text-sm mt-1"
+                                style={{ color: theme.textSecondary }}
+                            >
                                 Interpretation of current physiological trends
                             </p>
                         </div>
 
-                        <div className="flex items-center gap-2 text-[10px] font-medium text-slate-500">
-                            <span className="w-1.5 h-1.5 rounded-full bg-teal-400" />
+                        <div
+                            className="flex items-center gap-2 text-[10px] font-medium"
+                            style={{ color: theme.textSecondary }}
+                        >
+                            <span
+                                className="w-1.5 h-1.5 rounded-full"
+                                style={{ background: theme.primary }}
+                            />
+
                             LIVE ANALYSIS
                         </div>
 
                     </div>
 
+
                     <div className="min-h-[100px] flex items-center">
 
-                        <p className="text-slate-300 leading-7 text-sm max-w-2xl">
+                        <p
+                            className="leading-7 text-sm max-w-2xl"
+                            style={{ color: theme.textSecondary }}
+                        >
                             {getRecommendation()}
                         </p>
 
                     </div>
 
-                    <div className="mt-5 pt-4 border-t border-slate-800/80 flex items-center justify-between">
+
+                    <div
+                        className="
+                            mt-5
+                            pt-4
+                            flex
+                            items-center
+                            justify-between
+                        "
+                        style={{
+                            borderTop: `1px solid ${theme.border}`,
+                        }}
+                    >
 
                         <div>
-                            <p className="text-[10px] uppercase tracking-wider text-slate-600">
+                            <p
+                                className="text-[10px] uppercase tracking-wider"
+                                style={{ color: theme.textSecondary }}
+                            >
                                 Analysis Status
                             </p>
 
-                            <p className="text-xs text-slate-500 mt-1">
+                            <p
+                                className="text-xs mt-1"
+                                style={{ color: theme.textSecondary }}
+                            >
                                 Based on current live signals
                             </p>
                         </div>
@@ -313,16 +442,18 @@ function AnalyticsPage({
                         <div className="flex items-center gap-2">
 
                             <span
-                                className={`w-1.5 h-1.5 rounded-full ${
-                                    stability === "Stable"
-                                        ? "bg-emerald-400"
-                                        : stability === "Watch"
-                                        ? "bg-amber-400"
-                                        : "bg-red-400"
-                                }`}
+                                className="w-1.5 h-1.5 rounded-full"
+                                style={{
+                                    background: stabilityStatusColor,
+                                }}
                             />
 
-                            <span className={`text-xs font-semibold ${stabilityColor}`}>
+                            <span
+                                className="text-xs font-semibold"
+                                style={{
+                                    color: stabilityStatusColor,
+                                }}
+                            >
                                 {stability}
                             </span>
 
@@ -339,23 +470,47 @@ function AnalyticsPage({
                 PHYSIOLOGICAL TRENDS
             ========================================================== */}
 
-            <section className="bg-[#121826] border border-slate-800/80 rounded-2xl p-5">
+            <section
+                className="rounded-2xl p-5"
+                style={{
+                    background: theme.surface,
+                    border: `1px solid ${theme.border}`,
+                }}
+            >
 
                 <div className="flex items-start justify-between mb-5">
 
                     <div>
-                        <h2 className="text-lg font-semibold tracking-tight text-white">
+                        <h2
+                            className="text-lg font-semibold tracking-tight"
+                            style={{ color: theme.text }}
+                        >
                             Physiological Trends
                         </h2>
 
-                        <p className="text-slate-500 text-sm mt-1">
+                        <p
+                            className="text-sm mt-1"
+                            style={{ color: theme.textSecondary }}
+                        >
                             Live physiological signals over time
                         </p>
                     </div>
 
-                    <div className="hidden sm:flex items-center gap-2 text-xs text-slate-500">
+                    <div
+                        className="
+                            hidden
+                            sm:flex
+                            items-center
+                            gap-2
+                            text-xs
+                        "
+                        style={{ color: theme.textSecondary }}
+                    >
 
-                        <span className="w-1.5 h-1.5 rounded-full bg-teal-400" />
+                        <span
+                            className="w-1.5 h-1.5 rounded-full"
+                            style={{ background: theme.primary }}
+                        />
 
                         Monitoring
 
@@ -380,21 +535,16 @@ function AnalyticsSignal({
     label,
     value,
     status,
+    theme,
 }) {
-
     const statusColor = {
-        Normal: "text-emerald-400",
-        Healthy: "text-emerald-400",
-        Low: "text-amber-400",
-        High: "text-red-400",
+        Normal: theme.success,
+        Healthy: theme.success,
+        Low: theme.warning,
+        High: theme.warning,
     };
 
-    const statusDot = {
-        Normal: "bg-emerald-400",
-        Healthy: "bg-emerald-400",
-        Low: "bg-amber-400",
-        High: "bg-red-400",
-    };
+    const color = statusColor[status] || theme.textSecondary;
 
     return (
         <div
@@ -402,18 +552,21 @@ function AnalyticsSignal({
                 rounded-xl
                 px-4
                 py-3.5
-                border
-                border-slate-800/80
-                bg-[#0B1018]
                 transition-all
                 duration-200
-                hover:border-slate-700
             "
+            style={{
+                background: theme.background,
+                border: `1px solid ${theme.border}`,
+            }}
         >
 
             <div className="flex items-center justify-between">
 
-                <p className="text-xs text-slate-500">
+                <p
+                    className="text-xs"
+                    style={{ color: theme.textSecondary }}
+                >
                     {label}
                 </p>
 
@@ -421,16 +574,14 @@ function AnalyticsSignal({
 
                     {status !== "--" && (
                         <span
-                            className={`w-1.5 h-1.5 rounded-full ${
-                                statusDot[status] || "bg-slate-500"
-                            }`}
+                            className="w-1.5 h-1.5 rounded-full"
+                            style={{ background: color }}
                         />
                     )}
 
                     <span
-                        className={`text-[11px] font-medium ${
-                            statusColor[status] || "text-slate-500"
-                        }`}
+                        className="text-[11px] font-medium"
+                        style={{ color }}
                     >
                         {status}
                     </span>
@@ -439,7 +590,10 @@ function AnalyticsSignal({
 
             </div>
 
-            <p className="text-white font-semibold text-base mt-2">
+            <p
+                className="font-semibold text-base mt-2"
+                style={{ color: theme.text }}
+            >
                 {value}
             </p>
 
@@ -458,34 +612,35 @@ function AnalyticsCard({
     accent,
     description,
 }) {
+    const { theme } = useContext(ThemeContext);
 
     const accentStyles = {
-        teal: {
-            text: "text-teal-300",
-            dot: "bg-teal-400",
-            line: "bg-teal-400",
+        primary: {
+            text: theme.primary,
+            dot: theme.primary,
+            line: theme.primary,
         },
 
-        emerald: {
-            text: "text-emerald-400",
-            dot: "bg-emerald-400",
-            line: "bg-emerald-400",
+        success: {
+            text: theme.success,
+            dot: theme.success,
+            line: theme.success,
         },
 
-        amber: {
-            text: "text-amber-400",
-            dot: "bg-amber-400",
-            line: "bg-amber-400",
+        warning: {
+            text: theme.warning,
+            dot: theme.warning,
+            line: theme.warning,
         },
 
-        red: {
-            text: "text-red-400",
-            dot: "bg-red-400",
-            line: "bg-red-400",
+        danger: {
+            text: theme.danger,
+            dot: theme.danger,
+            line: theme.danger,
         },
     };
 
-    const style = accentStyles[accent] || accentStyles.teal;
+    const style = accentStyles[accent] || accentStyles.primary;
 
     return (
         <div
@@ -493,46 +648,57 @@ function AnalyticsCard({
                 group
                 relative
                 overflow-hidden
-                bg-[#121826]
-                border border-slate-800/80
                 rounded-2xl
                 px-5
                 py-4
                 transition-all
                 duration-200
-                hover:border-slate-700
             "
+            style={{
+                background: theme.surface,
+                border: `1px solid ${theme.border}`,
+            }}
         >
 
-            {/* subtle bottom accent */}
+            {/* Subtle bottom accent */}
 
             <div
-                className={`
+                className="
                     absolute
                     bottom-0
                     left-0
                     h-px
                     w-0
-                    ${style.line}
                     opacity-60
                     transition-all
                     duration-300
                     group-hover:w-full
-                `}
+                "
+                style={{
+                    background: style.line,
+                }}
             />
 
-            <p className="text-[10px] uppercase tracking-[0.16em] font-medium text-slate-500">
+            <p
+                className="
+                    text-[10px]
+                    uppercase
+                    tracking-[0.16em]
+                    font-medium
+                "
+                style={{ color: theme.textSecondary }}
+            >
                 {title}
             </p>
 
             <p
-                className={`
+                className="
                     text-3xl
                     font-semibold
                     tracking-tight
                     mt-2
-                    ${style.text}
-                `}
+                "
+                style={{ color: style.text }}
             >
                 {value}
             </p>
@@ -540,10 +706,14 @@ function AnalyticsCard({
             <div className="flex items-center gap-2 mt-3">
 
                 <span
-                    className={`w-1.5 h-1.5 rounded-full ${style.dot}`}
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{ background: style.dot }}
                 />
 
-                <span className="text-[11px] text-slate-600">
+                <span
+                    className="text-[11px]"
+                    style={{ color: theme.textSecondary }}
+                >
                     {description}
                 </span>
 

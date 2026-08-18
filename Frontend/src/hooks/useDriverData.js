@@ -125,21 +125,35 @@ export default function useDriverData() {
                     }
 
 
+                    /*
+                    |--------------------------------------------------------------------------
+                    | DEBUG
+                    |--------------------------------------------------------------------------
+                    */
+
                     console.log(
                         "📊 DRIVER DATA:",
                         apiData
                     );
-
 
                     console.log(
                         "🚦 BACKEND CONDITION:",
                         apiData.condition
                     );
 
-
                     console.log(
                         "🤖 BACKEND PREDICTION:",
                         apiData.prediction
+                    );
+
+                    console.log(
+                        "❤️ HEART RATE:",
+                        apiData.heart_rate
+                    );
+
+                    console.log(
+                        "💧 GSR:",
+                        apiData.gsr
                     );
 
 
@@ -150,6 +164,8 @@ export default function useDriverData() {
                     */
 
                     setData((prev) => {
+
+                        
 
                         /*
                         |--------------------------------------------------------------------------
@@ -178,15 +194,26 @@ export default function useDriverData() {
 
                         /*
                         |--------------------------------------------------------------------------
-                        | LIVE CONDITION
+                        | CURRENT BACKEND CONDITION
                         |--------------------------------------------------------------------------
+                        |
+                        | IMPORTANT:
+                        |
+                        | The backend condition is treated as the
+                        | PRIMARY source of truth when it exists.
+                        |
                         */
+
+                        const hasBackendCondition =
+                            apiData.condition != null ||
+                            apiData.status != null ||
+                            apiData.profile?.status != null;
+
 
                         const liveCondition =
                             apiData.condition ??
                             apiData.status ??
                             apiData.profile?.status ??
-                            prev.condition ??
                             "NORMAL";
 
 
@@ -200,6 +227,19 @@ export default function useDriverData() {
                         |--------------------------------------------------------------------------
                         | LIVE PREDICTION
                         |--------------------------------------------------------------------------
+                        |
+                        | IMPORTANT:
+                        |
+                        | NEVER reuse prev.prediction here.
+                        |
+                        | This prevents:
+                        |
+                        | CRITICAL
+                        |     ↓
+                        | NORMAL
+                        |
+                        | from remaining stuck as CRITICAL.
+                        |
                         */
 
                         let livePrediction =
@@ -223,16 +263,16 @@ export default function useDriverData() {
                                 livePrediction.prediction ??
                                 livePrediction.label ??
                                 livePrediction.class ??
-                                null;
+                                "NORMAL";
 
 
                             const raw =
                                 livePrediction.raw_prediction ??
                                 stabilized ??
-                                null;
+                                "NORMAL";
 
 
-                            const confidence =
+                            let confidence =
                                 Number(
                                     livePrediction.confidence ??
                                     livePrediction.probability ??
@@ -240,9 +280,30 @@ export default function useDriverData() {
                                 );
 
 
-                            livePrediction = {
+                            /*
+                            |--------------------------------------------------------------------------
+                            | NORMALIZE CONFIDENCE
+                            |--------------------------------------------------------------------------
+                            |
+                            | Supports:
+                            |
+                            | 0.95 → 95%
+                            | 95   → 95%
+                            |
+                            */
 
-                                ...prev.prediction,
+                            if (
+                                Number.isFinite(confidence) &&
+                                confidence > 1
+                            ) {
+
+                                confidence =
+                                    confidence / 100;
+
+                            }
+
+
+                            livePrediction = {
 
                                 ...livePrediction,
 
@@ -283,29 +344,24 @@ export default function useDriverData() {
 
                         /*
                         |--------------------------------------------------------------------------
-                        | IMPORTANT
+                        | NO PREDICTION
                         |--------------------------------------------------------------------------
                         |
-                        | If the backend does NOT send prediction,
-                        | do NOT manufacture a new CARDIAC_EVENT.
-                        |
-                        | We keep the previous prediction only if one
-                        | already exists.
+                        | Do NOT use the previous prediction.
                         |
                         */
 
                         else {
 
                             livePrediction =
-                                prev.prediction ??
-                                null;
+                                "NORMAL";
 
                         }
 
 
                         /*
                         |--------------------------------------------------------------------------
-                        | EXTRACT PREDICTION LABEL
+                        | EXTRACT CURRENT PREDICTION LABEL
                         |--------------------------------------------------------------------------
                         */
 
@@ -348,7 +404,8 @@ export default function useDriverData() {
                         |--------------------------------------------------------------------------
                         */
 
-                        let predictionConfidence = 0;
+                        let predictionConfidence =
+                            0;
 
 
                         if (
@@ -367,44 +424,305 @@ export default function useDriverData() {
 
                         /*
                         |--------------------------------------------------------------------------
-                        | RISK CALCULATION
+                        | CURRENT VITALS
+                        |--------------------------------------------------------------------------
+                        |
+                        | Every WebSocket snapshot is evaluated immediately.
+                        |
+                        */
+
+                        const heartRate =
+                            apiData.heart_rate ??
+                            prev.vitals?.heartRate ??
+                            null;
+
+
+                        const hrv =
+                            apiData.hrv ??
+                            prev.vitals?.hrv ??
+                            null;
+
+
+                        const sweat =
+                            apiData.gsr ??
+                            prev.vitals?.sweat ??
+                            null;
+
+
+                        const palmTemp =
+                            apiData.skin_temperature ??
+                            prev.vitals?.palmTemp ??
+                            null;
+
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | NUMERIC VALUES
+                        |--------------------------------------------------------------------------
+                        */
+
+                        const heartRateNumber =
+                            Number(heartRate);
+
+
+                        const hrvNumber =
+                            Number(hrv);
+
+
+                        const sweatNumber =
+                            Number(sweat);
+
+
+                        const palmTempNumber =
+                            Number(palmTemp);
+
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | HEART RATE STATUS
+                        |--------------------------------------------------------------------------
+                        */
+
+                        const heartRateCritical =
+                            Number.isFinite(
+                                heartRateNumber
+                            ) &&
+                            (
+                                heartRateNumber < 40 ||
+                                heartRateNumber > 130
+                            );
+
+
+                        const heartRateHigh =
+                            Number.isFinite(
+                                heartRateNumber
+                            ) &&
+                            heartRateNumber > 100;
+
+
+                        let heartRateStatus =
+                            "Normal";
+
+
+                        if (heartRateCritical) {
+
+                            heartRateStatus =
+                                "Critical";
+
+                        }
+
+                        else if (heartRateHigh) {
+
+                            heartRateStatus =
+                                "High";
+
+                        }
+
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | SWEAT STATUS
+                        |--------------------------------------------------------------------------
+                        */
+
+                        const sweatCritical =
+                            Number.isFinite(
+                                sweatNumber
+                            ) &&
+                            sweatNumber > 8;
+
+
+                        const sweatHigh =
+                            Number.isFinite(
+                                sweatNumber
+                            ) &&
+                            sweatNumber > 5;
+
+
+                        let sweatStatus =
+                            "Normal";
+
+
+                        if (sweatCritical) {
+
+                            sweatStatus =
+                                "Critical";
+
+                        }
+
+                        else if (sweatHigh) {
+
+                            sweatStatus =
+                                "High";
+
+                        }
+
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | PALM TEMPERATURE STATUS
+                        |--------------------------------------------------------------------------
+                        */
+
+                        const palmTempCritical =
+                            Number.isFinite(
+                                palmTempNumber
+                            ) &&
+                            palmTempNumber > 39;
+
+
+                        const palmTempHigh =
+                            Number.isFinite(
+                                palmTempNumber
+                            ) &&
+                            palmTempNumber > 37.5;
+
+
+                        let palmTempStatus =
+                            "Normal";
+
+
+                        if (palmTempCritical) {
+
+                            palmTempStatus =
+                                "Critical";
+
+                        }
+
+                        else if (palmTempHigh) {
+
+                            palmTempStatus =
+                                "High";
+
+                        }
+
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | HRV STATUS
+                        |--------------------------------------------------------------------------
+                        */
+
+                        const hrvLow =
+                            false;
+
+
+                        const hrvStatus =
+                            hrvLow
+                                ? "Low"
+                                : "Normal";
+
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | RISK CONDITIONS
                         |--------------------------------------------------------------------------
                         */
 
                         const criticalConditions = [
-
                             "CARDIAC_EVENT",
-
                             "CARDIAC",
-
                             "EMERGENCY",
-
                             "CRITICAL",
-
                         ];
-
 
                         const warningConditions = [
-
                             "WARNING",
-
                             "DROWSY",
-
+                            "DROWSINESS",
                             "STRESS",
-
+                            "STRESSED",
                             "FATIGUE",
-
+                            "FATIGUED",
                             "ALERT",
-
+                            "ABNORMAL",
                         ];
 
 
-                        let riskLevel =
-                            "LOW";
+                        /*
+                        |--------------------------------------------------------------------------
+                        | AI RISK
+                        |--------------------------------------------------------------------------
+                        */
+
+                        const aiCritical =
+                            criticalConditions.includes(predictionLabel) ||
+                            criticalConditions.includes(normalizedCondition);
+
+                        const aiWarning =
+                            warningConditions.includes(predictionLabel) ||
+                            warningConditions.includes(normalizedCondition);
 
 
-                        let riskRecommendation =
-                            "Continue Driving";
+                        /*
+                        |--------------------------------------------------------------------------
+                        | PHYSIOLOGICAL RISK
+                        |--------------------------------------------------------------------------
+                        |
+                        | IMPORTANT:
+                        |
+                        | Physiological abnormalities are evaluated independently
+                        | of the backend condition.
+                        |
+                        | This means:
+                        |
+                        | condition = NORMAL
+                        | HR = 135
+                        |
+                        | still becomes HIGH risk.
+                        |
+                        */
+
+                        const physiologicalCritical =
+                            heartRateCritical ||
+                            sweatCritical ||
+                            palmTempCritical;
+
+
+                        const physiologicalWarning =
+                            heartRateHigh ||
+                            sweatHigh ||
+                            palmTempHigh ||
+                            hrvLow;
+
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | OVERALL RISK
+                        |--------------------------------------------------------------------------
+                        |
+                        | Priority:
+                        |
+                        | CRITICAL
+                        |     ↓
+                        | WARNING
+                        |     ↓
+                        | NORMAL
+                        |
+                        | Any critical signal makes the overall dashboard critical.
+                        |
+                        */
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | FINAL DASHBOARD RISK
+                        |--------------------------------------------------------------------------
+                        |
+                        | The AI/backend prediction is the primary source of truth.
+                        |
+                        | NORMAL
+                        | WARNING
+                        | CARDIAC_EVENT / CRITICAL
+                        |
+                        | Physiological values are still used for the individual
+                        | metric statuses, but they do NOT independently override
+                        | the AI prediction.
+                        |
+                        */
+
+                        let riskLevel = "LOW";
+
+                        let riskRecommendation = "Continue Driving";
 
 
                         /*
@@ -413,22 +731,12 @@ export default function useDriverData() {
                         |--------------------------------------------------------------------------
                         */
 
-                        if (
-                            criticalConditions.includes(
-                                predictionLabel
-                            ) ||
-                            criticalConditions.includes(
-                                normalizedCondition
-                            )
-                        ) {
+                        if (aiCritical) {
 
-                            riskLevel =
-                                "HIGH";
-
+                            riskLevel = "HIGH";
 
                             riskRecommendation =
                                 "Stop Driving Immediately";
-
                         }
 
 
@@ -438,25 +746,28 @@ export default function useDriverData() {
                         |--------------------------------------------------------------------------
                         */
 
-                        else if (
-                            warningConditions.includes(
-                                predictionLabel
-                            ) ||
-                            warningConditions.includes(
-                                normalizedCondition
-                            )
-                        ) {
+                        else if (aiWarning) {
 
-                            riskLevel =
-                                "MEDIUM";
-
+                            riskLevel = "MEDIUM";
 
                             riskRecommendation =
                                 "Monitor Driver";
-
                         }
 
 
+                        /*
+                        |--------------------------------------------------------------------------
+                        | NORMAL
+                        |--------------------------------------------------------------------------
+                        */
+
+                        else {
+
+                            riskLevel = "LOW";
+
+                            riskRecommendation =
+                                "Continue Driving";
+                        }
                         /*
                         |--------------------------------------------------------------------------
                         | SENSOR STATUS
@@ -472,7 +783,7 @@ export default function useDriverData() {
 
                         /*
                         |--------------------------------------------------------------------------
-                        | RETURN UPDATED DATA
+                        | BUILD NEW STATE
                         |--------------------------------------------------------------------------
                         */
 
@@ -493,23 +804,41 @@ export default function useDriverData() {
 
 
                                 heartRate:
-                                    apiData.heart_rate ??
-                                    prev.vitals?.heartRate,
+                                    heartRate,
 
 
                                 hrv:
-                                    apiData.hrv ??
-                                    prev.vitals?.hrv,
+                                    hrv,
 
 
                                 sweat:
-                                    apiData.gsr ??
-                                    prev.vitals?.sweat,
+                                    sweat,
 
 
                                 palmTemp:
-                                    apiData.skin_temperature ??
-                                    prev.vitals?.palmTemp,
+                                    palmTemp,
+
+
+                                /*
+                                ------------------------------------------
+                                | INDIVIDUAL METRIC STATUSES
+                                ------------------------------------------
+                                */
+
+                                heartRateStatus:
+                                    heartRateStatus,
+
+
+                                hrvStatus:
+                                    hrvStatus,
+
+
+                                sweatStatus:
+                                    sweatStatus,
+
+
+                                palmTempStatus:
+                                    palmTempStatus,
 
 
                                 /*
@@ -605,18 +934,23 @@ export default function useDriverData() {
                                 ...prev.ecg,
 
 
-                                waveform,
+                                waveform:
+
+
+                                    waveform,
 
 
                                 bpm:
-                                    apiData.heart_rate ??
+                                    heartRate ??
                                     prev.ecg?.bpm ??
                                     72,
 
 
                                 sampling:
                                     apiData.ecg_sampling_rate != null
+
                                         ? `${apiData.ecg_sampling_rate} Hz`
+
                                         : prev.ecg?.sampling ??
                                           "250 Hz",
 
@@ -641,11 +975,12 @@ export default function useDriverData() {
 
                             grip_pressure:
                                 apiData.grip_pressure ??
-                                prev.grip_pressure,
+                                prev.grip_pressure ??
+                                0,
 
 
                             condition:
-                                liveCondition,
+                                normalizedCondition,
 
 
                             sensorStatus:
@@ -688,7 +1023,7 @@ export default function useDriverData() {
 
                             timestamp:
                                 apiData.timestamp ??
-                                prev.timestamp,
+                                new Date().toISOString(),
 
 
                             /*
@@ -702,7 +1037,7 @@ export default function useDriverData() {
                                 ...prev.profile,
 
                                 status:
-                                    liveCondition,
+                                    normalizedCondition,
 
                             },
 

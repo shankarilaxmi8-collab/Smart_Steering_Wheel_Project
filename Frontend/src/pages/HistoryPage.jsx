@@ -1,6 +1,9 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { ThemeContext } from "../app/providers";
 
 function HistoryPage() {
+
+    const { theme } = useContext(ThemeContext);
 
     const [expandedSession, setExpandedSession] = useState(null);
     const [searchQuery, setSearchQuery] = useState("");
@@ -212,8 +215,6 @@ function HistoryPage() {
 
             const filteredSessions = group.sessions.filter((session) => {
 
-                // Active sessions are displayed separately
-                // inside the Live Session section.
                 if (session.isActive) {
                     return false;
                 }
@@ -245,29 +246,56 @@ function HistoryPage() {
         .filter(Boolean);
 
     return (
-        <div className="space-y-6 text-white">
+        <div
+            className="space-y-6"
+            style={{
+                color: theme.text,
+            }}
+        >
 
-            {/* Page Header */}
+            {/* =========================================================
+                PAGE HEADER
+            ========================================================== */}
 
             <div>
                 <div className="flex items-center gap-3">
 
-                    <div className="w-1 h-7 rounded-full bg-teal-400" />
+                    <div
+                        className="w-1 h-7 rounded-full"
+                        style={{
+                            background: theme.primary,
+                        }}
+                    />
 
                     <div>
-                        <h1 className="text-3xl font-semibold tracking-tight">
+
+                        <h1
+                            className="text-3xl font-semibold tracking-tight"
+                            style={{
+                                color: theme.text,
+                            }}
+                        >
                             History
                         </h1>
 
-                        <p className="text-slate-400 mt-1 text-sm">
+                        <p
+                            className="mt-1 text-sm"
+                            style={{
+                                color: theme.textSecondary,
+                            }}
+                        >
                             Previous driving sessions and physiological records
                         </p>
+
                     </div>
 
                 </div>
             </div>
 
-            {/* History Overview */}
+
+            {/* =========================================================
+                HISTORY OVERVIEW
+            ========================================================== */}
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 
@@ -326,9 +354,17 @@ function HistoryPage() {
             </div>
 
 
-            {/* Search / Filters */}
+            {/* =========================================================
+                SEARCH / FILTERS
+            ========================================================== */}
 
-            <div className="bg-[#121826] border border-slate-800/80 rounded-2xl p-4">
+            <div
+                className="rounded-2xl p-4"
+                style={{
+                    background: theme.surface,
+                    border: `1px solid ${theme.border}`,
+                }}
+            >
 
                 <div className="flex flex-col lg:flex-row gap-3">
 
@@ -341,18 +377,18 @@ function HistoryPage() {
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="
                                 w-full
-                                bg-[#0B1018]
-                                border border-slate-800
                                 rounded-xl
                                 px-4
                                 py-2.5
                                 text-sm
-                                text-white
-                                placeholder:text-slate-600
                                 outline-none
-                                focus:border-teal-400/40
                                 transition-colors
                             "
+                            style={{
+                                background: theme.surfaceSecondary,
+                                border: `1px solid ${theme.border}`,
+                                color: theme.text,
+                            }}
                         />
 
                     </div>
@@ -364,15 +400,16 @@ function HistoryPage() {
                             px-4
                             py-2.5
                             rounded-xl
-                            bg-[#0B1018]
                             cursor-pointer
-                            border border-slate-800
                             text-sm
-                            text-slate-400
                             outline-none
-                            focus:border-teal-400/40
                             transition-colors
                         "
+                        style={{
+                            background: theme.surfaceSecondary,
+                            border: `1px solid ${theme.border}`,
+                            color: theme.textSecondary,
+                        }}
                     >
                         <option>All Sessions</option>
                         <option>Today</option>
@@ -386,15 +423,16 @@ function HistoryPage() {
                             px-4
                             py-2.5
                             rounded-xl
-                            bg-[#0B1018]
-                            border border-slate-800
                             text-sm
-                            text-slate-400
                             outline-none
-                            focus:border-teal-400/40
                             cursor-pointer
                             transition-colors
                         "
+                        style={{
+                            background: theme.surfaceSecondary,
+                            border: `1px solid ${theme.border}`,
+                            color: theme.textSecondary,
+                        }}
                     >
                         <option>All Status</option>
                         <option>Monitoring</option>
@@ -403,7 +441,10 @@ function HistoryPage() {
                         <option>Critical</option>
                     </select>
 
-                    {(searchQuery || sessionFilter !== "All Sessions" || statusFilter !== "All Status") && (
+                    {(searchQuery ||
+                        sessionFilter !== "All Sessions" ||
+                        statusFilter !== "All Status") && (
+
                         <button
                             type="button"
                             onClick={() => {
@@ -415,16 +456,15 @@ function HistoryPage() {
                                 px-4
                                 py-2.5
                                 rounded-xl
-                                border
-                                border-slate-800
-                                bg-[#0B1018]
                                 text-sm
-                                text-slate-500
-                                hover:text-white
-                                hover:border-slate-700
                                 transition-colors
                                 whitespace-nowrap
                             "
+                            style={{
+                                background: theme.surfaceSecondary,
+                                border: `1px solid ${theme.border}`,
+                                color: theme.textSecondary,
+                            }}
                         >
                             Clear
                         </button>
@@ -434,7 +474,10 @@ function HistoryPage() {
 
             </div>
 
-            {/* Live Session */}
+
+            {/* =========================================================
+                LIVE SESSION
+            ========================================================== */}
 
             {historyData.some((group) =>
                 group.sessions.some((session) => session.isActive)
@@ -444,11 +487,21 @@ function HistoryPage() {
 
                     <div className="flex items-center gap-3 mb-3">
 
-                        <h2 className="text-xs font-semibold uppercase tracking-widest text-teal-400">
+                        <h2
+                            className="text-xs font-semibold uppercase tracking-widest"
+                            style={{
+                                color: theme.primary,
+                            }}
+                        >
                             Live Session
                         </h2>
 
-                        <div className="h-px flex-1 bg-teal-400/10" />
+                        <div
+                            className="h-px flex-1"
+                            style={{
+                                background: `${theme.primary}20`,
+                            }}
+                        />
 
                     </div>
 
@@ -481,25 +534,37 @@ function HistoryPage() {
             )}
 
 
-            {/* History */}
+            {/* =========================================================
+                HISTORY
+            ========================================================== */}
 
             <div className="space-y-6">
 
                 {filteredHistory.length === 0 ? (
 
-                    <div className="
-                        bg-[#121826]
-                        border border-slate-800/80
-                        rounded-2xl
-                        p-10
-                        text-center
-                    ">
+                    <div
+                        className="rounded-2xl p-10 text-center"
+                        style={{
+                            background: theme.surface,
+                            border: `1px solid ${theme.border}`,
+                        }}
+                    >
 
-                        <p className="text-slate-300 font-medium">
+                        <p
+                            className="font-medium"
+                            style={{
+                                color: theme.text,
+                            }}
+                        >
                             No sessions found
                         </p>
 
-                        <p className="text-slate-600 text-sm mt-1">
+                        <p
+                            className="text-sm mt-1"
+                            style={{
+                                color: theme.textSecondary,
+                            }}
+                        >
                             Try adjusting your search or filters.
                         </p>
 
@@ -513,14 +578,23 @@ function HistoryPage() {
 
                             <div className="flex items-center gap-3 mb-3">
 
-                                <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+                                <h2
+                                    className="text-xs font-semibold uppercase tracking-widest"
+                                    style={{
+                                        color: theme.textSecondary,
+                                    }}
+                                >
                                     {group.date}
                                 </h2>
 
-                                <div className="h-px flex-1 bg-slate-800/70" />
+                                <div
+                                    className="h-px flex-1"
+                                    style={{
+                                        background: theme.border,
+                                    }}
+                                />
 
                             </div>
-
 
                             <div className="space-y-3">
 
@@ -556,35 +630,45 @@ function HistoryPage() {
 }
 
 
+/* =============================================================
+   HISTORY SESSION
+============================================================= */
+
 function HistorySession({
     session,
     expanded,
     onToggle,
 }) {
+
+    const { theme } = useContext(ThemeContext);
+
     const statusStyles = {
         Monitoring: {
-            text: "text-teal-400",
-            dot: "bg-teal-400",
-            background: "bg-teal-400/10",
-            border: "border-teal-400/10",
+            text: theme.primary,
+            dot: theme.primary,
+            background: `${theme.primary}12`,
+            border: `${theme.primary}25`,
         },
+
         Stable: {
-            text: "text-emerald-400",
-            dot: "bg-emerald-400",
-            background: "bg-emerald-400/10",
-            border: "border-emerald-400/10",
+            text: theme.success,
+            dot: theme.success,
+            background: `${theme.success}12`,
+            border: `${theme.success}25`,
         },
+
         Warning: {
-            text: "text-amber-400",
-            dot: "bg-amber-400",
-            background: "bg-amber-400/10",
-            border: "border-amber-400/10",
+            text: theme.warning,
+            dot: theme.warning,
+            background: `${theme.warning}12`,
+            border: `${theme.warning}25`,
         },
+
         Critical: {
-            text: "text-red-400",
-            dot: "bg-red-400",
-            background: "bg-red-400/10",
-            border: "border-red-400/10",
+            text: theme.danger,
+            dot: theme.danger,
+            background: `${theme.danger}12`,
+            border: `${theme.danger}25`,
         },
     };
 
@@ -593,23 +677,28 @@ function HistorySession({
 
     return (
         <div
-            className={`
-                bg-[#121826]
-                border
+            className="
                 rounded-2xl
                 overflow-hidden
                 transition-all
                 duration-200
-                ${
+            "
+            style={{
+                background: theme.surface,
+                border: `1px solid ${
                     session.isActive
-                        ? "border-teal-400/20 hover:border-teal-400/40"
-                        : "border-slate-800/80 hover:border-slate-700"
-                }
-            `}
+                        ? `${theme.primary}35`
+                        : theme.border
+                }`,
+            }}
         >
-            {/* Main Session Row */}
+
+            {/* =====================================================
+                MAIN SESSION ROW
+            ====================================================== */}
 
             <div className="p-5">
+
                 <div
                     className="
                         grid
@@ -620,55 +709,113 @@ function HistorySession({
                         items-center
                     "
                 >
+
                     {/* Session */}
 
                     <div className="min-w-0">
-                        <p className="text-white font-semibold text-sm">
+
+                        <p
+                            className="font-semibold text-sm"
+                            style={{
+                                color: theme.text,
+                            }}
+                        >
                             {session.time}
                         </p>
 
                         {session.isActive ? (
-                            <div className="flex items-center gap-2 mt-1.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" />
 
-                                <span className="text-xs text-teal-400">
+                            <div className="flex items-center gap-2 mt-1.5">
+
+                                <span
+                                    className="w-1.5 h-1.5 rounded-full animate-pulse"
+                                    style={{
+                                        background: theme.primary,
+                                    }}
+                                />
+
+                                <span
+                                    className="text-xs"
+                                    style={{
+                                        color: theme.primary,
+                                    }}
+                                >
                                     Updating in real time
                                 </span>
+
                             </div>
+
                         ) : (
-                            <p className="text-xs text-slate-500 mt-1.5">
+
+                            <p
+                                className="text-xs mt-1.5"
+                                style={{
+                                    color: theme.textSecondary,
+                                }}
+                            >
                                 Completed driving session
                             </p>
+
                         )}
+
                     </div>
+
 
                     {/* Drive Information */}
 
                     <div className="flex items-center gap-6">
+
                         <div>
-                            <p className="text-[10px] uppercase tracking-widest text-slate-600">
+
+                            <p
+                                className="text-[10px] uppercase tracking-widest"
+                                style={{
+                                    color: theme.textSecondary,
+                                }}
+                            >
                                 Duration
                             </p>
 
-                            <p className="text-sm text-slate-300 mt-1">
+                            <p
+                                className="text-sm mt-1"
+                                style={{
+                                    color: theme.text,
+                                }}
+                            >
                                 {session.duration}
                             </p>
+
                         </div>
 
                         <div>
-                            <p className="text-[10px] uppercase tracking-widest text-slate-600">
+
+                            <p
+                                className="text-[10px] uppercase tracking-widest"
+                                style={{
+                                    color: theme.textSecondary,
+                                }}
+                            >
                                 Distance
                             </p>
 
-                            <p className="text-sm text-slate-300 mt-1">
+                            <p
+                                className="text-sm mt-1"
+                                style={{
+                                    color: theme.text,
+                                }}
+                            >
                                 {session.distance}
                             </p>
+
                         </div>
+
                     </div>
+
 
                     {/* Physiological Data */}
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-5 gap-y-3">
+
                         <HistoryMetric
                             label="Heart Rate"
                             value={`${session.heartRate} BPM`}
@@ -688,12 +835,14 @@ function HistorySession({
                             label="Sweat"
                             value={`${session.sweat} µS`}
                         />
+
                     </div>
+
 
                     {/* Status */}
 
                     <div
-                        className={`
+                        className="
                             inline-flex
                             items-center
                             justify-center
@@ -701,72 +850,122 @@ function HistorySession({
                             px-3
                             py-1.5
                             rounded-full
-                            border
                             whitespace-nowrap
-                            ${style.background}
-                            ${style.border}
-                        `}
+                        "
+                        style={{
+                            background: style.background,
+                            border: `1px solid ${style.border}`,
+                        }}
                     >
+
                         <span
                             className={`
                                 w-1.5
                                 h-1.5
                                 rounded-full
-                                ${style.dot}
                                 ${session.isActive ? "animate-pulse" : ""}
                             `}
+                            style={{
+                                background: style.dot,
+                            }}
                         />
 
                         <span
-                            className={`
-                                text-xs
-                                font-semibold
-                                ${style.text}
-                            `}
+                            className="text-xs font-semibold"
+                            style={{
+                                color: style.text,
+                            }}
                         >
                             {session.isActive ? "LIVE" : session.status}
                         </span>
+
                     </div>
+
 
                     {/* Highlights */}
 
                     <div className="flex flex-col gap-1.5 min-w-[120px]">
-                        {session.alerts?.length > 0 ? (
-                            <div className="flex items-center gap-1.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
 
-                                <span className="text-[11px] text-amber-400">
+                        {session.alerts?.length > 0 ? (
+
+                            <div className="flex items-center gap-1.5">
+
+                                <span
+                                    className="w-1.5 h-1.5 rounded-full"
+                                    style={{
+                                        background: theme.warning,
+                                    }}
+                                />
+
+                                <span
+                                    className="text-[11px]"
+                                    style={{
+                                        color: theme.warning,
+                                    }}
+                                >
                                     {session.alerts.length}{" "}
                                     {session.alerts.length === 1
                                         ? "alert"
                                         : "alerts"}
                                 </span>
-                            </div>
-                        ) : (
-                            <div className="flex items-center gap-1.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
 
-                                <span className="text-[11px] text-slate-500">
+                            </div>
+
+                        ) : (
+
+                            <div className="flex items-center gap-1.5">
+
+                                <span
+                                    className="w-1.5 h-1.5 rounded-full"
+                                    style={{
+                                        background: theme.success,
+                                    }}
+                                />
+
+                                <span
+                                    className="text-[11px]"
+                                    style={{
+                                        color: theme.textSecondary,
+                                    }}
+                                >
                                     No alerts
                                 </span>
+
                             </div>
+
                         )}
 
                         {session.recommendations?.length > 0 && (
+
                             <div className="flex items-center gap-1.5">
-                                <span className="text-teal-400 text-xs">
+
+                                <span
+                                    className="text-xs"
+                                    style={{
+                                        color: theme.primary,
+                                    }}
+                                >
                                     ✦
                                 </span>
 
-                                <span className="text-[11px] text-slate-500">
+                                <span
+                                    className="text-[11px]"
+                                    style={{
+                                        color: theme.textSecondary,
+                                    }}
+                                >
                                     {session.recommendations.length}{" "}
                                     {session.recommendations.length === 1
                                         ? "AI recommendation"
                                         : "AI recommendations"}
                                 </span>
+
                             </div>
+
                         )}
+
                     </div>
+
 
                     {/* View Report */}
 
@@ -781,35 +980,54 @@ function HistorySession({
                             px-3
                             py-2
                             rounded-lg
-                            border
-                            border-slate-800
-                            bg-[#0B1018]
-                            cursor-pointer
                             text-xs
                             font-medium
-                            text-slate-400
-                            hover:text-white
-                            hover:border-slate-700
+                            cursor-pointer
                             transition-colors
                             whitespace-nowrap
                         "
+                        style={{
+                            background: theme.surfaceSecondary,
+                            border: `1px solid ${theme.border}`,
+                            color: theme.textSecondary,
+                        }}
                     >
+
                         <span>
                             {expanded ? "Hide Report" : "View Report"}
                         </span>
 
-                        <span className="text-slate-600">
+                        <span
+                            style={{
+                                color: theme.textSecondary,
+                            }}
+                        >
                             {expanded ? "↑" : "→"}
                         </span>
+
                     </button>
+
                 </div>
+
             </div>
 
-            {/* Expanded Report */}
+
+            {/* =====================================================
+                EXPANDED REPORT
+            ====================================================== */}
 
             {expanded && (
-                <div className="border-t border-slate-800/80 bg-[#101522] p-5">
+
+                <div
+                    className="p-5"
+                    style={{
+                        borderTop: `1px solid ${theme.border}`,
+                        background: theme.surfaceSecondary,
+                    }}
+                >
+
                     {session.isActive && (
+
                         <div
                             className="
                                 mb-5
@@ -817,37 +1035,70 @@ function HistorySession({
                                 items-center
                                 justify-between
                                 rounded-xl
-                                border
-                                border-teal-400/10
-                                bg-teal-400/5
                                 px-4
                                 py-3
                             "
+                            style={{
+                                border: `1px solid ${theme.primary}25`,
+                                background: `${theme.primary}0D`,
+                            }}
                         >
-                            <div className="flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
 
-                                <span className="text-xs font-medium text-teal-400">
+                            <div className="flex items-center gap-2">
+
+                                <span
+                                    className="w-2 h-2 rounded-full animate-pulse"
+                                    style={{
+                                        background: theme.primary,
+                                    }}
+                                />
+
+                                <span
+                                    className="text-xs font-medium"
+                                    style={{
+                                        color: theme.primary,
+                                    }}
+                                >
                                     Live session report
                                 </span>
+
                             </div>
 
-                            <span className="text-[10px] text-slate-500">
+                            <span
+                                className="text-[10px]"
+                                style={{
+                                    color: theme.textSecondary,
+                                }}
+                            >
                                 Updating in real time
                             </span>
+
                         </div>
+
                     )}
 
+
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                        {/* Timeline */}
+
+                        {/* =================================================
+                            TIMELINE
+                        ================================================== */}
 
                         <div>
-                            <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-4">
+
+                            <p
+                                className="text-[10px] uppercase tracking-[0.2em] mb-4"
+                                style={{
+                                    color: theme.textSecondary,
+                                }}
+                            >
                                 Session Timeline
                             </p>
 
                             <div className="relative space-y-4">
+
                                 {session.timeline?.map((event, index) => {
+
                                     const isWarning =
                                         event.status === "Warning";
 
@@ -855,24 +1106,21 @@ function HistorySession({
                                         event.status === "Critical";
 
                                     const statusColor = isCritical
-                                        ? "bg-red-400"
+                                        ? theme.danger
                                         : isWarning
-                                        ? "bg-amber-400"
-                                        : "bg-emerald-400";
-
-                                    const textColor = isCritical
-                                        ? "text-red-400"
-                                        : isWarning
-                                        ? "text-amber-400"
-                                        : "text-emerald-400";
+                                        ? theme.warning
+                                        : theme.success;
 
                                     return (
+
                                         <div
                                             key={index}
                                             className="relative flex gap-3"
                                         >
+
                                             {index !==
                                                 session.timeline.length - 1 && (
+
                                                 <div
                                                     className="
                                                         absolute
@@ -880,17 +1128,27 @@ function HistorySession({
                                                         top-5
                                                         w-px
                                                         h-[calc(100%+16px)]
-                                                        bg-slate-800
                                                     "
+                                                    style={{
+                                                        background:
+                                                            theme.border,
+                                                    }}
                                                 />
+
                                             )}
 
-                                            <span className="w-14 shrink-0 pt-0.5 text-[11px] text-slate-500">
+                                            <span
+                                                className="w-14 shrink-0 pt-0.5 text-[11px]"
+                                                style={{
+                                                    color:
+                                                        theme.textSecondary,
+                                                }}
+                                            >
                                                 {event.time}
                                             </span>
 
                                             <span
-                                                className={`
+                                                className="
                                                     relative
                                                     z-10
                                                     mt-1
@@ -898,26 +1156,43 @@ function HistorySession({
                                                     h-2
                                                     shrink-0
                                                     rounded-full
-                                                    ${statusColor}
-                                                `}
+                                                "
+                                                style={{
+                                                    background:
+                                                        statusColor,
+                                                }}
                                             />
 
                                             <div className="min-w-0 flex-1">
+
                                                 <span
-                                                    className={`
-                                                        text-xs
-                                                        font-medium
-                                                        ${textColor}
-                                                    `}
+                                                    className="text-xs font-medium"
+                                                    style={{
+                                                        color:
+                                                            statusColor,
+                                                    }}
                                                 >
                                                     {event.status}
                                                 </span>
 
                                                 {event.heartRate !== undefined && (
+
                                                     <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-2">
-                                                        <span className="text-[10px] text-slate-600">
+
+                                                        <span
+                                                            className="text-[10px]"
+                                                            style={{
+                                                                color:
+                                                                    theme.textSecondary,
+                                                            }}
+                                                        >
                                                             HR{" "}
-                                                            <span className="text-slate-400">
+                                                            <span
+                                                                style={{
+                                                                    color:
+                                                                        theme.text,
+                                                                }}
+                                                            >
                                                                 {
                                                                     event.heartRate
                                                                 }{" "}
@@ -925,16 +1200,38 @@ function HistorySession({
                                                             </span>
                                                         </span>
 
-                                                        <span className="text-[10px] text-slate-600">
+                                                        <span
+                                                            className="text-[10px]"
+                                                            style={{
+                                                                color:
+                                                                    theme.textSecondary,
+                                                            }}
+                                                        >
                                                             HRV{" "}
-                                                            <span className="text-slate-400">
+                                                            <span
+                                                                style={{
+                                                                    color:
+                                                                        theme.text,
+                                                                }}
+                                                            >
                                                                 {event.hrv} ms
                                                             </span>
                                                         </span>
 
-                                                        <span className="text-[10px] text-slate-600">
+                                                        <span
+                                                            className="text-[10px]"
+                                                            style={{
+                                                                color:
+                                                                    theme.textSecondary,
+                                                            }}
+                                                        >
                                                             Temp{" "}
-                                                            <span className="text-slate-400">
+                                                            <span
+                                                                style={{
+                                                                    color:
+                                                                        theme.text,
+                                                                }}
+                                                            >
                                                                 {
                                                                     event.temperature
                                                                 }{" "}
@@ -942,140 +1239,253 @@ function HistorySession({
                                                             </span>
                                                         </span>
 
-                                                        <span className="text-[10px] text-slate-600">
+                                                        <span
+                                                            className="text-[10px]"
+                                                            style={{
+                                                                color:
+                                                                    theme.textSecondary,
+                                                            }}
+                                                        >
                                                             Sweat{" "}
-                                                            <span className="text-slate-400">
+                                                            <span
+                                                                style={{
+                                                                    color:
+                                                                        theme.text,
+                                                                }}
+                                                            >
                                                                 {event.sweat} µS
                                                             </span>
                                                         </span>
+
                                                     </div>
+
                                                 )}
+
                                             </div>
+
                                         </div>
                                     );
                                 })}
+
                             </div>
+
                         </div>
 
-                        {/* Alerts */}
+
+                        {/* =================================================
+                            ALERTS
+                        ================================================== */}
 
                         <div>
-                            <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-4">
+
+                            <p
+                                className="text-[10px] uppercase tracking-[0.2em] mb-4"
+                                style={{
+                                    color: theme.textSecondary,
+                                }}
+                            >
                                 Alerts
                             </p>
 
                             <div className="space-y-2">
-                                {session.alerts?.length > 0 ? (
-                                    session.alerts.map((alert, index) => (
-                                        <div
-                                            key={index}
-                                            className={`
-                                                rounded-xl
-                                                border
-                                                px-4
-                                                py-3
-                                                ${
-                                                    alert.severity ===
-                                                    "Critical"
-                                                        ? "border-red-400/10 bg-red-400/5"
-                                                        : "border-amber-400/10 bg-amber-400/5"
-                                                }
-                                            `}
-                                        >
-                                            <div className="flex items-center justify-between gap-4">
-                                                <span
-                                                    className={`
-                                                        text-xs
-                                                        font-medium
-                                                        ${
-                                                            alert.severity ===
-                                                            "Critical"
-                                                                ? "text-red-400"
-                                                                : "text-amber-400"
-                                                        }
-                                                    `}
-                                                >
-                                                    {alert.severity}
-                                                </span>
 
-                                                <span className="text-[10px] text-slate-600">
-                                                    {alert.time}
-                                                </span>
+                                {session.alerts?.length > 0 ? (
+
+                                    session.alerts.map((alert, index) => {
+
+                                        const alertColor =
+                                            alert.severity === "Critical"
+                                                ? theme.danger
+                                                : theme.warning;
+
+                                        return (
+
+                                            <div
+                                                key={index}
+                                                className="rounded-xl px-4 py-3"
+                                                style={{
+                                                    border: `1px solid ${alertColor}25`,
+                                                    background: `${alertColor}0D`,
+                                                }}
+                                            >
+
+                                                <div className="flex items-center justify-between gap-4">
+
+                                                    <span
+                                                        className="text-xs font-medium"
+                                                        style={{
+                                                            color:
+                                                                alertColor,
+                                                        }}
+                                                    >
+                                                        {alert.severity}
+                                                    </span>
+
+                                                    <span
+                                                        className="text-[10px]"
+                                                        style={{
+                                                            color:
+                                                                theme.textSecondary,
+                                                        }}
+                                                    >
+                                                        {alert.time}
+                                                    </span>
+
+                                                </div>
+
+                                                <p
+                                                    className="text-xs mt-2 leading-relaxed"
+                                                    style={{
+                                                        color:
+                                                            theme.text,
+                                                    }}
+                                                >
+                                                    {alert.message}
+                                                </p>
+
                                             </div>
 
-                                            <p className="text-xs text-slate-300 mt-2 leading-relaxed">
-                                                {alert.message}
-                                            </p>
-                                        </div>
-                                    ))
+                                        );
+                                    })
+
                                 ) : (
-                                    <div className="rounded-xl border border-slate-800/80 bg-[#121826] px-4 py-4">
-                                        <p className="text-xs text-slate-500">
+
+                                    <div
+                                        className="rounded-xl px-4 py-4"
+                                        style={{
+                                            background: theme.surface,
+                                            border: `1px solid ${theme.border}`,
+                                        }}
+                                    >
+
+                                        <p
+                                            className="text-xs"
+                                            style={{
+                                                color:
+                                                    theme.textSecondary,
+                                            }}
+                                        >
                                             No alerts recorded.
                                         </p>
+
                                     </div>
+
                                 )}
+
                             </div>
+
                         </div>
+
                     </div>
 
-                    {/* AI Analysis */}
+
+                    {/* =====================================================
+                        AI ANALYSIS
+                    ====================================================== */}
 
                     <div
-                        className="
-                            mt-5
-                            rounded-xl
-                            border
-                            border-teal-400/10
-                            bg-teal-400/5
-                            px-4
-                            py-4
-                        "
+                        className="mt-5 rounded-xl px-4 py-4"
+                        style={{
+                            border: `1px solid ${theme.primary}25`,
+                            background: `${theme.primary}0D`,
+                        }}
                     >
-                        <p className="text-[10px] uppercase tracking-[0.2em] text-teal-400">
+
+                        <p
+                            className="text-[10px] uppercase tracking-[0.2em]"
+                            style={{
+                                color: theme.primary,
+                            }}
+                        >
                             AI Analysis
                         </p>
 
                         <div className="space-y-2 mt-3">
+
                             {session.recommendations?.length > 0 ? (
+
                                 session.recommendations.map(
                                     (recommendation, index) => (
+
                                         <div key={index}>
-                                            <p className="text-[10px] text-slate-600">
+
+                                            <p
+                                                className="text-[10px]"
+                                                style={{
+                                                    color:
+                                                        theme.textSecondary,
+                                                }}
+                                            >
                                                 {recommendation.time}
                                             </p>
 
-                                            <p className="text-sm text-slate-300 mt-1 leading-relaxed">
+                                            <p
+                                                className="text-sm mt-1 leading-relaxed"
+                                                style={{
+                                                    color: theme.text,
+                                                }}
+                                            >
                                                 {recommendation.message}
                                             </p>
+
                                         </div>
+
                                     )
                                 )
+
                             ) : (
-                                <p className="text-xs text-slate-600">
+
+                                <p
+                                    className="text-xs"
+                                    style={{
+                                        color:
+                                            theme.textSecondary,
+                                    }}
+                                >
                                     No recommendations recorded.
                                 </p>
+
                             )}
+
                         </div>
+
                     </div>
+
                 </div>
             )}
+
         </div>
     );
 }
 
 
+/* =============================================================
+   HISTORY METRIC
+============================================================= */
+
 function HistoryMetric({ label, value }) {
+
+    const { theme } = useContext(ThemeContext);
 
     return (
 
         <div>
 
-            <p className="text-[10px] uppercase tracking-wider text-slate-600">
+            <p
+                className="text-[10px] uppercase tracking-wider"
+                style={{
+                    color: theme.textSecondary,
+                }}
+            >
                 {label}
             </p>
 
-            <p className="text-sm text-slate-300 mt-1">
+            <p
+                className="text-sm mt-1"
+                style={{
+                    color: theme.text,
+                }}
+            >
                 {value}
             </p>
 
@@ -1083,6 +1493,11 @@ function HistoryMetric({ label, value }) {
 
     );
 }
+
+
+/* =============================================================
+   HISTORY OVERVIEW CARD
+============================================================= */
 
 function HistoryOverviewCard({
     label,
@@ -1091,20 +1506,27 @@ function HistoryOverviewCard({
     accent,
 }) {
 
+    const { theme } = useContext(ThemeContext);
+
     const accentStyles = {
         teal: {
-            text: "text-teal-300",
-            dot: "bg-teal-400",
+            text: theme.primary,
+            dot: theme.primary,
         },
 
         emerald: {
-            text: "text-emerald-400",
-            dot: "bg-emerald-400",
+            text: theme.success,
+            dot: theme.success,
         },
 
         amber: {
-            text: "text-amber-400",
-            dot: "bg-amber-400",
+            text: theme.warning,
+            dot: theme.warning,
+        },
+
+        red: {
+            text: theme.danger,
+            dot: theme.danger,
         },
     };
 
@@ -1112,45 +1534,56 @@ function HistoryOverviewCard({
         accentStyles[accent] || accentStyles.teal;
 
     return (
+
         <div
             className="
-                bg-[#121826]
-                border
-                border-slate-800/80
                 rounded-2xl
                 px-5
                 py-4
                 transition-colors
                 duration-200
-                hover:border-slate-700
             "
+            style={{
+                background: theme.surface,
+                border: `1px solid ${theme.border}`,
+            }}
         >
 
             <div className="flex items-center gap-2">
 
                 <span
-                    className={`w-1.5 h-1.5 rounded-full ${style.dot}`}
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{
+                        background: style.dot,
+                    }}
                 />
 
-                <p className="text-[10px] uppercase tracking-widest text-slate-500">
+                <p
+                    className="text-[10px] uppercase tracking-widest"
+                    style={{
+                        color: theme.textSecondary,
+                    }}
+                >
                     {label}
                 </p>
 
             </div>
 
             <p
-                className={`
-                    text-2xl
-                    font-semibold
-                    tracking-tight
-                    mt-2
-                    ${style.text}
-                `}
+                className="text-2xl font-semibold tracking-tight mt-2"
+                style={{
+                    color: style.text,
+                }}
             >
                 {value}
             </p>
 
-            <p className="text-[11px] text-slate-600 mt-1">
+            <p
+                className="text-[11px] mt-1"
+                style={{
+                    color: theme.textSecondary,
+                }}
+            >
                 {description}
             </p>
 

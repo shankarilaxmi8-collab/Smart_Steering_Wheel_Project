@@ -1,7 +1,12 @@
 import { useContext } from "react";
 import { ThemeContext } from "../../../../app/providers";
 
-function RiskAssessment({ data, loading, error }) {
+function RiskAssessment({
+    data,
+    loading,
+    error,
+}) {
+
     const { theme } = useContext(ThemeContext);
 
     /*
@@ -11,6 +16,7 @@ function RiskAssessment({ data, loading, error }) {
     */
 
     if (loading) {
+
         return (
             <div
                 className="
@@ -25,6 +31,7 @@ function RiskAssessment({ data, loading, error }) {
                     border: `1px solid ${theme.border}`,
                 }}
             >
+
                 <p
                     className="text-sm"
                     style={{
@@ -33,6 +40,7 @@ function RiskAssessment({ data, loading, error }) {
                 >
                     Loading Risk Assessment...
                 </p>
+
             </div>
         );
     }
@@ -45,6 +53,7 @@ function RiskAssessment({ data, loading, error }) {
     */
 
     if (error) {
+
         return (
             <div
                 className="
@@ -58,6 +67,7 @@ function RiskAssessment({ data, loading, error }) {
                     border: `1px solid ${theme.danger}55`,
                 }}
             >
+
                 <p
                     className="text-sm"
                     style={{
@@ -66,6 +76,7 @@ function RiskAssessment({ data, loading, error }) {
                 >
                     Unable to load Risk Assessment.
                 </p>
+
             </div>
         );
     }
@@ -73,12 +84,8 @@ function RiskAssessment({ data, loading, error }) {
 
     /*
     |--------------------------------------------------------------------------
-    | LIVE CONDITION
+    | CONDITION
     |--------------------------------------------------------------------------
-    |
-    | This is updated by useDriverData() whenever a WebSocket
-    | message arrives.
-    |
     */
 
     const condition = String(
@@ -92,15 +99,15 @@ function RiskAssessment({ data, loading, error }) {
 
     /*
     |--------------------------------------------------------------------------
-    | LIVE PREDICTION
+    | PREDICTION DATA
     |--------------------------------------------------------------------------
     */
 
     const predictionData = data?.prediction;
 
 
-    let prediction = null;
-    let rawPrediction = null;
+    let prediction = "NORMAL";
+    let rawPrediction = "NORMAL";
     let confidence = 0;
 
 
@@ -121,21 +128,20 @@ function RiskAssessment({ data, loading, error }) {
             predictionData?.prediction ??
             predictionData?.label ??
             predictionData?.class ??
-            null;
+            "NORMAL";
 
 
         rawPrediction =
             predictionData?.raw_prediction ??
-            prediction;
+            prediction ??
+            "NORMAL";
 
 
-        confidence =
-            Number(
-                predictionData?.confidence ??
-                predictionData?.probability ??
-                0
-            );
-
+        confidence = Number(
+            predictionData?.confidence ??
+            predictionData?.probability ??
+            0
+        );
     }
 
 
@@ -145,17 +151,14 @@ function RiskAssessment({ data, loading, error }) {
     |--------------------------------------------------------------------------
     */
 
-    else {
+    else if (
+        predictionData !== null &&
+        predictionData !== undefined
+    ) {
 
-        prediction =
-            predictionData ??
-            null;
+        prediction = String(predictionData);
 
-
-        rawPrediction =
-            predictionData ??
-            null;
-
+        rawPrediction = prediction;
     }
 
 
@@ -166,17 +169,14 @@ function RiskAssessment({ data, loading, error }) {
     */
 
     const normalizedPrediction = String(
-        prediction ??
-        condition ??
-        "NORMAL"
+        prediction
     )
         .trim()
         .toUpperCase();
 
 
     const normalizedRawPrediction = String(
-        rawPrediction ??
-        normalizedPrediction
+        rawPrediction
     )
         .trim()
         .toUpperCase();
@@ -184,37 +184,57 @@ function RiskAssessment({ data, loading, error }) {
 
     /*
     |--------------------------------------------------------------------------
-    | RISK CONDITIONS
+    | CONFIDENCE
     |--------------------------------------------------------------------------
     */
 
-    const criticalConditions = [
-        "CARDIAC_EVENT",
-        "CARDIAC",
-        "EMERGENCY",
-        "CRITICAL",
-    ];
+    let confidencePercent = Number(confidence);
 
 
-    const warningConditions = [
-        "WARNING",
-        "DROWSY",
-        "STRESS",
-        "FATIGUE",
-        "ALERT",
-    ];
+    if (Number.isFinite(confidencePercent)) {
+
+        if (
+            confidencePercent > 0 &&
+            confidencePercent <= 1
+        ) {
+
+            confidencePercent *= 100;
+        }
+
+        confidencePercent = Math.max(
+            0,
+            Math.min(
+                100,
+                confidencePercent
+            )
+        );
+
+    } else {
+
+        confidencePercent = 0;
+    }
 
 
     /*
     |--------------------------------------------------------------------------
-    | RISK CALCULATION
+    | RISK MAPPING
     |--------------------------------------------------------------------------
+    |
+    | IMPORTANT:
+    |
+    | RiskAssessment does NOT calculate risk from HRV,
+    | heart rate, sweat, temperature, etc.
+    |
+    | It only maps the backend AI prediction to:
+    |
+    | NORMAL
+    | WARNING
+    | CRITICAL
+    |
     */
 
-    let riskLevel = "LOW";
-
+    let riskLevel = "NORMAL";
     let recommendation = "Continue Driving";
-
     let color = theme.success;
 
 
@@ -222,18 +242,52 @@ function RiskAssessment({ data, loading, error }) {
     |--------------------------------------------------------------------------
     | CRITICAL
     |--------------------------------------------------------------------------
-    |
-    | Critical always has highest priority.
-    |
+    */
+
+    const criticalPredictions = [
+        "CARDIAC_EVENT",
+        "CARDIAC",
+        "EMERGENCY",
+        "CRITICAL",
+    ];
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | WARNING
+    |--------------------------------------------------------------------------
+    */
+
+    const warningPredictions = [
+        "WARNING",
+        "DROWSY",
+        "DROWSINESS",
+        "STRESS",
+        "STRESSED",
+        "FATIGUE",
+        "FATIGUED",
+        "ALERT",
+        "ABNORMAL",
+    ];
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | DETERMINE RISK
+    |--------------------------------------------------------------------------
     */
 
     if (
-        criticalConditions.includes(normalizedPrediction) ||
-        criticalConditions.includes(condition) ||
-        criticalConditions.includes(normalizedRawPrediction)
+        criticalPredictions.includes(
+            normalizedPrediction
+        )
+        ||
+        criticalPredictions.includes(
+            condition
+        )
     ) {
 
-        riskLevel = "HIGH";
+        riskLevel = "CRITICAL";
 
         recommendation =
             "Stop Driving Immediately";
@@ -243,19 +297,17 @@ function RiskAssessment({ data, loading, error }) {
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | WARNING
-    |--------------------------------------------------------------------------
-    */
-
     else if (
-        warningConditions.includes(normalizedPrediction) ||
-        warningConditions.includes(condition) ||
-        warningConditions.includes(normalizedRawPrediction)
+        warningPredictions.includes(
+            normalizedPrediction
+        )
+        ||
+        warningPredictions.includes(
+            condition
+        )
     ) {
 
-        riskLevel = "MEDIUM";
+        riskLevel = "WARNING";
 
         recommendation =
             "Monitor Driver";
@@ -265,15 +317,9 @@ function RiskAssessment({ data, loading, error }) {
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | NORMAL
-    |--------------------------------------------------------------------------
-    */
-
     else {
 
-        riskLevel = "LOW";
+        riskLevel = "NORMAL";
 
         recommendation =
             "Continue Driving";
@@ -287,20 +333,27 @@ function RiskAssessment({ data, loading, error }) {
     |--------------------------------------------------------------------------
     | DEBUG
     |--------------------------------------------------------------------------
-    |
-    | This lets us verify that RiskAssessment is receiving new
-    | WebSocket data.
-    |
     */
 
     console.log(
         "🟢 RISK ASSESSMENT:",
         {
             condition,
-            prediction: normalizedPrediction,
-            rawPrediction: normalizedRawPrediction,
+
+            prediction:
+                normalizedPrediction,
+
+            rawPrediction:
+                normalizedRawPrediction,
+
             confidence,
-            riskLevel,
+
+            confidencePercent,
+
+            finalRisk:
+                riskLevel,
+
+            recommendation,
         }
     );
 
@@ -312,6 +365,7 @@ function RiskAssessment({ data, loading, error }) {
     */
 
     return (
+
         <div
             className="
                 rounded-3xl
@@ -326,7 +380,8 @@ function RiskAssessment({ data, loading, error }) {
                 hover:shadow-xl
             "
             style={{
-                backgroundColor: theme.surface,
+                backgroundColor:
+                    theme.surface,
 
                 border:
                     `1px solid ${color}55`,
@@ -335,6 +390,7 @@ function RiskAssessment({ data, loading, error }) {
                     `0 0 16px ${color}12`,
             }}
         >
+
 
             {/* =====================================================
                 TITLE
@@ -348,7 +404,8 @@ function RiskAssessment({ data, loading, error }) {
                     mb-4
                 "
                 style={{
-                    color: theme.textSecondary,
+                    color:
+                        theme.textSecondary,
                 }}
             >
                 Risk Assessment
@@ -380,6 +437,8 @@ function RiskAssessment({ data, loading, error }) {
                     {riskLevel}
                 </h2>
 
+
+                {/* AI PREDICTION */}
 
                 <span
                     className="
@@ -414,7 +473,10 @@ function RiskAssessment({ data, loading, error }) {
                 "
             >
 
-                {/* AI CONFIDENCE */}
+
+                {/* =================================================
+                    AI CONFIDENCE
+                ================================================== */}
 
                 <div
                     className="
@@ -441,16 +503,25 @@ function RiskAssessment({ data, loading, error }) {
                             font-semibold
                         "
                         style={{
-                            color: theme.text,
+                            color:
+                                theme.text,
                         }}
                     >
-                        {confidence.toFixed(0)}%
+                        {
+                            confidencePercent > 0
+                                ? `${Math.round(
+                                    confidencePercent
+                                )}%`
+                                : "N/A"
+                        }
                     </span>
 
                 </div>
 
 
-                {/* CONDITION */}
+                {/* =================================================
+                    CONDITION
+                ================================================== */}
 
                 <div
                     className="
@@ -486,7 +557,9 @@ function RiskAssessment({ data, loading, error }) {
                 </div>
 
 
-                {/* RECOMMENDATION */}
+                {/* =================================================
+                    RECOMMENDATION
+                ================================================== */}
 
                 <div
                     className="
@@ -544,11 +617,17 @@ function RiskAssessment({ data, loading, error }) {
                         theme.textSecondary,
                 }}
             >
-                Raw Prediction: {normalizedRawPrediction}
+
+                Raw Prediction:{" "}
+
+                {normalizedRawPrediction}
+
             </div>
 
         </div>
+
     );
 }
+
 
 export default RiskAssessment;
