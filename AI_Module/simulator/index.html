@@ -10,7 +10,7 @@
 <style>
 :root {
 --bg-dark: #02040a;
---panel-bg: rgba(10, 15, 30, 0.8);
+--panel-bg: rgba(10, 15, 30, 0.85);
 --border-color: rgba(255, 255, 255, 0.15);
 --accent-blue: #00d2ff;
 --status-normal: #10b981;
@@ -100,7 +100,6 @@ background: rgba(250, 204, 21, 0.12);
 }
 .cam-hint { font-size: 0.72rem; color: #64748b; font-weight: 500; line-height: 1.35; }
 
-/* Interactive Prompts Modal */
 .action-modal {
 position: absolute;
 top: 50%;
@@ -112,7 +111,7 @@ backdrop-filter: blur(25px);
 -webkit-backdrop-filter: blur(25px);
 border: 1px solid rgba(0, 210, 255, 0.4);
 border-radius: 24px;
-padding: 30px 40px;
+padding: 28px 36px;
 display: flex;
 flex-direction: column;
 align-items: center;
@@ -263,14 +262,14 @@ box-shadow: 0 15px 50px rgba(239, 68, 68, 0.8);
 <body>
 <div id="webgl-container"></div>
 
-<!-- Stage 1 Prompt: Enter Car -->
+<!-- Step 1: Enter Car Dialog -->
 <div id="enterCarModal" class="action-modal">
   <h3>Driver Outside</h3>
-  <p>Approach and enter the vehicle</p>
+  <p>Step inside the vehicle to begin session</p>
   <button class="action-btn" onclick="enterVehicle()">🚗 ENTER THE CAR [E]</button>
 </div>
 
-<!-- Stage 2 Prompt: Grip Wheel & Start Engine -->
+<!-- Step 2: Grip Wheel & Start Engine Dialog -->
 <div id="startCarModal" class="action-modal" style="display: none;">
   <h3>Vehicle Standby</h3>
   <p>Place hands on the smart wheel sensors to start the engine & vitals stream</p>
@@ -280,16 +279,16 @@ box-shadow: 0 15px 50px rgba(239, 68, 68, 0.8);
 <div class="overlay-controls">
 <h2>Smart Steering Wheel</h2>
 <div class="mode-buttons">
-<button class="mode-btn active" id="btnNormal" onclick="setStress('normal')">[1] Normal</button>
-<button class="mode-btn" id="btnWarning" onclick="setStress('warning')">[2] Warning</button>
-<button class="mode-btn" id="btnCardiac" onclick="setStress('cardiac')">[3] Event / Crash</button>
+<button class="mode-btn active" id="btnNormal" onclick="setStress('normal', false)">[1] Normal</button>
+<button class="mode-btn" id="btnWarning" onclick="setStress('warning', false)">[2] Warning</button>
+<button class="mode-btn" id="btnCardiac" onclick="setStress('cardiac', false)">[3] Event / Crash</button>
 </div>
 <div class="env-buttons">
 <button class="env-btn active" id="btnDay" onclick="setEnvironment('day')">☀️ Day</button>
 <button class="env-btn" id="btnNight" onclick="setEnvironment('night')">🌙 Night</button>
 </div>
 <div class="cam-hint">
-WASD to drive | N: Day/Night | Space: Grip Wheel<br>
+1/2/3: Manual Modes | N: Day/Night | Space: Grip Wheel<br>
 Mouse drag to orbit camera
 </div>
 </div>
@@ -327,7 +326,6 @@ btn.innerText = container.classList.contains('open') ? '▲' : '▼';
 
 let keys = {};
 let stressMode = "normal";
-let isAutoWarning = false;
 let carSpeed = 0.0;
 let emergencyOverride = false;
 let currentBPM = 72;
@@ -337,8 +335,8 @@ let rescueTimer = 0;
 let ambulanceActive = false;
 let ambSpeed = 0;
 let currentEnv = 'day';
+let lastProcessedDmsTimestamp = 0;
 
-// Interaction & Telemetry Pipeline Stages
 let isInsideCar = false;
 let isHoldingWheel = false;
 let enteringCarAnimation = false;
@@ -351,6 +349,21 @@ let healthData = {
   conf: 100
 };
 
+// Voice Alerts
+function speakAlert(text, priority = false) {
+  if (!('speechSynthesis' in window)) return;
+  if (priority) window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 1.05;
+  utterance.pitch = 1.0;
+  utterance.volume = 1.0;
+  const voices = window.speechSynthesis.getVoices();
+  const selectedVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Female')));
+  if (selectedVoice) utterance.voice = selectedVoice;
+  window.speechSynthesis.speak(utterance);
+}
+
+// Audio Engine
 let audioCtx, masterGain, engineOsc, engineFilter, engineGain, alarmOsc, alarmGain, sirenOsc, sirenGain;
 let audioInitialized = false;
 
@@ -411,7 +424,6 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x6ba4d8);
 scene.fog = new THREE.FogExp2(0x6ba4d8, 0.008);
 
-// Initial Camera setup showcasing standing driver outside
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 2000);
 camera.position.set(-2.8, 1.6, -1.8);
 
@@ -440,7 +452,7 @@ sunLight.shadow.mapSize.width = 2048;
 sunLight.shadow.mapSize.height = 2048;
 scene.add(sunLight);
 
-// ROAD ENVIRONMENT
+// ROAD & STREET LIGHTS
 const roadGroup = new THREE.Group();
 scene.add(roadGroup);
 const asphaltMat = new THREE.MeshStandardMaterial({ color: 0x1a1c23, roughness: 0.7, metalness: 0.1 });
@@ -528,7 +540,7 @@ treeR.position.set(11 + Math.random() * 6, 0, i * 60 + t + (Math.random() - 0.5)
 }
 }
 
-// CAR SETUP & INTERIOR
+// CAR SETUP & COCKPIT
 const carGroup = new THREE.Group();
 scene.add(carGroup);
 const bodyMat = new THREE.MeshPhysicalMaterial({ color: 0x111827, metalness: 0.8, roughness: 0.4, clearcoat: 1.0, clearcoatRoughness: 0.1 });
@@ -600,7 +612,7 @@ return seat;
 carGroup.add(createBucketSeat(-0.45, true));
 carGroup.add(createBucketSeat(0.45, false));
 
-// DRIVER MODEL (Starts standing outside at x = -1.6)
+// DRIVER
 const driverGroup = new THREE.Group();
 driverGroup.position.set(-1.6, 0.72, 0.18);
 carGroup.add(driverGroup);
@@ -619,7 +631,6 @@ head.castShadow = true; headGroup.add(head);
 const hairCap = new THREE.Mesh(new THREE.SphereGeometry(0.185, 32, 32), hairMat);
 hairCap.position.set(0, 0.03, 0.04); headGroup.add(hairCap);
 
-// Driver Arms
 const armLGroup = new THREE.Group(); armLGroup.position.set(-0.19, 0.44, 0.0); driverGroup.add(armLGroup);
 const armL = new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.032, 0.34, 16), sleeveMat);
 armL.position.set(-0.02, -0.06, -0.16); armL.rotation.x = 0; armL.castShadow = true; armLGroup.add(armL);
@@ -759,14 +770,14 @@ const rLegs = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.18, 0.65), new THREE.
 rescuedDriver.add(rTorso); rescuedDriver.add(rHead); rescuedDriver.add(rLegs);
 rescuedDriver.visible = false; nursesGroup.add(rescuedDriver);
 
-// STEP 1: ENTER VEHICLE ACTION
+// STEP 1: ENTER VEHICLE
 function enterVehicle() {
   if (isInsideCar) return;
   document.getElementById('enterCarModal').style.display = 'none';
   enteringCarAnimation = true;
 }
 
-// STEP 2: GRIP WHEEL & START ENGINE
+// STEP 2: GRIP WHEEL & START
 function gripWheelAndStart() {
   if (!isInsideCar || isHoldingWheel) return;
   document.getElementById('startCarModal').style.display = 'none';
@@ -776,7 +787,8 @@ function gripWheelAndStart() {
     engineGain.gain.setTargetAtTime(0.3, audioCtx.currentTime, 0.5);
   }
   carSpeed = 0.22;
-  setStress('normal');
+  setStress('normal', false);
+  speakAlert("Smart Steering Wheel initialized. Driver monitoring is active.");
 }
 
 // DAY / NIGHT ENVIRONMENT SWITCHER
@@ -818,13 +830,15 @@ function setEnvironment(env) {
   }
 }
 
-// INPUTS & TELEMETRY DISPATCH
+// KEYBOARD OVERRIDES
 window.addEventListener('keydown', e => {
 const k = e.key.toLowerCase();
 keys[k] = true;
+
 if (e.key === '1') setStress('normal', false);
 if (e.key === '2') setStress('warning', false);
 if (e.key === '3') setStress('cardiac', false);
+
 if (k === 'n') setEnvironment(currentEnv === 'day' ? 'night' : 'day');
 if (k === 'e' && !isInsideCar) enterVehicle();
 if (e.code === 'Space' && isInsideCar && !isHoldingWheel) {
@@ -844,28 +858,31 @@ function updateTelemetryUI() {
 }
 
 function setStress(mode, isAuto = false) {
+if (emergencyOverride && mode !== 'cardiac') return;
+
 stressMode = mode;
-isAutoWarning = isAuto;
+
 document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
 if (mode === 'normal') document.getElementById('btnNormal').classList.add('active');
 if (mode === 'warning') document.getElementById('btnWarning').classList.add('active');
 if (mode === 'cardiac') document.getElementById('btnCardiac').classList.add('active');
 
-if (!isHoldingWheel) return;
-
 const colorHex = stressMode === 'cardiac' ? 0xef4444 : (stressMode === 'warning' ? 0xf59e0b : 0x10b981);
 
-padMat.color.setHex(colorHex);
-padMat.emissive.setHex(colorHex);
-tabletScreenMat.color.setHex(colorHex);
-tabletScreenMat.emissive.setHex(colorHex);
-tabletScreenMat.emissiveIntensity = 1.4;
-dashGlow.color.setHex(colorHex);
-dashGlow.intensity = (stressMode === 'cardiac') ? 1.6 : 1.0;
+if (isHoldingWheel) {
+  padMat.color.setHex(colorHex);
+  padMat.emissive.setHex(colorHex);
+  padMat.emissiveIntensity = 0.8;
+  tabletScreenMat.color.setHex(colorHex);
+  tabletScreenMat.emissive.setHex(colorHex);
+  tabletScreenMat.emissiveIntensity = 1.4;
+  dashGlow.color.setHex(colorHex);
+  dashGlow.intensity = (stressMode === 'cardiac') ? 1.6 : 1.0;
 
-let stateStr = mode === 'cardiac' ? 'CARDIAC EVENT' : (mode === 'warning' ? 'WARNING' : 'NORMAL');
-document.getElementById('dispStatus').innerText = stateStr;
-document.getElementById('statusBadge').className = `status-badge ${mode === 'cardiac' ? 'CARDIAC_EVENT' : (mode === 'warning' ? 'WARNING' : 'NORMAL')}`;
+  let stateStr = mode === 'cardiac' ? 'CARDIAC EVENT' : (mode === 'warning' ? 'WARNING' : 'NORMAL');
+  document.getElementById('dispStatus').innerText = stateStr;
+  document.getElementById('statusBadge').className = `status-badge ${mode === 'cardiac' ? 'CARDIAC_EVENT' : (mode === 'warning' ? 'WARNING' : 'NORMAL')}`;
+}
 
 if (mode === 'cardiac') {
   emergencyOverride = true;
@@ -876,6 +893,9 @@ if (mode === 'cardiac') {
   healthData.grip = 48;
   healthData.sweat = 8.8;
   healthData.conf = 98;
+  if (isHoldingWheel) {
+    speakAlert("Critical emergency! Cardiac distress detected. Initiating automatic pullover and rescue dispatch.", true);
+  }
 } else if (mode === 'warning') {
   emergencyOverride = false;
   currentBPM = 102;
@@ -885,6 +905,9 @@ if (mode === 'cardiac') {
   healthData.grip = 34;
   healthData.sweat = 5.6;
   healthData.conf = 92;
+  if (isHoldingWheel) {
+    speakAlert("Warning. Driver stress levels elevated. Please stay focused.");
+  }
 } else {
   emergencyOverride = false;
   currentBPM = 72;
@@ -936,7 +959,6 @@ function updatePhysics() {
 const time = Date.now();
 updateAudio(time);
 
-// Smooth Entering Car Transition
 if (enteringCarAnimation) {
   driverGroup.position.x = THREE.MathUtils.lerp(driverGroup.position.x, -0.45, 0.08);
   torso.rotation.x = THREE.MathUtils.lerp(torso.rotation.x, -0.15, 0.08);
@@ -955,7 +977,6 @@ if (enteringCarAnimation) {
   }
 }
 
-// Arm Positional Handling (Hands off wheel vs Holding wheel)
 if (isHoldingWheel) {
   armL.rotation.x = THREE.MathUtils.lerp(armL.rotation.x, Math.PI / 2.8, 0.1);
   armL.position.set(-0.02, -0.06, -0.16);
@@ -965,7 +986,6 @@ if (isHoldingWheel) {
   armR.position.set(0.02, -0.06, -0.16);
   handR.position.set(0.03, -0.12, -0.33);
 } else {
-  // Relaxed resting on lap
   armL.rotation.x = THREE.MathUtils.lerp(armL.rotation.x, Math.PI / 6, 0.1);
   armL.position.set(-0.02, -0.06, -0.08);
   handL.position.set(-0.03, -0.18, -0.12);
@@ -990,11 +1010,11 @@ if (isHoldingWheel) {
 }
 
 if (!emergencyOverride && isHoldingWheel) {
-if (carGroup.position.x > 4.5 || carGroup.position.x < -4.5) {
-if (stressMode == 'normal') setStress('warning', true);
-} else if (stressMode === 'warning' && isAutoWarning && carGroup.position.x < 3.5 && carGroup.position.x > -3.5) {
-setStress('normal', true);
-}
+  if (carGroup.position.x > 4.5 || carGroup.position.x < -4.5) {
+    if (stressMode === 'normal') setStress('warning', true);
+  } else if (stressMode === 'warning' && carGroup.position.x < 3.5 && carGroup.position.x > -3.5) {
+    // only reset if camera hasn't reported a warning
+  }
 }
 
 trafficCars.forEach(tc => {
@@ -1057,6 +1077,7 @@ ambSpeed = 0;
 emergencyPhase = 1;
 nursesGroup.visible = true;
 nursesGroup.position.set(ambulanceGroup.position.x, 0, ambulanceGroup.position.z + 2.6);
+speakAlert("Emergency medical crew on site. Preparing transport.", true);
 }
 } else if (emergencyPhase === 1) {
 rescueTimer += 0.015;
@@ -1189,30 +1210,36 @@ ecgCtx.stroke();
 async function sendTelemetry() {
 if (!isHoldingWheel) return;
 try {
-const res = await fetch('/api/telemetry', {
-method: 'POST',
-headers: { 'Content-Type': 'application/json' },
-body: JSON.stringify({ speed: Math.round(Math.abs(carSpeed) * 300), stress_mode: stressMode })
-});
-const data = await res.json();
-currentBPM = data.sensors.heart_rate_bpm;
-currentSTDev = data.sensors.st_deviation_mv;
-healthData.hr = data.sensors.heart_rate_bpm;
-healthData.temp = data.sensors.skin_temp_celsius;
-healthData.grip = data.sensors.grip_force_newton;
-healthData.sweat = data.sensors.sweat_microsiemens;
-healthData.conf = data.prediction.confidence;
+  // 1. Post driving telemetry
+  const res = await fetch('/api/telemetry', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ speed: Math.round(Math.abs(carSpeed) * 300), stress_mode: stressMode })
+  });
+  const data = await res.json();
 
-if (!isAutoWarning) {
-let finalState = stressMode === 'normal' ? data.prediction.stable_prediction : (stressMode === 'warning' ? 'WARNING' : 'CARDIAC EVENT');
-document.getElementById('dispStatus').innerText = finalState;
-document.getElementById('statusBadge').className = `status-badge ${finalState.replace(' ', '_')}`;
-}
-if (data.emergency_protocol && data.emergency_protocol.active) {
-emergencyOverride = true;
-} else if (stressMode === 'normal') {
-emergencyOverride = false;
-}
+  // 2. Poll camera events (Only apply when a new camera timestamp arrives)
+  if (!emergencyOverride) {
+    try {
+      const dmsRes = await fetch('/api/dms_event');
+      const dmsData = await dmsRes.json();
+      
+      if (dmsData.timestamp && dmsData.timestamp > lastProcessedDmsTimestamp) {
+        lastProcessedDmsTimestamp = dmsData.timestamp;
+        if (dmsData.stress_mode && isHoldingWheel) {
+          setStress(dmsData.stress_mode, true);
+        }
+      }
+    } catch(err) {}
+  }
+
+  currentBPM = data.sensors.heart_rate_bpm;
+  currentSTDev = data.sensors.st_deviation_mv;
+  healthData.hr = data.sensors.heart_rate_bpm;
+  healthData.temp = data.sensors.skin_temp_celsius;
+  healthData.grip = data.sensors.grip_force_newton;
+  healthData.sweat = data.sensors.sweat_microsiemens;
+  healthData.conf = data.prediction.confidence;
 } catch (e) {}
 }
 

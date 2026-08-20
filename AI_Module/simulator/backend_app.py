@@ -1,25 +1,23 @@
 import os
 import sys
+import time
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
 
-# Ensure project root is on sys.path
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.dirname(CURRENT_DIR))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-# Import your Week 4 ML Risk Predictor
 from AI_Module.AIML.Week4.predict_risk import RiskPredictor
 
 app = FastAPI(title="Smart Steering Wheel Simulator Backend")
 
-# Enable CORS for local testing
+# Allow all origins for seamless local <-> Codespace streaming
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -28,8 +26,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize the ML Predictor
 predictor = RiskPredictor()
+
+# State shared between DMS and Simulator (None by default so manual UI buttons work)
+latest_dms_state = {
+    "status": "STANDBY",
+    "stress_mode": None,
+    "timestamp": 0
+}
+
+class DMSEvent(BaseModel):
+    status: str
+    stress_mode: str
 
 class TelemetryPayload(BaseModel):
     speed: Optional[int] = 0
@@ -39,12 +47,26 @@ class TelemetryPayload(BaseModel):
 async def serve_index():
     return FileResponse(os.path.join(CURRENT_DIR, "index.html"))
 
+@app.post("/api/dms_event")
+async def receive_dms(event: DMSEvent):
+    global latest_dms_state
+    latest_dms_state = {
+        "status": event.status,
+        "stress_mode": event.stress_mode,
+        "timestamp": time.time()
+    }
+    print(f"[DMS Received] {event.status} -> Triggering {event.stress_mode}")
+    return {"message": "DMS event received", "current_state": latest_dms_state}
+
+@app.get("/api/dms_event")
+async def get_dms():
+    return latest_dms_state
+
 @app.post("/api/telemetry")
 async def process_telemetry(payload: TelemetryPayload):
     mode = payload.stress_mode.lower() if payload.stress_mode else "normal"
     speed = payload.speed
 
-    # Generate situation-based sensor telemetry frame
     if mode == "cardiac":
         sensor_frame = {
             "heart_rate_bpm": 148.0,
@@ -103,18 +125,11 @@ async def process_telemetry(payload: TelemetryPayload):
         }
         emergency_active = False
 
-    # Execute ML Risk Inference via RiskPredictor
     prediction_result = predictor.compute_risk(sensor_frame)
     risk_score = prediction_result.get("risk_score", 0.0)
     status = prediction_result.get("status", "NORMAL")
 
-    # Correct confidence calculation based on the classified status
-    if status == "NORMAL":
-        confidence = round(100.0 - risk_score, 1)
-    elif status == "CRITICAL":
-        confidence = round(risk_score, 1)
-    else:  # WARNING
-        confidence = round(max(risk_score, 100.0 - risk_score), 1)
+    confidence = round(100.0 - risk_score, 1) if status == "NORMAL" else round(risk_score, 1)
 
     return {
         "sensors": {
