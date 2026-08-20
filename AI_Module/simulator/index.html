@@ -36,99 +36,174 @@ z-index: 1;
 }
 .overlay-controls {
 position: absolute;
-top: 30px;
-left: 30px;
+top: 24px;
+left: 24px;
 z-index: 10;
 background: var(--panel-bg);
 backdrop-filter: blur(20px);
 -webkit-backdrop-filter: blur(20px);
 border: 1px solid var(--border-color);
 border-radius: 20px;
-padding: 20px 24px;
+padding: 18px 22px;
 display: flex;
 flex-direction: column;
-gap: 16px;
+gap: 14px;
 box-shadow: 0 20px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
 }
 .overlay-controls h2 {
-font-size: 1.2rem;
+font-size: 1.15rem;
 font-weight: 800;
 letter-spacing: 1px;
 background: linear-gradient(135deg, #38bdf8, #818cf8, #c084fc);
 -webkit-background-clip: text;
 -webkit-text-fill-color: transparent;
 text-transform: uppercase;
-margin-bottom: 4px;
+margin-bottom: 2px;
 }
-.mode-buttons { display: flex; gap: 10px; }
+.mode-buttons { display: flex; gap: 8px; }
 .mode-btn {
-padding: 10px 16px;
+padding: 9px 14px;
 border: 1px solid rgba(255,255,255,0.1);
 border-radius: 10px;
 background: rgba(30, 41, 59, 0.6);
 color: #94a3b8;
-font-size: 0.8rem;
+font-size: 0.78rem;
 cursor: pointer;
 font-weight: 600;
-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+transition: all 0.25s ease;
 }
-.mode-btn:hover { background: rgba(255,255,255,0.1); }
+.mode-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
 .mode-btn.active {
 border-color: var(--accent-blue);
 color: #fff;
 background: rgba(0, 210, 255, 0.15);
 box-shadow: 0 0 15px rgba(0, 210, 255, 0.4), inset 0 0 10px rgba(0, 210, 255, 0.2);
 }
-.cam-hint { font-size: 0.75rem; color: #64748b; font-weight: 500; }
+.env-buttons { display: flex; gap: 8px; margin-top: -4px; }
+.env-btn {
+flex: 1;
+padding: 7px 10px;
+border: 1px solid rgba(255,255,255,0.1);
+border-radius: 8px;
+background: rgba(15, 23, 42, 0.6);
+color: #94a3b8;
+font-size: 0.74rem;
+cursor: pointer;
+font-weight: 600;
+transition: all 0.25s ease;
+}
+.env-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+.env-btn.active {
+border-color: #facc15;
+color: #facc15;
+background: rgba(250, 204, 21, 0.12);
+}
+.cam-hint { font-size: 0.72rem; color: #64748b; font-weight: 500; line-height: 1.35; }
+
+/* Interactive Prompts Modal */
+.action-modal {
+position: absolute;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+z-index: 50;
+background: var(--panel-bg);
+backdrop-filter: blur(25px);
+-webkit-backdrop-filter: blur(25px);
+border: 1px solid rgba(0, 210, 255, 0.4);
+border-radius: 24px;
+padding: 30px 40px;
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 14px;
+box-shadow: 0 25px 60px rgba(0,0,0,0.8), 0 0 30px rgba(0, 210, 255, 0.2);
+animation: pulseModal 2s infinite alternate;
+}
+@keyframes pulseModal {
+0% { transform: translate(-50%, -50%) scale(1); }
+100% { transform: translate(-50%, -50%) scale(1.02); }
+}
+.action-modal h3 {
+font-size: 1.25rem;
+font-weight: 800;
+letter-spacing: 0.5px;
+color: #fff;
+text-transform: uppercase;
+}
+.action-modal p {
+font-size: 0.85rem;
+color: #94a3b8;
+text-align: center;
+margin-top: -4px;
+}
+.action-btn {
+padding: 13px 26px;
+font-size: 0.95rem;
+font-weight: 800;
+letter-spacing: 1px;
+color: #02040a;
+background: linear-gradient(135deg, #00d2ff, #38bdf8);
+border: none;
+border-radius: 12px;
+cursor: pointer;
+box-shadow: 0 8px 25px rgba(0, 210, 255, 0.4);
+transition: all 0.25s ease;
+}
+.action-btn:hover {
+transform: translateY(-2px);
+box-shadow: 0 12px 30px rgba(0, 210, 255, 0.7);
+}
 
 .telemetry-hud {
 position: absolute;
-bottom: 30px;
-right: 30px;
+bottom: 24px;
+right: 24px;
 z-index: 10;
 background: var(--panel-bg);
 backdrop-filter: blur(20px);
 -webkit-backdrop-filter: blur(20px);
 border: 1px solid var(--border-color);
-border-radius: 24px;
-padding: 24px;
-width: 340px;
+border-radius: 22px;
+padding: 20px;
+width: 320px;
 display: flex;
 flex-direction: column;
-gap: 14px;
+gap: 12px;
 box-shadow: 0 20px 50px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.1);
 transition: all 0.3s ease;
 }
-.hud-header { display: flex; gap: 12px; align-items: stretch; }
+.hud-header { display: flex; gap: 10px; align-items: stretch; }
 .status-badge {
 flex-grow: 1;
-padding: 12px 16px;
-border-radius: 12px;
+padding: 10px 14px;
+border-radius: 10px;
 display: flex;
 justify-content: space-between;
 align-items: center;
 font-weight: 800;
-font-size: 1rem;
+font-size: 0.92rem;
 letter-spacing: 0.5px;
 transition: all 0.4s ease;
 }
 .toggle-details-btn {
 background: rgba(255, 255, 255, 0.05);
 border: 1px solid var(--border-color);
-border-radius: 12px;
+border-radius: 10px;
 color: #94a3b8;
-width: 48px;
+width: 42px;
 cursor: pointer;
 display: flex;
 align-items: center;
 justify-content: center;
-font-size: 1rem;
+font-size: 0.95rem;
 transition: all 0.3s ease;
 }
 .toggle-details-btn:hover { background: rgba(255, 255, 255, 0.15); color: #fff; }
 .status-badge.NORMAL { background: rgba(16, 185, 129, 0.15); border: 1px solid var(--status-normal); color: var(--status-normal); }
 .status-badge.WARNING { background: rgba(245, 158, 11, 0.15); border: 1px solid var(--status-warning); color: var(--status-warning); }
 .status-badge.CARDIAC_EVENT { background: rgba(239, 68, 68, 0.2); border: 1px solid var(--status-cardiac); color: var(--status-cardiac); animation: alertPulse 0.8s infinite alternate; }
+.status-badge.OFF { background: rgba(100, 116, 139, 0.15); border: 1px solid #64748b; color: #94a3b8; }
 @keyframes alertPulse { 0% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.3); } 100% { box-shadow: 0 0 25px rgba(239, 68, 68, 0.9); } }
 
 .details-container {
@@ -142,16 +217,16 @@ animation: slideDown 0.3s ease forwards;
 }
 .details-container.open { display: flex; }
 @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-.metric-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; padding: 6px 0; color: #cbd5e1; }
-.metric-val { color: #38bdf8; font-weight: 700; font-size: 0.95rem;}
+.metric-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; padding: 5px 0; color: #cbd5e1; }
+.metric-val { color: #38bdf8; font-weight: 700; font-size: 0.92rem;}
 .chart-container {
 background: rgba(2, 4, 10, 0.8);
 border: 1px solid rgba(255,255,255,0.05);
 border-radius: 12px;
-padding: 12px;
+padding: 10px;
 margin-top: 2px;
 }
-canvas#ecgCanvas { width: 100%; height: 60px; }
+canvas#ecgCanvas { width: 100%; height: 55px; }
 
 #restartContainer {
 position: absolute;
@@ -161,32 +236,47 @@ display: none;
 justify-content: center;
 align-items: center;
 z-index: 100;
-background: rgba(0,0,0,0.6);
+background: rgba(0,0,0,0.65);
 backdrop-filter: blur(8px);
 animation: fadeIn 1s ease forwards;
 }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .restart-btn {
-padding: 20px 40px;
-font-size: 1.2rem;
+padding: 18px 36px;
+font-size: 1.15rem;
 font-weight: 800;
 letter-spacing: 1px;
 color: #fff;
 background: linear-gradient(135deg, #ef4444, #f59e0b);
 border: 2px solid rgba(255,255,255,0.2);
-border-radius: 16px;
+border-radius: 14px;
 cursor: pointer;
 box-shadow: 0 10px 40px rgba(239, 68, 68, 0.5);
 transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .restart-btn:hover {
-transform: scale(1.05) translateY(-5px);
+transform: scale(1.05) translateY(-4px);
 box-shadow: 0 15px 50px rgba(239, 68, 68, 0.8);
 }
 </style>
 </head>
 <body>
 <div id="webgl-container"></div>
+
+<!-- Stage 1 Prompt: Enter Car -->
+<div id="enterCarModal" class="action-modal">
+  <h3>Driver Outside</h3>
+  <p>Approach and enter the vehicle</p>
+  <button class="action-btn" onclick="enterVehicle()">🚗 ENTER THE CAR [E]</button>
+</div>
+
+<!-- Stage 2 Prompt: Grip Wheel & Start Engine -->
+<div id="startCarModal" class="action-modal" style="display: none;">
+  <h3>Vehicle Standby</h3>
+  <p>Place hands on the smart wheel sensors to start the engine & vitals stream</p>
+  <button class="action-btn" style="background: linear-gradient(135deg, #10b981, #38bdf8);" onclick="gripWheelAndStart()">⚡ GRIP WHEEL & START [SPACE]</button>
+</div>
+
 <div class="overlay-controls">
 <h2>Smart Steering Wheel</h2>
 <div class="mode-buttons">
@@ -194,32 +284,39 @@ box-shadow: 0 15px 50px rgba(239, 68, 68, 0.8);
 <button class="mode-btn" id="btnWarning" onclick="setStress('warning')">[2] Warning</button>
 <button class="mode-btn" id="btnCardiac" onclick="setStress('cardiac')">[3] Event / Crash</button>
 </div>
-<div class="cam-hint">
-WASD to drive | Press ANY KEY to Start Engine/Audio<br>
-Mouse drag to orbit</div>
+<div class="env-buttons">
+<button class="env-btn active" id="btnDay" onclick="setEnvironment('day')">☀️ Day</button>
+<button class="env-btn" id="btnNight" onclick="setEnvironment('night')">🌙 Night</button>
 </div>
+<div class="cam-hint">
+WASD to drive | N: Day/Night | Space: Grip Wheel<br>
+Mouse drag to orbit camera
+</div>
+</div>
+
 <div class="telemetry-hud">
 <div class="hud-header">
-<div id="statusBadge" class="status-badge NORMAL">
-<span id="dispStatus">NORMAL</span>
-<span id="dispConf" style="font-size: 0.8em; opacity: 0.8;">100%</span>
+<div id="statusBadge" class="status-badge OFF">
+<span id="dispStatus">STANDBY</span>
+<span id="dispConf" style="font-size: 0.8em; opacity: 0.8;">OFF</span>
 </div>
 <button id="toggleDetailsBtn" class="toggle-details-btn" onclick="toggleDetails()">▼</button>
 </div>
 <div id="detailsContainer" class="details-container">
-<div class="metric-row"><span>Heart Rate</span><span class="metric-val" id="dispHR">72 BPM</span></div>
-<div class="metric-row"><span>Temperature</span><span class="metric-val" id="dispTemp">36.6 °C</span></div>
-<div class="metric-row"><span>Grip Force</span><span class="metric-val" id="dispGrip">20 N</span></div>
-<div class="metric-row"><span>Stress (GSR)</span><span class="metric-val" id="dispSweat">3.0 µS</span></div>
+<div class="metric-row"><span>Heart Rate</span><span class="metric-val" id="dispHR">-- BPM</span></div>
+<div class="metric-row"><span>Temperature</span><span class="metric-val" id="dispTemp">-- °C</span></div>
+<div class="metric-row"><span>Grip Force</span><span class="metric-val" id="dispGrip">-- N</span></div>
+<div class="metric-row"><span>Stress (GSR)</span><span class="metric-val" id="dispSweat">-- µS</span></div>
 </div>
 <div class="chart-container">
-<div style="font-size: 0.7rem; font-weight: 700; color: #64748b; margin-bottom: 6px; letter-spacing: 1px;">LIVE ECG WAVEFORM</div>
-<canvas id="ecgCanvas" width="280" height="60"></canvas>
+<div style="font-size: 0.68rem; font-weight: 700; color: #64748b; margin-bottom: 4px; letter-spacing: 1px;">LIVE ECG WAVEFORM</div>
+<canvas id="ecgCanvas" width="280" height="55"></canvas>
 </div>
 </div>
 <div id="restartContainer">
 <button class="restart-btn" onclick="location.reload()">RESTART SIMULATION</button>
 </div>
+
 <script>
 function toggleDetails() {
 const container = document.getElementById('detailsContainer');
@@ -231,7 +328,7 @@ btn.innerText = container.classList.contains('open') ? '▲' : '▼';
 let keys = {};
 let stressMode = "normal";
 let isAutoWarning = false;
-let carSpeed = 0.22;
+let carSpeed = 0.0;
 let emergencyOverride = false;
 let currentBPM = 72;
 let currentSTDev = 0.0;
@@ -239,6 +336,12 @@ let emergencyPhase = 0;
 let rescueTimer = 0;
 let ambulanceActive = false;
 let ambSpeed = 0;
+let currentEnv = 'day';
+
+// Interaction & Telemetry Pipeline Stages
+let isInsideCar = false;
+let isHoldingWheel = false;
+let enteringCarAnimation = false;
 
 let healthData = {
   hr: 72,
@@ -282,7 +385,6 @@ sirenOsc.connect(sirenGain).connect(masterGain);
 sirenOsc.start();
 
 audioCtx.resume();
-engineGain.gain.setTargetAtTime(0.3, audioCtx.currentTime, 0.5);
 audioInitialized = true;
 }
 
@@ -306,12 +408,12 @@ noiseSource.start();
 
 const container = document.getElementById('webgl-container');
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0a1118);
-scene.fog = new THREE.FogExp2(0x0a1118, 0.015);
+scene.background = new THREE.Color(0x6ba4d8);
+scene.fog = new THREE.FogExp2(0x6ba4d8, 0.008);
 
-// Adjusted Camera for an unobstructed, direct cockpit view
+// Initial Camera setup showcasing standing driver outside
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 2000);
-camera.position.set(-0.95, 1.45, -1.75);
+camera.position.set(-2.8, 1.6, -1.8);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -326,10 +428,11 @@ const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 controls.maxPolarAngle = Math.PI / 2 - 0.02;
-controls.target.set(-0.35, 0.95, -0.1);
+controls.target.set(-1.0, 1.0, 0.0);
 
-const hemiLight = new THREE.HemisphereLight(0x557799, 0x0a1118, 0.8);
+const hemiLight = new THREE.HemisphereLight(0xffffff, 0x446688, 0.8);
 scene.add(hemiLight);
+
 const sunLight = new THREE.DirectionalLight(0xffeedd, 1.6);
 sunLight.position.set(30, 50, 30);
 sunLight.castShadow = true;
@@ -364,17 +467,45 @@ tree.add(cone);
 return tree;
 }
 
+const poleMat = new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.8, roughness: 0.3 });
+const lampBulbMat = new THREE.MeshStandardMaterial({ color: 0xffe899, emissive: 0xffe899, emissiveIntensity: 0.0 });
+const streetLampSpotlights = [];
+
+function createStreetLight(xSide) {
+  const lightGroup = new THREE.Group();
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.14, 7.0, 12), poleMat);
+  pole.position.y = 3.5; pole.castShadow = true; lightGroup.add(pole);
+
+  const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 2.2, 8), poleMat);
+  arm.position.set(xSide > 0 ? -0.8 : 0.8, 6.8, 0);
+  arm.rotation.z = xSide > 0 ? Math.PI / 3 : -Math.PI / 3;
+  lightGroup.add(arm);
+
+  const headMesh = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.15, 0.6), poleMat);
+  headMesh.position.set(xSide > 0 ? -1.6 : 1.6, 7.2, 0); lightGroup.add(headMesh);
+
+  const bulb = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.05, 0.45), lampBulbMat);
+  bulb.position.set(xSide > 0 ? -1.6 : 1.6, 7.12, 0); lightGroup.add(bulb);
+
+  const streetSpot = new THREE.SpotLight(0xfffae0, 0, 30, Math.PI / 3.2, 0.6, 1.2);
+  streetSpot.position.set(xSide > 0 ? -1.6 : 1.6, 7.0, 0);
+  const spotTarget = new THREE.Object3D();
+  spotTarget.position.set(xSide > 0 ? -1.6 : 1.6, 0, 0);
+  lightGroup.add(spotTarget);
+  streetSpot.target = spotTarget;
+  lightGroup.add(streetSpot);
+  streetLampSpotlights.push(streetSpot);
+
+  return lightGroup;
+}
+
 for (let i = -10; i <= 10; i++) {
 const road = new THREE.Mesh(new THREE.PlaneGeometry(14, 60), asphaltMat);
-road.rotation.x = -Math.PI / 2; road.position.set(0, 0, i * 60);
-road.receiveShadow = true;
-roadGroup.add(road);
+road.rotation.x = -Math.PI / 2; road.position.set(0, 0, i * 60); road.receiveShadow = true; roadGroup.add(road);
 const dirtL = new THREE.Mesh(new THREE.PlaneGeometry(15, 60), dirtMat);
-dirtL.rotation.x = -Math.PI / 2; dirtL.position.set(-14.5, -0.05, i * 60); dirtL.receiveShadow = true;
-roadGroup.add(dirtL);
+dirtL.rotation.x = -Math.PI / 2; dirtL.position.set(-14.5, -0.05, i * 60); dirtL.receiveShadow = true; roadGroup.add(dirtL);
 const dirtR = new THREE.Mesh(new THREE.PlaneGeometry(15, 60), dirtMat);
-dirtR.rotation.x = -Math.PI / 2; dirtR.position.set(14.5, -0.05, i * 60); dirtR.receiveShadow = true;
-roadGroup.add(dirtR);
+dirtR.rotation.x = -Math.PI / 2; dirtR.position.set(14.5, -0.05, i * 60); dirtR.receiveShadow = true; roadGroup.add(dirtR);
 const yLine1 = new THREE.Mesh(new THREE.PlaneGeometry(0.15, 60), yellowLineMat);
 yLine1.rotation.x = -Math.PI / 2; yLine1.position.set(-0.2, 0.02, i * 60); roadGroup.add(yLine1);
 const yLine2 = new THREE.Mesh(new THREE.PlaneGeometry(0.15, 60), yellowLineMat);
@@ -383,17 +514,21 @@ const wLineL = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 60), whiteLineMat);
 wLineL.rotation.x = -Math.PI / 2; wLineL.position.set(-6.5, 0.02, i * 60); roadGroup.add(wLineL);
 const wLineR = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 60), whiteLineMat);
 wLineR.rotation.x = -Math.PI / 2; wLineR.position.set(6.5, 0.02, i * 60); roadGroup.add(wLineR);
+
+if (i % 2 === 0) {
+  const streetLightL = createStreetLight(-1); streetLightL.position.set(-8.2, 0, i * 60); roadGroup.add(streetLightL);
+  const streetLightR = createStreetLight(1); streetLightR.position.set(8.2, 0, i * 60 + 30); roadGroup.add(streetLightR);
+}
+
 for (let t = -25; t <= 25; t += 10) {
 const treeL = createPineTree(); treeL.scale.setScalar(0.8 + Math.random() * 0.6);
-treeL.position.set(-10 - Math.random() * 6, 0, i * 60 + t + (Math.random() - 0.5) * 4);
-roadGroup.add(treeL);
+treeL.position.set(-11 - Math.random() * 6, 0, i * 60 + t + (Math.random() - 0.5) * 4); roadGroup.add(treeL);
 const treeR = createPineTree(); treeR.scale.setScalar(0.8 + Math.random() * 0.6);
-treeR.position.set(10 + Math.random() * 6, 0, i * 60 + t + (Math.random() - 0.5) * 4);
-roadGroup.add(treeR);
+treeR.position.set(11 + Math.random() * 6, 0, i * 60 + t + (Math.random() - 0.5) * 4); roadGroup.add(treeR);
 }
 }
 
-// CAR SETUP & FULLY EXPOSED DETAILED INTERIOR
+// CAR SETUP & INTERIOR
 const carGroup = new THREE.Group();
 scene.add(carGroup);
 const bodyMat = new THREE.MeshPhysicalMaterial({ color: 0x111827, metalness: 0.8, roughness: 0.4, clearcoat: 1.0, clearcoatRoughness: 0.1 });
@@ -409,11 +544,9 @@ const glassMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, transparent: 
 const tireMat = new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.9 });
 const rimMat = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 1.0, roughness: 0.2 });
 
-// Lower Chassis Base
 const chassis = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.45, 4.4), bodyMat);
 chassis.position.y = 0.35; chassis.castShadow = true; chassis.receiveShadow = true; carGroup.add(chassis);
 
-// Low Side Body Panels
 const sidePanelL = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.45, 2.2), bodyMat);
 sidePanelL.position.set(-1.0, 0.75, 0.1); carGroup.add(sidePanelL);
 const sidePanelR = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.45, 2.2), bodyMat);
@@ -422,89 +555,62 @@ sidePanelR.position.set(1.0, 0.75, 0.1); carGroup.add(sidePanelR);
 const windshield = new THREE.Mesh(new THREE.PlaneGeometry(1.85, 0.75), glassMat);
 windshield.rotation.x = Math.PI / 3.5; windshield.position.set(0, 1.05, -0.75); carGroup.add(windshield);
 
-// Fully Lit Interior Cockpit Floor
 const cabinFloor = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.08, 2.1), intMat);
-cabinFloor.position.set(0, 0.48, 0.1); cabinFloor.receiveShadow = true;
-carGroup.add(cabinFloor);
+cabinFloor.position.set(0, 0.48, 0.1); cabinFloor.receiveShadow = true; carGroup.add(cabinFloor);
 
-// Dedicated interior dome light ensuring the full cockpit stays illuminated
 const intDomeLight = new THREE.PointLight(0xffffff, 1.2, 4.0);
-intDomeLight.position.set(0, 1.45, -0.1);
-carGroup.add(intDomeLight);
+intDomeLight.position.set(0, 1.45, -0.1); carGroup.add(intDomeLight);
 
-// Dashboard Base
 const dashboard = new THREE.Mesh(new THREE.BoxGeometry(1.85, 0.35, 0.45), dashMat);
-dashboard.position.set(0, 0.85, -0.42);
-dashboard.castShadow = true; dashboard.receiveShadow = true;
-carGroup.add(dashboard);
+dashboard.position.set(0, 0.85, -0.42); dashboard.castShadow = true; dashboard.receiveShadow = true; carGroup.add(dashboard);
 
-// Center Console & Shifter
 const centerConsole = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.26, 1.2), dashMat);
-centerConsole.position.set(0, 0.58, 0.1);
-carGroup.add(centerConsole);
+centerConsole.position.set(0, 0.58, 0.1); carGroup.add(centerConsole);
 
 const gearShifter = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.12, 8), new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.9 }));
 gearShifter.position.set(0, 0.75, -0.1); carGroup.add(gearShifter);
 const gearKnob = new THREE.Mesh(new THREE.SphereGeometry(0.03, 16, 16), new THREE.MeshStandardMaterial({ color: 0x111111 }));
 gearKnob.position.set(0, 0.81, -0.1); carGroup.add(gearKnob);
 
-// Foot Pedals / Foot Rests in driver footwell
 const pedalGroup = new THREE.Group();
-pedalGroup.position.set(-0.45, 0.52, -0.55);
-carGroup.add(pedalGroup);
-
+pedalGroup.position.set(-0.45, 0.52, -0.55); carGroup.add(pedalGroup);
 const brakePedal = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.02), pedalMat);
 brakePedal.position.set(-0.06, 0, 0); brakePedal.rotation.x = -Math.PI / 6; pedalGroup.add(brakePedal);
-
 const gasPedal = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.12, 0.02), pedalMat);
 gasPedal.position.set(0.06, -0.02, 0); gasPedal.rotation.x = -Math.PI / 6; pedalGroup.add(gasPedal);
-
 const footRest = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.14, 0.02), new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.9 }));
 footRest.position.set(-0.16, 0, 0); footRest.rotation.x = -Math.PI / 6; pedalGroup.add(footRest);
 
-// Realistic Bucket Seats with Seat Belts
 function createBucketSeat(xPos, isDriver = false) {
 const seat = new THREE.Group();
 seat.position.set(xPos, 0.60, 0.2);
-
-const seatBottom = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.14, 0.58), seatFabricMat);
-seatBottom.position.set(0, 0, 0); seat.add(seatBottom);
-
-const bolsterL = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.18, 0.56), seatTrimMat);
-bolsterL.position.set(-0.23, 0.04, 0); seat.add(bolsterL);
-const bolsterR = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.18, 0.56), seatTrimMat);
-bolsterR.position.set(0.23, 0.04, 0); seat.add(bolsterR);
-
-const seatBack = new THREE.Mesh(new THREE.BoxGeometry(0.50, 0.72, 0.14), seatFabricMat);
-seatBack.position.set(0, 0.38, 0.24); seatBack.rotation.x = -0.15; seat.add(seatBack);
-
-const headrest = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.20, 0.12), seatFabricMat);
-headrest.position.set(0, 0.82, 0.33); headrest.rotation.x = -0.15; seat.add(headrest);
-
+const seatBottom = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.14, 0.58), seatFabricMat); seat.add(seatBottom);
+const bolsterL = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.18, 0.56), seatTrimMat); bolsterL.position.set(-0.23, 0.04, 0); seat.add(bolsterL);
+const bolsterR = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.18, 0.56), seatTrimMat); bolsterR.position.set(0.23, 0.04, 0); seat.add(bolsterR);
+const seatBack = new THREE.Mesh(new THREE.BoxGeometry(0.50, 0.72, 0.14), seatFabricMat); seatBack.position.set(0, 0.38, 0.24); seatBack.rotation.x = -0.15; seat.add(seatBack);
+const headrest = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.20, 0.12), seatFabricMat); headrest.position.set(0, 0.82, 0.33); headrest.rotation.x = -0.15; seat.add(headrest);
 const buckle = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, 0.04), new THREE.MeshStandardMaterial({ color: 0xef4444 }));
 buckle.position.set(isDriver ? 0.22 : -0.22, 0.12, 0.05); seat.add(buckle);
-
 if (isDriver) {
   const strapMesh = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.68, 0.01), beltMat);
-  strapMesh.position.set(0.02, 0.38, 0.08);
-  strapMesh.rotation.z = 0.52;
-  strapMesh.rotation.x = -0.15;
-  seat.add(strapMesh);
+  strapMesh.position.set(0.02, 0.38, 0.08); strapMesh.rotation.z = 0.52; strapMesh.rotation.x = -0.15; seat.add(strapMesh);
 }
 return seat;
 }
 carGroup.add(createBucketSeat(-0.45, true));
 carGroup.add(createBucketSeat(0.45, false));
 
-// DRIVER
+// DRIVER MODEL (Starts standing outside at x = -1.6)
 const driverGroup = new THREE.Group();
-driverGroup.position.set(-0.45, 0.72, 0.18);
+driverGroup.position.set(-1.6, 0.72, 0.18);
 carGroup.add(driverGroup);
 
 const sleeveMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.7 });
 const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.23, 0.55, 16), sleeveMat);
-torso.position.set(0, 0.275, 0.05); torso.rotation.x = -0.15; torso.castShadow = true;
-driverGroup.add(torso);
+torso.position.set(0, 0.275, 0.05); torso.rotation.x = 0; torso.castShadow = true; driverGroup.add(torso);
+
+const driverLegs = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.65, 0.2), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
+driverLegs.position.set(0, -0.32, 0.05); driverGroup.add(driverLegs);
 
 const headGroup = new THREE.Group();
 headGroup.position.set(0, 0.62, 0); driverGroup.add(headGroup);
@@ -513,97 +619,63 @@ head.castShadow = true; headGroup.add(head);
 const hairCap = new THREE.Mesh(new THREE.SphereGeometry(0.185, 32, 32), hairMat);
 hairCap.position.set(0, 0.03, 0.04); headGroup.add(hairCap);
 
-// ARMS SNAPPED DIRECTLY TO SMART STEERING WHEEL PADS
-const armLGroup = new THREE.Group();
-armLGroup.position.set(-0.19, 0.44, 0.0);
-driverGroup.add(armLGroup);
-
+// Driver Arms
+const armLGroup = new THREE.Group(); armLGroup.position.set(-0.19, 0.44, 0.0); driverGroup.add(armLGroup);
 const armL = new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.032, 0.34, 16), sleeveMat);
-armL.position.set(-0.02, -0.06, -0.16);
-armL.rotation.x = Math.PI / 2.8;
-armL.rotation.z = 0.08;
-armL.castShadow = true;
-armLGroup.add(armL);
-
+armL.position.set(-0.02, -0.06, -0.16); armL.rotation.x = 0; armL.castShadow = true; armLGroup.add(armL);
 const handL = new THREE.Mesh(new THREE.BoxGeometry(0.065, 0.05, 0.075), skinMat);
-handL.position.set(-0.03, -0.12, -0.33);
-handL.rotation.x = -Math.PI / 8;
-armLGroup.add(handL);
+handL.position.set(-0.03, -0.22, 0.0); armLGroup.add(handL);
 
-const armRGroup = new THREE.Group();
-armRGroup.position.set(0.19, 0.44, 0.0);
-driverGroup.add(armRGroup);
-
+const armRGroup = new THREE.Group(); armRGroup.position.set(0.19, 0.44, 0.0); driverGroup.add(armRGroup);
 const armR = new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.032, 0.34, 16), sleeveMat);
-armR.position.set(0.02, -0.06, -0.16);
-armR.rotation.x = Math.PI / 2.8;
-armR.rotation.z = -0.08;
-armR.castShadow = true;
-armRGroup.add(armR);
-
+armR.position.set(0.02, -0.06, -0.16); armR.rotation.x = 0; armR.castShadow = true; armRGroup.add(armR);
 const handR = new THREE.Mesh(new THREE.BoxGeometry(0.065, 0.05, 0.075), skinMat);
-handR.position.set(0.03, -0.12, -0.33);
-handR.rotation.x = -Math.PI / 8;
-armRGroup.add(handR);
+handR.position.set(0.03, -0.22, 0.0); armRGroup.add(handR);
 
 // SMART STEERING WHEEL
 const wheelGroup = new THREE.Group();
-wheelGroup.position.set(-0.45, 1.05, -0.15);
-wheelGroup.rotation.x = -Math.PI / 8;
-carGroup.add(wheelGroup);
-
+wheelGroup.position.set(-0.45, 1.05, -0.15); wheelGroup.rotation.x = -Math.PI / 8; carGroup.add(wheelGroup);
 const columnMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.04, 0.3, 16), new THREE.MeshStandardMaterial({ color: 0x111111 }));
-columnMesh.position.set(0, -0.1, -0.12);
-columnMesh.rotation.x = Math.PI / 4;
-wheelGroup.add(columnMesh);
-
+columnMesh.position.set(0, -0.1, -0.12); columnMesh.rotation.x = Math.PI / 4; wheelGroup.add(columnMesh);
 const wheelRim = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.032, 24, 48), new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.4 }));
 wheelGroup.add(wheelRim);
-
 const centerHub = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.065, 0.03, 16), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
 centerHub.rotation.x = Math.PI / 2; wheelGroup.add(centerHub);
 
-const padMat = new THREE.MeshStandardMaterial({ color: 0x10b981, emissive: 0x10b981, emissiveIntensity: 0.8 });
+const padMat = new THREE.MeshStandardMaterial({ color: 0x334155, emissive: 0x334155, emissiveIntensity: 0.2 });
 const padLG = new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.038, 0.075, 16), padMat);
 const padRG = new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.038, 0.075, 16), padMat);
 padLG.position.set(-0.22, 0, 0); padLG.rotation.z = Math.PI / 2;
 padRG.position.set(0.22, 0, 0); padRG.rotation.z = Math.PI / 2;
 wheelGroup.add(padLG); wheelGroup.add(padRG);
 
-// MOUNTED SMART TABLET / SCREEN (Elevated beside steering wheel)
+// SMART TABLET SCREEN
 const tabletGroup = new THREE.Group();
-tabletGroup.position.set(-0.08, 1.15, -0.32);
-tabletGroup.rotation.y = -Math.PI / 5;
-tabletGroup.rotation.x = -Math.PI / 12;
-carGroup.add(tabletGroup);
-
+tabletGroup.position.set(-0.08, 1.15, -0.32); tabletGroup.rotation.y = -Math.PI / 5; tabletGroup.rotation.x = -Math.PI / 12; carGroup.add(tabletGroup);
 const tabMountArm = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.26, 8), new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.7 }));
-tabMountArm.position.set(0, -0.12, -0.06);
-tabMountArm.rotation.x = Math.PI / 5;
-tabletGroup.add(tabMountArm);
-
+tabMountArm.position.set(0, -0.12, -0.06); tabMountArm.rotation.x = Math.PI / 5; tabletGroup.add(tabMountArm);
 const tabBezel = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.34, 0.018), new THREE.MeshStandardMaterial({ color: 0x020617, roughness: 0.2 }));
 tabletGroup.add(tabBezel);
 
-const tabletScreenMat = new THREE.MeshStandardMaterial({
-  color: 0x10b981,
-  emissive: 0x10b981,
-  emissiveIntensity: 1.4,
-  roughness: 0.2
-});
+const tabletScreenMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, emissive: 0x000000, emissiveIntensity: 0.0, roughness: 0.2 });
 const tabletScreen = new THREE.Mesh(new THREE.PlaneGeometry(0.21, 0.31), tabletScreenMat);
-tabletScreen.position.z = 0.011;
-tabletGroup.add(tabletScreen);
+tabletScreen.position.z = 0.011; tabletGroup.add(tabletScreen);
 
-const dashGlow = new THREE.PointLight(0x10b981, 1.0, 2.0);
-dashGlow.position.set(-0.08, 1.18, -0.25);
-carGroup.add(dashGlow);
+const dashGlow = new THREE.PointLight(0x10b981, 0, 2.0);
+dashGlow.position.set(-0.08, 1.18, -0.25); carGroup.add(dashGlow);
+
+// HEADLIGHTS
+const headlightMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0 });
+const hlL = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.12, 0.05), headlightMat);
+const hlR = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.12, 0.05), headlightMat);
+hlL.position.set(-0.85, 0.48, -2.21); hlR.position.set(0.85, 0.48, -2.21); carGroup.add(hlL); carGroup.add(hlR);
+const spotL = new THREE.SpotLight(0xffffff, 0, 90, Math.PI / 4, 0.4, 1.0); spotL.position.set(-0.85, 0.5, -2.2); spotL.target.position.set(-0.85, 0, -40); carGroup.add(spotL); carGroup.add(spotL.target);
+const spotR = new THREE.SpotLight(0xffffff, 0, 90, Math.PI / 4, 0.4, 1.0); spotR.position.set(0.85, 0.5, -2.2); spotR.target.position.set(0.85, 0, -40); carGroup.add(spotR); carGroup.add(spotR.target);
 
 // WHEELS
 [[-1.25, 0.42, -1.4], [1.25, 0.42, -1.4], [-1.25, 0.42, 1.4], [1.25, 0.42, 1.4]].forEach(pos => {
 const wGroup = new THREE.Group();
-const tire = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.3, 32), tireMat); tire.rotation.z = Math.PI / 2;
-wGroup.add(tire);
+const tire = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.3, 32), tireMat); tire.rotation.z = Math.PI / 2; wGroup.add(tire);
 const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.32, 16), rimMat); rim.rotation.z = Math.PI / 2; wGroup.add(rim);
 wGroup.position.set(...pos); carGroup.add(wGroup);
 });
@@ -628,18 +700,15 @@ function spawnTraffic() {
 for (let i = 0; i < 6; i++) {
 const tGroup = new THREE.Group();
 const tBody = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.85, 4.4), tBodyMats[i % 4]);
-tBody.position.y = 0.55; tBody.castShadow = true;
-tGroup.add(tBody);
+tBody.position.y = 0.55; tBody.castShadow = true; tGroup.add(tBody);
 const tCabin = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.5, 1.9), new THREE.MeshStandardMaterial({ color: 0x111111 }));
 tCabin.position.set(0, 1.15, 0.1); tGroup.add(tCabin);
 [[-1.25, 0.4, -1.4], [1.25, 0.4, -1.4], [-1.25, 0.4, 1.4], [1.25, 0.4, 1.4]].forEach(pos => {
 const tTire = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.3, 16), tireMat);
-tTire.rotation.z = Math.PI / 2; tTire.position.set(...pos);
-tGroup.add(tTire);
+tTire.rotation.z = Math.PI / 2; tTire.position.set(...pos); tGroup.add(tTire);
 });
 const laneX = Math.random() > 0.5 ? 2.5 : -2.5;
-tGroup.position.set(laneX, 0, -80 - (i * 35));
-scene.add(tGroup);
+tGroup.position.set(laneX, 0, -80 - (i * 35)); scene.add(tGroup);
 trafficCars.push({ mesh: tGroup, speed: 0.15 + Math.random() * 0.08 });
 }
 }
@@ -647,8 +716,7 @@ spawnTraffic();
 
 // AMBULANCE & RESCUE CREW
 const ambulanceGroup = new THREE.Group();
-scene.add(ambulanceGroup);
-ambulanceGroup.visible = false;
+scene.add(ambulanceGroup); ambulanceGroup.visible = false;
 const ambMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 });
 const ambRedMat = new THREE.MeshStandardMaterial({ color: 0xdd1111, roughness: 0.5 });
 const ambBox = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.8, 4.0), ambMat);
@@ -665,56 +733,109 @@ tire.rotation.z = Math.PI / 2; tire.position.set(...pos); ambulanceGroup.add(tir
 });
 const sirenBar = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.15, 0.3), new THREE.MeshStandardMaterial({ color: 0x111111 }));
 sirenBar.position.set(0, 2.35, -1.9); ambulanceGroup.add(sirenBar);
-const sirenLightRed = new THREE.PointLight(0xff0000, 0, 30);
-sirenLightRed.position.set(-0.8, 2.5, -1.9); ambulanceGroup.add(sirenLightRed);
-const sirenLightBlue = new THREE.PointLight(0x0000ff, 0, 30);
-sirenLightBlue.position.set(0.8, 2.5, -1.9); ambulanceGroup.add(sirenLightBlue);
+const sirenLightRed = new THREE.PointLight(0xff0000, 0, 30); sirenLightRed.position.set(-0.8, 2.5, -1.9); ambulanceGroup.add(sirenLightRed);
+const sirenLightBlue = new THREE.PointLight(0x0000ff, 0, 30); sirenLightBlue.position.set(0.8, 2.5, -1.9); ambulanceGroup.add(sirenLightBlue);
 
 const nursesGroup = new THREE.Group();
-scene.add(nursesGroup);
-nursesGroup.visible = false;
+scene.add(nursesGroup); nursesGroup.visible = false;
 const nurseBodyMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8 });
 const nurseLegMat = new THREE.MeshStandardMaterial({ color: 0x1e3a8a, roughness: 0.9 });
 function createNurse(zOffset) {
-const nurse = new THREE.Group();
-nurse.position.set(0, 0.5, zOffset);
-const body = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.5, 0.25), nurseBodyMat);
-body.position.y = 0.25; nurse.add(body);
-const legs = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.5, 0.25), nurseLegMat);
-legs.position.y = -0.25; nurse.add(legs);
-const nHead = new THREE.Mesh(new THREE.SphereGeometry(0.14, 16, 16), skinMat);
-nHead.position.y = 0.65; nurse.add(nHead);
+const nurse = new THREE.Group(); nurse.position.set(0, 0.5, zOffset);
+const body = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.5, 0.25), nurseBodyMat); body.position.y = 0.25; nurse.add(body);
+const legs = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.5, 0.25), nurseLegMat); legs.position.y = -0.25; nurse.add(legs);
+const nHead = new THREE.Mesh(new THREE.SphereGeometry(0.14, 16, 16), skinMat); nHead.position.y = 0.65; nurse.add(nHead);
 return nurse;
 }
-nursesGroup.add(createNurse(-1.1));
-nursesGroup.add(createNurse(1.1));
-
+nursesGroup.add(createNurse(-1.1)); nursesGroup.add(createNurse(1.1));
 const stretcher = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.08, 2.0), new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 0.8 }));
 stretcher.position.y = 0.65; nursesGroup.add(stretcher);
 
 const rescuedDriver = new THREE.Group();
 rescuedDriver.position.set(0, 0.82, 0);
 const rTorso = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.22, 0.75), new THREE.MeshStandardMaterial({ color: 0x1e293b }));
-const rHead = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 16), skinMat);
-rHead.position.set(0, 0.08, -0.5);
-const rLegs = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.18, 0.65), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
-rLegs.position.set(0, 0.02, 0.55);
+const rHead = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 16), skinMat); rHead.position.set(0, 0.08, -0.5);
+const rLegs = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.18, 0.65), new THREE.MeshStandardMaterial({ color: 0x0f172a })); rLegs.position.set(0, 0.02, 0.55);
 rescuedDriver.add(rTorso); rescuedDriver.add(rHead); rescuedDriver.add(rLegs);
-rescuedDriver.visible = false;
-nursesGroup.add(rescuedDriver);
+rescuedDriver.visible = false; nursesGroup.add(rescuedDriver);
+
+// STEP 1: ENTER VEHICLE ACTION
+function enterVehicle() {
+  if (isInsideCar) return;
+  document.getElementById('enterCarModal').style.display = 'none';
+  enteringCarAnimation = true;
+}
+
+// STEP 2: GRIP WHEEL & START ENGINE
+function gripWheelAndStart() {
+  if (!isInsideCar || isHoldingWheel) return;
+  document.getElementById('startCarModal').style.display = 'none';
+  isHoldingWheel = true;
+  initAudio();
+  if (audioInitialized) {
+    engineGain.gain.setTargetAtTime(0.3, audioCtx.currentTime, 0.5);
+  }
+  carSpeed = 0.22;
+  setStress('normal');
+}
+
+// DAY / NIGHT ENVIRONMENT SWITCHER
+function setEnvironment(env) {
+  currentEnv = env;
+  document.getElementById('btnDay').classList.toggle('active', env === 'day');
+  document.getElementById('btnNight').classList.toggle('active', env === 'night');
+
+  if (env === 'day') {
+    scene.background.setHex(0x6ba4d8);
+    scene.fog.color.setHex(0x6ba4d8);
+    scene.fog.density = 0.008;
+    hemiLight.color.setHex(0xffffff);
+    hemiLight.groundColor.setHex(0x446688);
+    hemiLight.intensity = 0.8;
+    sunLight.intensity = 1.6;
+    headlightMat.emissiveIntensity = 0;
+    spotL.intensity = 0;
+    spotR.intensity = 0;
+    yellowLineMat.emissiveIntensity = 0.1;
+    whiteLineMat.emissiveIntensity = 0.1;
+    lampBulbMat.emissiveIntensity = 0.0;
+    streetLampSpotlights.forEach(spot => spot.intensity = 0);
+  } else {
+    scene.background.setHex(0x02050e);
+    scene.fog.color.setHex(0x02050e);
+    scene.fog.density = 0.016;
+    hemiLight.color.setHex(0x1e293b);
+    hemiLight.groundColor.setHex(0x02050e);
+    hemiLight.intensity = 0.25;
+    sunLight.intensity = 0.15;
+    headlightMat.emissiveIntensity = 2.5;
+    spotL.intensity = 2.8;
+    spotR.intensity = 2.8;
+    yellowLineMat.emissiveIntensity = 0.35;
+    whiteLineMat.emissiveIntensity = 0.35;
+    lampBulbMat.emissiveIntensity = 2.0;
+    streetLampSpotlights.forEach(spot => spot.intensity = 1.5);
+  }
+}
 
 // INPUTS & TELEMETRY DISPATCH
 window.addEventListener('keydown', e => {
-initAudio();
 const k = e.key.toLowerCase();
 keys[k] = true;
 if (e.key === '1') setStress('normal', false);
 if (e.key === '2') setStress('warning', false);
 if (e.key === '3') setStress('cardiac', false);
+if (k === 'n') setEnvironment(currentEnv === 'day' ? 'night' : 'day');
+if (k === 'e' && !isInsideCar) enterVehicle();
+if (e.code === 'Space' && isInsideCar && !isHoldingWheel) {
+  e.preventDefault();
+  gripWheelAndStart();
+}
 });
 window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
 
 function updateTelemetryUI() {
+  if (!isHoldingWheel) return;
   document.getElementById('dispHR').innerText = `${Math.round(healthData.hr)} BPM`;
   document.getElementById('dispTemp').innerText = `${healthData.temp.toFixed(1)} °C`;
   document.getElementById('dispGrip').innerText = `${Math.round(healthData.grip)} N`;
@@ -730,12 +851,15 @@ if (mode === 'normal') document.getElementById('btnNormal').classList.add('activ
 if (mode === 'warning') document.getElementById('btnWarning').classList.add('active');
 if (mode === 'cardiac') document.getElementById('btnCardiac').classList.add('active');
 
+if (!isHoldingWheel) return;
+
 const colorHex = stressMode === 'cardiac' ? 0xef4444 : (stressMode === 'warning' ? 0xf59e0b : 0x10b981);
 
 padMat.color.setHex(colorHex);
 padMat.emissive.setHex(colorHex);
 tabletScreenMat.color.setHex(colorHex);
 tabletScreenMat.emissive.setHex(colorHex);
+tabletScreenMat.emissiveIntensity = 1.4;
 dashGlow.color.setHex(colorHex);
 dashGlow.intensity = (stressMode === 'cardiac') ? 1.6 : 1.0;
 
@@ -777,7 +901,7 @@ updateTelemetryUI();
 let prevCarPos = carGroup.position.clone();
 
 function updateAudio(time) {
-if (!audioInitialized) return;
+if (!audioInitialized || !isHoldingWheel) return;
 if (emergencyOverride) {
 engineGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.5);
 const isBeep = (time % 300) < 150;
@@ -812,19 +936,60 @@ function updatePhysics() {
 const time = Date.now();
 updateAudio(time);
 
-if (stressMode === 'normal') {
-  healthData.hr = 72 + Math.sin(time * 0.003) * 2;
-  healthData.sweat = 3.0 + Math.sin(time * 0.001) * 0.2;
-} else if (stressMode === 'warning') {
-  healthData.hr = 102 + Math.sin(time * 0.005) * 4;
-  healthData.sweat = 5.6 + Math.sin(time * 0.002) * 0.4;
-} else if (stressMode === 'cardiac') {
-  healthData.hr = 152 + (Math.random() - 0.5) * 6;
-  healthData.sweat = 8.8 + Math.sin(time * 0.004) * 0.5;
-}
-updateTelemetryUI();
+// Smooth Entering Car Transition
+if (enteringCarAnimation) {
+  driverGroup.position.x = THREE.MathUtils.lerp(driverGroup.position.x, -0.45, 0.08);
+  torso.rotation.x = THREE.MathUtils.lerp(torso.rotation.x, -0.15, 0.08);
+  driverLegs.visible = false;
 
-if (!emergencyOverride) {
+  camera.position.x = THREE.MathUtils.lerp(camera.position.x, -0.95, 0.06);
+  camera.position.y = THREE.MathUtils.lerp(camera.position.y, 1.45, 0.06);
+  camera.position.z = THREE.MathUtils.lerp(camera.position.z, -1.75, 0.06);
+  controls.target.set(-0.35, 0.95, -0.1);
+
+  if (Math.abs(driverGroup.position.x - (-0.45)) < 0.02) {
+    driverGroup.position.x = -0.45;
+    enteringCarAnimation = false;
+    isInsideCar = true;
+    document.getElementById('startCarModal').style.display = 'flex';
+  }
+}
+
+// Arm Positional Handling (Hands off wheel vs Holding wheel)
+if (isHoldingWheel) {
+  armL.rotation.x = THREE.MathUtils.lerp(armL.rotation.x, Math.PI / 2.8, 0.1);
+  armL.position.set(-0.02, -0.06, -0.16);
+  handL.position.set(-0.03, -0.12, -0.33);
+
+  armR.rotation.x = THREE.MathUtils.lerp(armR.rotation.x, Math.PI / 2.8, 0.1);
+  armR.position.set(0.02, -0.06, -0.16);
+  handR.position.set(0.03, -0.12, -0.33);
+} else {
+  // Relaxed resting on lap
+  armL.rotation.x = THREE.MathUtils.lerp(armL.rotation.x, Math.PI / 6, 0.1);
+  armL.position.set(-0.02, -0.06, -0.08);
+  handL.position.set(-0.03, -0.18, -0.12);
+
+  armR.rotation.x = THREE.MathUtils.lerp(armR.rotation.x, Math.PI / 6, 0.1);
+  armR.position.set(0.02, -0.06, -0.08);
+  handR.position.set(0.03, -0.18, -0.12);
+}
+
+if (isHoldingWheel) {
+  if (stressMode === 'normal') {
+    healthData.hr = 72 + Math.sin(time * 0.003) * 2;
+    healthData.sweat = 3.0 + Math.sin(time * 0.001) * 0.2;
+  } else if (stressMode === 'warning') {
+    healthData.hr = 102 + Math.sin(time * 0.005) * 4;
+    healthData.sweat = 5.6 + Math.sin(time * 0.002) * 0.4;
+  } else if (stressMode === 'cardiac') {
+    healthData.hr = 152 + (Math.random() - 0.5) * 6;
+    healthData.sweat = 8.8 + Math.sin(time * 0.004) * 0.5;
+  }
+  updateTelemetryUI();
+}
+
+if (!emergencyOverride && isHoldingWheel) {
 if (carGroup.position.x > 4.5 || carGroup.position.x < -4.5) {
 if (stressMode == 'normal') setStress('warning', true);
 } else if (stressMode === 'warning' && isAutoWarning && carGroup.position.x < 3.5 && carGroup.position.x > -3.5) {
@@ -842,7 +1007,7 @@ tc.speed = 0.15 + Math.random() * 0.08;
 const dx = carGroup.position.x - tc.mesh.position.x;
 const dz = carGroup.position.z - tc.mesh.position.z;
 const dist = Math.sqrt(dx * dx + dz * dz);
-if (dist < 4.8 && !emergencyOverride) {
+if (dist < 4.8 && !emergencyOverride && isHoldingWheel) {
 setStress('cardiac', false);
 emergencyOverride = true;
 carSpeed = -0.05;
@@ -947,19 +1112,22 @@ torso.scale.set(1 + breathe, 1, 1 - breathe * 1.5);
 driverGroup.rotation.x = THREE.MathUtils.lerp(driverGroup.rotation.x, 0, 0.1);
 headGroup.rotation.x = THREE.MathUtils.lerp(headGroup.rotation.x, 0, 0.1);
 
-// Maintain firm driver grip locked onto steering wheel
-armLGroup.rotation.x = THREE.MathUtils.lerp(armLGroup.rotation.x, 0, 0.1);
-armLGroup.rotation.y = THREE.MathUtils.lerp(armLGroup.rotation.y, 0, 0.1);
-armRGroup.rotation.x = THREE.MathUtils.lerp(armRGroup.rotation.x, 0, 0.1);
-armRGroup.rotation.y = THREE.MathUtils.lerp(armRGroup.rotation.y, 0, 0.1);
-hzL.visible = false; hzR.visible = false;
+if (isHoldingWheel) {
+  armLGroup.rotation.x = THREE.MathUtils.lerp(armLGroup.rotation.x, 0, 0.1);
+  armLGroup.rotation.y = THREE.MathUtils.lerp(armLGroup.rotation.y, 0, 0.1);
+  armRGroup.rotation.x = THREE.MathUtils.lerp(armRGroup.rotation.x, 0, 0.1);
+  armRGroup.rotation.y = THREE.MathUtils.lerp(armRGroup.rotation.y, 0, 0.1);
 
-if (keys['w']) carSpeed = Math.min(carSpeed + 0.015, 0.35);
-else if (keys['s']) carSpeed = Math.max(carSpeed - 0.015, -0.1);
-else carSpeed *= 0.96;
+  if (keys['w']) carSpeed = Math.min(carSpeed + 0.015, 0.35);
+  else if (keys['s']) carSpeed = Math.max(carSpeed - 0.015, -0.1);
+  else carSpeed *= 0.96;
+} else {
+  carSpeed = 0;
+}
+hzL.visible = false; hzR.visible = false;
 }
 
-if (Math.abs(carSpeed) > 0.005 && !emergencyOverride) {
+if (Math.abs(carSpeed) > 0.005 && !emergencyOverride && isHoldingWheel) {
 if (keys['a']) { carGroup.rotation.y += 0.028; wheelGroup.rotation.z = 0.4; }
 else if (keys['d']) { carGroup.rotation.y -= 0.028; wheelGroup.rotation.z = -0.4; }
 else { wheelGroup.rotation.z = 0; }
@@ -993,13 +1161,17 @@ return (Math.random() - 0.5) * 0.02;
 }
 
 function drawECG() {
+if (!isHoldingWheel) {
+  ecgCtx.clearRect(0, 0, 280, 55);
+  return;
+}
 ecgPhase += (currentBPM / 60) * 0.18;
 ecgHistory.push(generatePQRSTSample(ecgPhase, currentSTDev));
 ecgHistory.shift();
 
-ecgCtx.clearRect(0, 0, 280, 60);
+ecgCtx.clearRect(0, 0, 280, 55);
 ecgCtx.strokeStyle = "rgba(16, 185, 129, 0.08)";
-for (let x = 0; x < 280; x += 15) { ecgCtx.beginPath(); ecgCtx.moveTo(x, 0); ecgCtx.lineTo(x, 60); ecgCtx.stroke(); }
+for (let x = 0; x < 280; x += 15) { ecgCtx.beginPath(); ecgCtx.moveTo(x, 0); ecgCtx.lineTo(x, 55); ecgCtx.stroke(); }
 ecgCtx.strokeStyle = stressMode === 'cardiac' ? '#ef4444' : (stressMode === 'warning' ? '#f59e0b' : '#10b981');
 ecgCtx.lineWidth = 2.5;
 ecgCtx.lineJoin = 'round';
@@ -1007,7 +1179,7 @@ ecgCtx.beginPath();
 const step = 280 / ecgHistory.length;
 let x = 0;
 for (let i = 0; i < ecgHistory.length; i++) {
-const y = 35 - (ecgHistory[i] * 20);
+const y = 32 - (ecgHistory[i] * 18);
 if (i === 0) ecgCtx.moveTo(x, y); else ecgCtx.lineTo(x, y);
 x += step;
 }
@@ -1015,6 +1187,7 @@ ecgCtx.stroke();
 }
 
 async function sendTelemetry() {
+if (!isHoldingWheel) return;
 try {
 const res = await fetch('/api/telemetry', {
 method: 'POST',
