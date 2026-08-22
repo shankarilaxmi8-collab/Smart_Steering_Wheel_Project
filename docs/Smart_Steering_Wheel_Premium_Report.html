@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Smart Steering Wheel — Premium Project Report</title>
+<style>
+  @page { size: A4; margin: 18mm 17mm 17mm 17mm; }
+  @page:first { margin: 0; }
+  * { box-sizing: border-box; }
+  body { color:#162236; font-family: "Aptos", "Segoe UI", Arial, sans-serif; font-size:10.3pt; line-height:1.48; margin:0; }
+  h1,h2,h3 { color:#0a3153; margin:0; font-family: "Aptos Display", "Segoe UI", Arial, sans-serif; }
+  h1 { font-size:30pt; letter-spacing:-.7pt; line-height:1.07; }
+  h2 { font-size:19pt; border-bottom:2px solid #10b5ae; padding-bottom:5px; margin:23px 0 10px; }
+  h3 { font-size:12.5pt; margin:15px 0 6px; }
+  p { margin:0 0 9px; }
+  a { color:#007d83; text-decoration:none; }
+  .cover { min-height:297mm; padding:25mm 24mm 22mm; color:#f7fbff; background:linear-gradient(145deg,#061a34 0%,#0a4265 56%,#047f83 100%); position:relative; }
+  .cover:after { content:""; position:absolute; width:180mm; height:180mm; border:1px solid rgba(255,255,255,.17); border-radius:50%; right:-75mm; bottom:-78mm; }
+  .cover:before { content:""; position:absolute; width:105mm; height:105mm; border:1px solid rgba(255,255,255,.12); border-radius:50%; right:-30mm; top:-38mm; }
+  .brand { text-transform:uppercase; letter-spacing:2.1pt; font-size:9pt; font-weight:700; color:#8ce9df; }
+  .cover-rule { height:3px; width:63mm; background:#41d4c5; margin:17mm 0 12mm; }
+  .cover h1 { color:#fff; max-width:142mm; font-size:34pt; }
+  .subtitle { margin-top:8mm; max-width:145mm; font-size:15pt; line-height:1.35; color:#d5ecf2; }
+  .cover-bottom { position:absolute; left:24mm; right:24mm; bottom:22mm; display:flex; gap:14mm; align-items:end; }
+  .cover-box { border-left:2px solid #43d5c7; padding-left:5mm; flex:1; font-size:9.2pt; line-height:1.55; color:#d9f0f2; }
+  .cover-box strong { display:block; color:#fff; font-size:10.2pt; }
+  .meta { color:#8ce9df; font-size:9pt; text-transform:uppercase; letter-spacing:1.1pt; }
+  .page-break { page-break-before:always; }
+  .no-break { page-break-inside:avoid; }
+  .kicker { font-size:8.5pt; letter-spacing:1.5pt; font-weight:700; color:#07877f; text-transform:uppercase; margin-top:1mm; }
+  .lead { font-size:12.2pt; line-height:1.55; color:#304861; }
+  .note { border-left:4px solid #13aaa5; padding:9px 12px; margin:12px 0; background:#f1fbfa; color:#214555; }
+  .warning { border-left-color:#f0a23a; background:#fff8ec; }
+  table { border-collapse:collapse; width:100%; margin:9px 0 13px; font-size:9pt; page-break-inside:auto; }
+  th { background:#0a3153; color:white; padding:7px 8px; text-align:left; font-weight:700; }
+  td { padding:7px 8px; border-bottom:1px solid #d7e3ea; vertical-align:top; }
+  tr:nth-child(even) td { background:#f5f9fb; }
+  ul,ol { margin:5px 0 10px 19px; padding:0; }
+  li { margin:3px 0; }
+  .toc a { display:block; padding:5px 0; border-bottom:1px solid #dbe7ec; }
+  .toc .num { display:inline-block; width:11mm; color:#07877f; font-weight:700; }
+  .architecture { display:flex; flex-wrap:wrap; gap:7px; margin:12px 0; }
+  .node { border:1px solid #a9cbd3; background:#f7fcfc; border-radius:5px; padding:9px; min-width:31%; flex:1; text-align:center; font-size:9pt; color:#0a3153; }
+  .arrow { color:#0c9f9b; font-weight:bold; align-self:center; }
+  .signature { border-top:1px solid #8eabb7; padding-top:5px; width:56mm; margin-top:20px; font-size:9pt; }
+  .footer { margin-top:15px; color:#667b88; font-size:8pt; border-top:1px solid #dbe5ea; padding-top:5px; }
+  .small { font-size:8.6pt; color:#5e7481; }
+  pre { white-space:pre-wrap; overflow-wrap:anywhere; padding:11px 13px; margin:9px 0 12px; background:#0b2035; color:#d9f4f1; border-radius:6px; font-family:Consolas, monospace; font-size:8.3pt; line-height:1.42; }
+  .team td:first-child { font-weight:700; width:32%; }
+</style>
+</head>
+<body>
+<section class="cover">
+  <div class="brand">Chatake Innoworks Private Limited · MindForgeAI Internship</div>
+  <div class="cover-rule"></div>
+  <h1>Smart Steering Wheel</h1>
+  <div class="subtitle">A personalised, multimodal driver-safety risk platform with a real-time dashboard and digital-twin roadmap</div>
+  <div style="margin-top:14mm" class="meta">Premium Project Report · August 2026</div>
+  <div class="cover-bottom">
+    <div class="cover-box"><strong>Prepared by</strong>Ananya Shirshi<br>Swara Anakaram<br>Laxmi Shankari<br>Aashna Shaikh</div>
+    <div class="cover-box"><strong>Guided by</strong>Mr. Akash Chatake<br>R&amp;D, Chatake Innoworks Private Limited<br>cakash@chatakeinnoworks.com</div>
+  </div>
+</section>
+
+<section class="page-break">
+  <div class="kicker">Certificate</div><h2>Certificate of internship project</h2>
+  <div style="margin:17mm 8mm 0;border:1px solid #b8d6dc;padding:18mm 16mm;background:#fbfefe;min-height:190mm">
+    <p style="text-align:center;font-size:18pt;font-weight:700;color:#0a3153;margin-bottom:14mm">CHATake INNOWORKS PRIVATE LIMITED</p>
+    <p style="text-align:center;letter-spacing:1.4pt;font-size:10pt;color:#07877f;font-weight:700">M IN D F O R G E A I &nbsp; D I V I S I O N</p>
+    <p style="text-align:center;font-size:15pt;font-weight:700;margin:12mm 0">CERTIFICATE OF PROJECT COMPLETION</p>
+    <p style="font-size:12pt;line-height:1.8;text-align:justify">This is to certify that <strong>Ananya Shirshi, Swara Anakaram, Laxmi Shankari and Aashna Shaikh</strong>, students of <strong>T.E. Diploma in Computer Science and Engineering</strong>, have prepared the internship project entitled <strong>“Smart Steering Wheel: Personalised Multimodal Driver-Safety Risk Platform”</strong> under the AIML internship programme of the <strong>MindForgeAI Division</strong>, Chatake Innoworks Private Limited.</p>
+    <p style="font-size:12pt;line-height:1.8;text-align:justify">The work was carried out under the guidance of <strong>Mr. Akash Chatake, M.Tech — Artificial Intelligence and Machine Learning, BITS Pilani</strong>, R&amp;D, Chatake Innoworks Private Limited. The report records the project’s implemented prototype, repository-derived evidence, dataset study, digital-twin demonstration, and planned research extensions.</p>
+    <div class="note warning" style="margin-top:12mm"><strong>Certification boundary:</strong> this certificate page is a project-report template for authorised issue/signature by Chatake Innoworks Private Limited. It does not certify clinical validation, vehicle safety approval, or a medical-device claim.</div>
+    <div style="display:flex;justify-content:space-between;gap:18mm;margin-top:30mm"><div class="signature">Date: ____________________<br><span class="small">Project team representative</span></div><div class="signature">Signature &amp; seal: ____________________<br><span class="small">Authorised representative · Chatake Innoworks Pvt. Ltd.</span></div></div>
+  </div>
+</section>
+
+<section class="page-break">
+  <div class="kicker">Document control</div><h2>Project identity</h2>
+  <table class="team">
+    <tr><th>Item</th><th>Details</th></tr>
+    <tr><td>Project title</td><td>Smart Steering Wheel: Personalised Multimodal Driver-Safety Risk Platform</td></tr>
+    <tr><td>Organisation</td><td><a href="https://chatakeinnoworks.com/">Chatake Innoworks Private Limited</a></td></tr>
+    <tr><td>Programme</td><td><a href="https://internship.chatakeinnoworks.com/">MindForgeAI Internship</a> · internship project submission</td></tr>
+    <tr><td>Portal reference</td><td><a href="https://mindforgeai.co.in/">mindforgeai.co.in</a> (as supplied by the project team)</td></tr>
+    <tr><td>Guide</td><td>Mr. Akash Chatake · M.Tech — Artificial Intelligence and Machine Learning, BITS Pilani · R&amp;D, Chatake Innoworks Private Limited · cakash@chatakeinnoworks.com</td></tr>
+    <tr><td>Team</td><td>Ananya Shirshi — T.E. Diploma CSE — ananyashirashi@gmail.com<br>Swara Anakaram — T.E. Diploma CSE — swaranakaran@gmail.com<br>Laxmi Shankari — T.E. Diploma CSE — shankarilaxmi8@gmail.com<br>Aashna Shaikh — T.E. Diploma CSE — aashnashaikh23@gmail.com</td></tr>
+    <tr><td>Version</td><td>1.0 · prepared 21 August 2026</td></tr>
+  </table>
+  <div class="note warning"><strong>Safety and evidence notice.</strong> This is a research and simulator demonstrator. It is not a medical device, does not diagnose disease or arrhythmia, and must not command an on-road vehicle. Synthetic signals and simulation scenarios are not real-world validation.</div>
+  <div class="kicker">Contents</div><h2>Contents</h2>
+  <div class="toc">
+    <a href="#summary"><span class="num">01</span>Executive summary</a>
+    <a href="#problem"><span class="num">02</span>Problem, scope and distinction</a>
+    <a href="#system"><span class="num">03</span>Current system and architecture</a>
+    <a href="#study"><span class="num">04</span>Dataset study, calculations and evidence</a>
+    <a href="#aiml"><span class="num">05</span>AIML and personalised risk design</a>
+    <a href="#twin"><span class="num">06</span>Digital twin and implementation screenshot</a>
+    <a href="#evaluation"><span class="num">07</span>Validation, metrics and research protocol</a>
+    <a href="#industry"><span class="num">08</span>Industry-grade engineering plan</a>
+    <a href="#governance"><span class="num">09</span>Safety, privacy and governance</a>
+    <a href="#team"><span class="num">10</span>Team, guide, acknowledgement and references</a>
+  </div>
+</section>
+
+<section id="study" class="page-break"><div class="kicker">04 · Dataset study and calculations</div><h2>Repository-derived data evidence</h2>
+  <p>The analysis in this chapter is reproducible from the repository. The figures were generated from <code>AI_Module/AIML/dataset_generator/generated_dataset.csv</code> and <code>backend/data/processed_driver_features.csv</code> using <code>tools/generate_report_assets.py</code>. Both are synthetic/project-generated datasets and must not be presented as clinical or on-road data.</p>
+  <table><tr><th>Dataset</th><th>Rows × columns</th><th>Evidence / use</th><th>Interpretation boundary</th></tr>
+  <tr><td>Synthetic generator dataset</td><td>90,000 × 12</td><td>10 synthetic driver IDs; 9 physiology/ECG features; 30,000 rows in each class (0/1/2).</td><td>Training/prototype scenario evidence only.</td></tr>
+  <tr><td>Processed replay dataset</td><td>296 × 6</td><td>5-sample rolling HR mean/std, GSR mean, temperature mean, label and timestamp.</td><td>Demonstrates replay path, not human monitoring.</td></tr>
+  <tr><td>Root generated dataset</td><td>270,000 × 12</td><td>Present at repository root.</td><td>Excluded from analysis: its ranges are implausible for the stated feature units and it needs provenance/data-quality investigation.</td></tr></table>
+  <h3>Class-balance calculation</h3>
+  <p>For the selected 90,000-row synthetic dataset, each label has 30,000 rows. Therefore:</p>
+  <div class="note" style="text-align:center;font-size:12pt"><strong>Class proportion</strong> = 30,000 / 90,000 = 0.3333 = <strong>33.33%</strong> per class</div>
+  <p>This balance helps a prototype classifier avoid trivial majority-class accuracy. It does <strong>not</strong> prove class realism because the labels are produced by predefined scenario ranges in the generator.</p>
+  <img src="report_assets/synthetic_dataset_study.svg" alt="Synthetic dataset distribution and scenario means" style="display:block;width:100%;margin:12px 0">
+  <p class="small"><strong>Figure 1.</strong> Actual summary computed from the repository’s 90,000-row synthetic generator dataset. The source code labels class 2 using a medical-sounding legacy term; this report treats it only as a synthetic high-risk scenario class.</p>
+</section>
+
+<section class="page-break"><div class="kicker">04.1 · Feature engineering</div><h2>Rolling-window computation and replay analysis</h2>
+  <p>The existing preprocessing script specifies a five-sample rolling window. For a signal x, the rolling mean and population standard deviation at time t are:</p>
+  <div class="note" style="text-align:center;font-size:13pt">μ<sub>t</sub> = (1/W) Σ<sub>i=t−W+1</sub><sup>t</sup> x<sub>i</sub> &nbsp;&nbsp; and &nbsp;&nbsp; σ<sub>t</sub> = √[(1/W) Σ<sub>i=t−W+1</sub><sup>t</sup> (x<sub>i</sub> − μ<sub>t</sub>)²], where W = 5.</div>
+  <p>In the current code, these calculations produce HR rolling mean, HR rolling standard deviation (a variability proxy), GSR rolling mean, and temperature rolling mean. The following figure uses all 296 rows of the processed replay file.</p>
+  <img src="report_assets/replay_timeline_study.svg" alt="Replay timeline study" style="display:block;width:100%;margin:12px 0">
+  <p class="small"><strong>Figure 2.</strong> Actual rolling-signal values from the replay file. The graph is an implementation/replay check, not a physiological study of participants.</p>
+  <h3>Risk-model calculation — intended formulation</h3>
+  <p>The future context-aware model should estimate expected personal physiology <em>x̂</em><sub>t</sub> and use a residual <em>r</em><sub>t</sub> = <em>x</em><sub>t</sub> − <em>x̂</em><sub>t</sub>. A generic fusion representation is:</p>
+  <div class="note" style="text-align:center;font-size:12.5pt">p<sub>t,h</sub> = F<sub>θ</sub>(r<sub>1:t</sub>, vision<sub>1:t</sub>, behaviour<sub>1:t</sub>, context<sub>1:t</sub>, quality<sub>1:t</sub>, mask<sub>1:t</sub>)</div>
+  <p>where p<sub>t,h</sub> is a calibrated risk estimate at horizon h ∈ {0, 5, 10, 15 minutes}. This is a planned research formulation; it is not yet implemented or evaluated in the repository.</p>
+</section>
+
+<section id="summary" class="page-break"><div class="kicker">01 · Executive summary</div><h2>From a sensor prototype to a trustworthy safety platform</h2>
+  <p class="lead">Smart Steering Wheel is a driver-safety decision-support project that connects steering-wheel physiological telemetry, a live software dashboard, risk inference, and a digital-twin demonstrator. Its intended research direction is to predict safety risk relative to each driver’s context and personal baseline—not to interpret any single sensor reading as a medical diagnosis.</p>
+  <p>The repository already provides a practical prototype base: FastAPI services, a React/Vite dashboard, synthetic telemetry generators, CSV replay, risk-inference code, a versioned initial telemetry contract, and a browser-based Three.js digital twin. The codebase also shows important gaps: multiple incompatible model paths, synthetic labels, no vision model, no real context/habit pipeline, and no driver-wise real-world evaluation.</p>
+  <div class="note"><strong>Project position.</strong> The near-term deliverable is a robust, auditable demonstrator. The long-term research contribution is a personalised, uncertainty-aware multimodal forecasting system for driver-safety risk, with explicit missing-sensor handling and a simulator/HIL verification framework.</div>
+  <h3>What makes the project distinct</h3>
+  <table><tr><th>Threshold baseline</th><th>This project’s intended direction</th></tr>
+  <tr><td>Generic reference ranges for physiology</td><td>Personalised expectation and context-aware residuals</td></tr>
+  <tr><td>Current-state alert</td><td>Current risk plus planned 5/10/15-minute risk horizons</td></tr>
+  <tr><td>Limited sensor stream</td><td>Future fusion of vision, physiology, context and driving behaviour</td></tr>
+  <tr><td>Binary confidence assumptions</td><td>Signal quality, uncertainty, explanation and safe defer state</td></tr></table>
+</section>
+
+<section id="problem" class="page-break"><div class="kicker">02 · Problem and scope</div><h2>Context changes the meaning of physiological signals</h2>
+  <p>Raised heart rate, sweating, grip changes, and temperature variation may arise from normal exercise recovery, traffic stress, cabin conditions, sensor contact artefacts, or a driver-safety concern. A dependable system must therefore reason over trend, context, quality and individual baseline rather than use a universal threshold as a diagnosis.</p>
+  <p>The central proposed model is:</p>
+  <div class="note" style="text-align:center;font-size:13pt"><strong>Risk<sub>t</sub></strong> = f(observed physiology − expected personalised physiology | activity, environment, driving behaviour, time and signal quality)</div>
+  <h3>Prior-work boundary</h3>
+  <p>The supplied reference paper, <em>Development of a Real-Time Driver Health Detection System Using a Smart Steering Wheel</em> [1], is a useful hardware and signal-processing baseline. It is cited as prior work only. This project neither claims that paper’s work nor presents its own prototype as a validated medical detector.</p>
+  <h3>In scope</h3><ul><li>Sensor/replay ingestion, time alignment, quality checks and versioned contracts.</li><li>Non-diagnostic risk estimate, persistence-aware alerts and reason codes.</li><li>Dashboard visualisation, synthetic scenarios, deterministic replay and digital-twin testing.</li><li>Future multimodal research: eye/face features, physiology, context/habit and driving behaviour.</li></ul>
+  <h3>Out of scope</h3><ul><li>Clinical diagnosis, treatment recommendation, disease/arrhythmia claims, or emergency triage.</li><li>Direct actuation of a road vehicle.</li><li>Claims of fatigue/crash prediction accuracy without ethics-approved, driver-wise evaluation.</li></ul>
+</section>
+
+<section id="system" class="page-break"><div class="kicker">03 · Implemented system</div><h2>Current software and telemetry foundation</h2>
+  <div class="architecture"><div class="node">Wheel sensors<br>or CSV replay</div><div class="arrow">→</div><div class="node">FastAPI services<br>and validation</div><div class="arrow">→</div><div class="node">Risk inference<br>prototype</div><div class="arrow">→</div><div class="node">React dashboard<br>and WebSocket</div><div class="arrow">→</div><div class="node">Browser digital twin</div></div>
+  <table><tr><th>Component</th><th>Verified repository evidence</th><th>Current role</th></tr>
+  <tr><td>Backend</td><td>`backend/app/`</td><td>FastAPI services, simulated/replayed driver status and API boundary.</td></tr>
+  <tr><td>Frontend</td><td>`Frontend/`</td><td>React/Vite pages for dashboard, vitals, analytics, history, setup and settings.</td></tr>
+  <tr><td>Replay data</td><td>`backend/data/processed_driver_features.csv`</td><td>Sequential replay of rolling HR, HRV proxy, GSR and temperature features; grip is presently fixed in one replay path.</td></tr>
+  <tr><td>AI module</td><td>`AI_Module/`</td><td>Synthetic data generators, model artefacts, preprocessing, predictor and simulator utilities.</td></tr>
+  <tr><td>Digital twin</td><td>`digital-twin/`</td><td>FastAPI/WebSocket/Three.js visual MVP with controllable steering and synthetic scenarios.</td></tr>
+  <tr><td>Contract</td><td>`digital-twin/contracts/driver_telemetry_v1.json`</td><td>Initial versioned `driver-twin.v1` schema for key telemetry fields.</td></tr></table>
+  <div class="note warning"><strong>Engineering finding.</strong> The repository contains KNN, Random Forest documentation and calibrated-XGBoost paths with different feature definitions. These must be consolidated into one versioned schema/model release before any performance result is published.</div>
+  <h3>Technological workflow</h3>
+  <div class="architecture"><div class="node">1. Acquire<br>sensor / replay packet</div><div class="arrow">→</div><div class="node">2. Validate<br>unit, range, time, quality</div><div class="arrow">→</div><div class="node">3. Engineer<br>rolling features / masks</div><div class="arrow">→</div><div class="node">4. Infer<br>versioned model</div><div class="arrow">→</div><div class="node">5. Stabilise<br>risk + uncertainty</div><div class="arrow">→</div><div class="node">6. Present<br>alert, dashboard, twin</div></div>
+  <p>For an industry-quality implementation, every stage emits a time stamp, sequence number, source ID, quality state, and schema version. The replay/twin visualisation should consume precisely the same canonical event as the model audit log.</p>
+  <h3>Verified ML implementation comparison</h3>
+  <table><tr><th>Line</th><th>Evidence in repository</th><th>Inputs / output</th><th>Report status</th></tr>
+  <tr><td>KNN inference</td><td>`backend/app/services/predict_risk.py`</td><td>9 physiology/ECG fields; Normal/Warning/Cardiac_Event legacy labels; 3-sample stabilisation.</td><td>Legacy prototype; feature contract mismatch identified.</td></tr>
+  <tr><td>Random Forest report</td><td>`AI_Module/AIML/Week3/model_evaluation_report.md`</td><td>4 rolling features; 3 classes; historical 60-sample metrics.</td><td>Documentation only; source/run cannot be matched to a model artefact.</td></tr>
+  <tr><td>Calibrated XGBoost</td><td>`AI_Module/AIML/Week3/train_model.py` and `AI_Module/prediction/predictor.py`</td><td>9 generated physiology features; binary risk probability plus hand-written rules.</td><td>Current strongest artefact path, but trained on synthetic data only.</td></tr></table>
+  <h3>Inference-pipeline excerpt</h3>
+  <pre># Condensed from AI_Module/prediction/predictor.py
+features, metrics = preprocess_telemetry(telemetry_data)
+ml_prob = model.predict_proba(features)[0][1] * 100.0
+rule_score, reasons = compute_rule_penalty(metrics)
+instant_risk = min(100.0, 0.50 * ml_prob + 0.50 * rule_score)
+persistent_risk = mean(scores in the previous 5 seconds)
+status = NORMAL / WARNING / CRITICAL based on persistent_risk</pre>
+  <p class="small">The excerpt documents current implementation logic. The rule names and clinical wording require refactoring to non-diagnostic driver-safety language before release.</p>
+</section>
+
+<section id="aiml" class="page-break"><div class="kicker">05 · AIML research design</div><h2>Proposed multimodal, temporal and personalised risk model</h2>
+  <div class="architecture"><div class="node">Vision<br>eye closure, PERCLOS, yawn, head pose</div><div class="node">Physiology<br>HR/HRV, EDA, respiration, contact quality</div><div class="node">Context &amp; habit<br>sleep, activity, commute, cabin, time</div><div class="node">Driving behaviour<br>steering, braking, lane/speed variation</div></div>
+  <div class="architecture"><div class="node" style="background:#e9f9f7"><strong>Temporal fusion</strong><br>LSTM / TCN / lightweight Transformer with missing-modality masks</div><div class="arrow">→</div><div class="node" style="background:#e9f9f7"><strong>Recovery-aware constraints</strong><br>baseline, trend, rate-of-change and sensor-quality logic</div><div class="arrow">→</div><div class="node" style="background:#e9f9f7"><strong>Output</strong><br>current + 5/10/15-minute risk, uncertainty and reason codes</div></div>
+  <p>The four-branch architecture above is the <strong>target research design</strong>; the current repository has not yet implemented its vision, context, driving-behaviour or temporal branches. The physics-guided layer is deliberately a soft constraint/consistency mechanism. It should improve plausibility and uncertainty handling, not hard-code medical rules.</p>
+  <h3>Expected outputs</h3>
+  <table><tr><th>Output</th><th>Purpose</th><th>Safety condition</th></tr>
+  <tr><td>Current state</td><td>Normal / caution / high-risk / unknown decision-support state</td><td>Never a disease diagnosis.</td></tr>
+  <tr><td>Multi-horizon risk</td><td>Planned 5, 10 and 15-minute forecast probability</td><td>Requires time-aware labels and held-out evaluation.</td></tr>
+  <tr><td>Uncertainty and data quality</td><td>Shows whether sensing supports a decision</td><td>Return `UNKNOWN` or defer under poor contact/missing data.</td></tr>
+  <tr><td>Explanation</td><td>Human-readable modality and trend reasons</td><td>Use evidence codes, not medical assertions.</td></tr></table>
+</section>
+
+<section id="twin" class="page-break"><div class="kicker">06 · Digital twin</div><h2>Repeatable scenarios before road deployment</h2>
+  <p>The working browser twin is an integration demonstrator, not a vehicle physics or clinical model. It supports live WebSocket telemetry, steering input, and repeatable normal/warning/critical synthetic scenarios. The planned production path preserves the same canonical contract while moving sensor/vehicle integration into ROS 2 and CARLA.</p>
+  <div class="architecture"><div class="node">Wheel MCU / emulation</div><div class="arrow">→</div><div class="node">ROS 2 gateway<br>quality + time checks</div><div class="arrow">→</div><div class="node">Fusion + inference</div><div class="arrow">→</div><div class="node">CARLA + API + UI</div><div class="arrow">→</div><div class="node">Replay / rosbag / evidence store</div></div>
+  <h3>Scenario suite</h3>
+  <table><tr><th>Scenario</th><th>Purpose</th><th>Pass condition</th></tr>
+  <tr><td>Physiological replay</td><td>Confirm consistent dashboard and twin rendering.</td><td>Recorded and displayed timeline agree.</td></tr>
+  <tr><td>Sensor fault injection</td><td>Test noise, stale time, contact loss, implausible values and disconnects.</td><td>Data degraded/unknown state; no unsupported alert.</td></tr>
+  <tr><td>Driver-risk sequence</td><td>Exercise temporal persistence and graded alert policy.</td><td>Deterministic expected alert record.</td></tr>
+  <tr><td>Vehicle-event correlation</td><td>Associate synthetic lane/collision events with health timeline.</td><td>Scenario is replayable with timestamps and metadata.</td></tr>
+  <tr><td>Hardware-in-loop calibration</td><td>Measure real device cadence, jitter, loss and latency.</td><td>Measured limits documented; simulator-only control maintained.</td></tr></table>
+  <img src="report_assets/digital_twin_mvp.png" alt="Digital twin MVP screenshot" style="display:block;width:100%;margin:13px 0 6px;border:1px solid #b6cbd3">
+  <p class="small"><strong>Figure 3.</strong> Actual screenshot of the runnable `digital-twin` browser MVP captured from the local FastAPI/WebSocket service on 21 August 2026. It shows the Normal synthetic scenario, live telemetry cards, steering control, and vehicle scene. It is not evidence of an on-road or medical system.</p>
+</section>
+
+<section id="evaluation" class="page-break"><div class="kicker">07 · Evaluation protocol</div><h2>Make the research credible before claiming performance</h2>
+  <p>Random frame splits and randomly divided rolling windows can leak driver/trip information into test data. Evaluation must be driver-wise and time-aware. For a new driver, a population model should be tested first; any personal baseline/adaptation period must be earlier in time and excluded from final test scoring.</p>
+  <table><tr><th>Experiment</th><th>Why it matters</th><th>Required reporting</th></tr>
+  <tr><td>Vision-only baseline</td><td>Establish conventional drowsiness baseline.</td><td>Driver-wise F1, AUROC/AUPRC, calibration.</td></tr>
+  <tr><td>Physiology/context-only</td><td>Quantify value of context and personal baseline.</td><td>False alerts/hour, uncertainty coverage.</td></tr>
+  <tr><td>Fusion without constraints</td><td>Measure pure learned fusion.</td><td>Horizon-specific results and ablation.</td></tr>
+  <tr><td>Full recovery-aware fusion</td><td>Test central proposed contribution.</td><td>Lead time, ECE/Brier score, subgroup analysis.</td></tr>
+  <tr><td>Fault/missing-modality tests</td><td>Demonstrate robust defer behaviour.</td><td>Performance and abstention by fault type.</td></tr></table>
+  <h3>Minimum metrics</h3><ul><li>Macro F1, sensitivity, specificity and AUROC/AUPRC where class balance supports them.</li><li>Brier score and expected calibration error (ECE).</li><li>False alerts per driving hour, mean alert lead time and end-to-end latency.</li><li>Signal-quality/abstention coverage and degradation under missing/noisy sensing.</li><li>Driver-wise and condition-wise results, with careful fairness interpretation.</li></ul>
+</section>
+
+<section id="industry" class="page-break"><div class="kicker">08 · Industry-grade delivery plan</div><h2>Build the foundations of a trustworthy system</h2>
+  <table><tr><th>Phase</th><th>Deliverable</th><th>Exit criterion</th></tr>
+  <tr><td>1. Stabilise</td><td>One model/schema contract, reproducible environment, unified REST/WebSocket prediction.</td><td>Feature-order, contract and replay tests pass.</td></tr>
+  <tr><td>2. Instrument</td><td>Event/receive timestamps, sequence, source, quality, model and calibration versioning.</td><td>Each alert is auditable from packet to UI.</td></tr>
+  <tr><td>3. Verify twin</td><td>Deterministic scenarios, fault injection, latency evidence and replay UI.</td><td>Expected events match recorded scenario runs.</td></tr>
+  <tr><td>4. Integrate</td><td>ROS 2/CARLA adapter retaining canonical contract.</td><td>Wheel/replay data reaches vehicle/twin/API reliably.</td></tr>
+  <tr><td>5. Research extension</td><td>Approved study, data governance, multimodal temporal models, personalisation.</td><td>Driver-wise, calibrated, reproducible evidence.</td></tr></table>
+  <h3>Non-functional targets</h3>
+  <table><tr><th>Category</th><th>MVP target</th><th>Controls</th></tr>
+  <tr><td>Telemetry</td><td>20 Hz simulated; 30 Hz wheel target</td><td>Sequence, staleness and jitter monitoring.</td></tr>
+  <tr><td>Dashboard</td><td>Local-network p95 under 500 ms</td><td>Timestamped latency measurement.</td></tr>
+  <tr><td>Wheel-to-simulator</td><td>Simulator-only p95 under 100 ms target</td><td>HIL measurement and no road actuation.</td></tr>
+  <tr><td>Security/privacy</td><td>Development environment only by default</td><td>TLS, RBAC, encryption, consent and retention controls for human data.</td></tr></table>
+</section>
+
+<section id="governance" class="page-break"><div class="kicker">09 · Assurance</div><h2>Safety, privacy and governance</h2>
+  <table><tr><th>Hazard / concern</th><th>Required control</th></tr>
+  <tr><td>Sensor contact loss or missing modality</td><td>Quality score and explicit `UNKNOWN`/defer output; do not invent a confident health-risk state.</td></tr>
+  <tr><td>False or excessive alerts</td><td>Persistence window, calibration, quiet period, acknowledgement and logged review.</td></tr>
+  <tr><td>Invalid model feature ordering</td><td>Schema/version checks at model load and inference; automated feature-order tests.</td></tr>
+  <tr><td>Driver mismatch/model drift</td><td>Calibration state, uncertainty escalation, performance monitoring and governed retraining.</td></tr>
+  <tr><td>Physiological/video privacy</td><td>Institutional approval as appropriate, explicit consent, minimisation, pseudonymisation, encryption and retention/deletion rules.</td></tr>
+  <tr><td>Vehicle-control misunderstanding</td><td>Keep all command paths simulator-only in this project; retain human override and separate any future safety architecture.</td></tr></table>
+  <div class="note"><strong>Claim-safe language.</strong> Use “prototype risk estimate,” “synthetic scenario,” “planned evaluation,” “non-diagnostic decision support,” and “simulator-only demonstrator.” Avoid “diagnosis,” “cardiac-event detection,” “real-world validated,” and “prevents accidents” unless independently established through the required evidence and approvals.</div>
+</section>
+
+<section id="team" class="page-break"><div class="kicker">10 · Project credits</div><h2>Team, guidance and acknowledgement</h2>
+  <p>This project is prepared as an internship deliverable under <a href="https://internship.chatakeinnoworks.com/">Chatake Innoworks Private Limited’s MindForgeAI internship environment</a> [2, 3]. The team acknowledges the guidance and R&amp;D support provided by Chatake Innoworks Private Limited.</p>
+  <table class="team"><tr><th>Role</th><th>Name and contact</th></tr>
+  <tr><td>Team member</td><td>Ananya Shirshi · T.E. Diploma CSE · ananyashirashi@gmail.com</td></tr>
+  <tr><td>Team member</td><td>Swara Anakaram · T.E. Diploma CSE · swaranakaran@gmail.com</td></tr>
+  <tr><td>Team member</td><td>Laxmi Shankari · T.E. Diploma CSE · shankarilaxmi8@gmail.com</td></tr>
+  <tr><td>Team member</td><td>Aashna Shaikh · T.E. Diploma CSE · aashnashaikh23@gmail.com</td></tr>
+  <tr><td>Project guide</td><td>Mr. Akash Chatake · M.Tech — Artificial Intelligence and Machine Learning, BITS Pilani · R&amp;D, Chatake Innoworks Private Limited · cakash@chatakeinnoworks.com</td></tr></table>
+  <div style="display:flex;gap:22mm;margin-top:23mm"><div class="signature">Team representative<br><span class="small">Date / signature</span></div><div class="signature">Project guide<br><span class="small">Date / signature</span></div></div>
+  <h3>References and source basis</h3>
+  <ol class="small"><li><em>Development of a Real-Time Driver Health Detection System Using a Smart Steering Wheel.</em> User-supplied PDF. Complete publication metadata must be verified before academic submission.</li><li><a href="https://chatakeinnoworks.com/">Chatake Innoworks Private Limited.</a> Official website. Accessed 21 August 2026.</li><li><a href="https://internship.chatakeinnoworks.com/">Chatake Innoworks Private Limited. MindForgeAI Internship Program.</a> Accessed 21 August 2026.</li><li>Repository evidence: `docs/paper/PROJECT_EVIDENCE.md`, `docs/INDUSTRY_GRADE_PROJECT_REPORT.md`, `digital-twin/architecture/BLUEPRINT.md`, `tools/generate_report_assets.py`, and the implementation paths identified in this report.</li></ol>
+  <div class="footer">Smart Steering Wheel · Premium Project Report · Chatake Innoworks Private Limited · MindForgeAI Internship</div>
+</section>
+</body></html>
