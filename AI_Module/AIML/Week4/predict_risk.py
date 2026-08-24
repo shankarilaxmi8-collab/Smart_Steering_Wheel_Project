@@ -1,145 +1,68 @@
 import os
-from pathlib import Path
-from collections import deque
-
 import joblib
+import pandas as pd
+from typing import Dict, Any
 
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+AI_MODULE_DIR = os.path.dirname(os.path.dirname(CURRENT_DIR))
+MODEL_PATH = os.path.join(AI_MODULE_DIR, "models", "cardiac_risk_model.joblib")
 
-# --------------------------------------------------
-# Paths
-# --------------------------------------------------
+class RiskPredictor:
+    def __init__(self):
+        if not os.path.exists(MODEL_PATH):
+            raise FileNotFoundError(f"Model not found at {MODEL_PATH}. Run Week3/train_model.py first.")
+        artifact = joblib.load(MODEL_PATH)
+        self.model = artifact["model"]
+        self.feature_names = artifact["feature_names"]
 
-BASE_DIR = Path(__file__).resolve().parents[2]
+    def compute_risk(self, telemetry_frame: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Accepts full telemetry (nested or flat), runs ML inference on extracted features,
+        and preserves live ecg_signal_mv for dashboard streaming.
+        """
+        vitals = telemetry_frame.get("sensors", telemetry_frame)
+        morphology = vitals.get("ecg_morphology", {})
 
-MODEL_PATH = BASE_DIR / "models" / "knn_model.pkl"
-SCALER_PATH = BASE_DIR / "models" / "scaler.pkl"
-
-
-# --------------------------------------------------
-# Cardiac Inference Engine
-# --------------------------------------------------
-
-class CardiacInferenceEngine:
-
-    def __init__(self, model=None, scaler=None, buffer_size=3):
-
-        if model is None:
-            if not MODEL_PATH.exists():
-                raise FileNotFoundError(f"Model not found: {MODEL_PATH}")
-
-            model = joblib.load(MODEL_PATH)
-
-        if scaler is None:
-            if not SCALER_PATH.exists():
-                raise FileNotFoundError(f"Scaler not found: {SCALER_PATH}")
-
-            scaler = joblib.load(SCALER_PATH)
-
-        self.model = model
-        self.scaler = scaler
-
-        self.buffer_size = buffer_size
-        self.history = deque(maxlen=buffer_size)
-        self.stable_state = 0
-
-        self.labels = {
-            0: "NORMAL",
-            1: "WARNING",
-            2: "CARDIAC_EVENT"
+        # Extract features for the ML model
+        row = {
+            "heart_rate_bpm": vitals.get("heart_rate_bpm", 72.0),
+            "hrv_rmssd_ms": vitals.get("hrv_rmssd_ms", 35.0),
+            "gsr_microsiemens": vitals.get("gsr_microsiemens", 3.0),
+            "hand_temp_celsius": vitals.get("hand_temp_celsius", 34.0),
+            "grip_force_n": vitals.get("grip_force_n", 25.0),
+            "rr_interval_ms": morphology.get("rr_interval_ms", vitals.get("rr_interval_ms", 800.0)),
+            "qrs_duration_ms": morphology.get("qrs_duration_ms", vitals.get("qrs_duration_ms", 90.0)),
+            "st_deviation_mv": morphology.get("st_deviation_mv", vitals.get("st_deviation_mv", 0.0)),
+            "qt_interval_ms": morphology.get("qt_interval_ms", vitals.get("qt_interval_ms", 390.0)),
         }
 
-    def process_sample(self, sensor):
-
-        features = [[
-            sensor["heart_rate_bpm"],
-            sensor["sweat_microsiemens"],
-            sensor["skin_temp_celsius"],
-            sensor["grip_force_newton"],
-            sensor["ecg_signal"],
-            sensor["rr_interval_ms"],
-            sensor["qrs_duration_ms"],
-            sensor["st_deviation_mv"],
-            sensor["qt_interval_ms"]
-        ]]
-
-        scaled = self.scaler.transform(features)
-
-        prediction = int(self.model.predict(scaled)[0])
-
-        probabilities = self.model.predict_proba(scaled)[0]
-
-        confidence = float(probabilities[prediction]) * 100
-
-        self.history.append(prediction)
-
-        if len(self.history) == self.buffer_size:
-            if all(x == prediction for x in self.history):
-                self.stable_state = prediction
-
+        df = pd.DataFrame([row])[self.feature_names]
+        prob = float(self.model.predict_proba(df)[0][1]) * 100.0
+        
+        status = "CRITICAL" if prob >= 70 else ("WARNING" if prob >= 40 else "NORMAL")
+        
         return {
-            "raw_prediction": self.labels[prediction],
-            "stable_prediction": self.labels[self.stable_state],
-            "confidence": round(confidence, 2),
-            "buffer": list(self.history)
+            "risk_score": round(prob, 1),
+            "status": status,
+            "live_ecg_mv": vitals.get("ecg_signal_mv", 0.0), # Passed through for frontend display
+            "features_evaluated": row
         }
-
-
-# --------------------------------------------------
-# Manual Test
-# --------------------------------------------------
 
 if __name__ == "__main__":
-
-    print("Loading Cardiac Inference Engine...\n")
-
-    engine = CardiacInferenceEngine()
-
-    samples = [
-
-        {
-            "heart_rate_bpm":74,
-            "sweat_microsiemens":3.2,
-            "skin_temp_celsius":33.6,
-            "grip_force_newton":16,
-            "ecg_signal":0.02,
-            "rr_interval_ms":810,
-            "qrs_duration_ms":91,
-            "st_deviation_mv":0.01,
-            "qt_interval_ms":392
-        },
-
-        {
-            "heart_rate_bpm":90,
-            "sweat_microsiemens":4.9,
-            "skin_temp_celsius":33.0,
-            "grip_force_newton":12,
-            "ecg_signal":0.11,
-            "rr_interval_ms":700,
-            "qrs_duration_ms":101,
-            "st_deviation_mv":0.12,
-            "qt_interval_ms":421
-        },
-
-        {
-            "heart_rate_bpm":121,
-            "sweat_microsiemens":12.6,
-            "skin_temp_celsius":29.5,
-            "grip_force_newton":4,
-            "ecg_signal":0.46,
-            "rr_interval_ms":515,
-            "qrs_duration_ms":136,
-            "st_deviation_mv":0.48,
-            "qt_interval_ms":481
+    predictor = RiskPredictor()
+    sample = {
+        "heart_rate_bpm": 142.0,
+        "hrv_rmssd_ms": 8.0,
+        "gsr_microsiemens": 14.0,
+        "hand_temp_celsius": 29.5,
+        "grip_force_n": 3.0,
+        "ecg_signal_mv": 1.15, # Live voltage wave point
+        "ecg_morphology": {
+            "rr_interval_ms": 410.0,
+            "qrs_duration_ms": 135.0,
+            "st_deviation_mv": 0.25,
+            "qt_interval_ms": 490.0,
         }
-
-    ]
-
-    print("========== INFERENCE RESULTS ==========\n")
-
-    for i, sample in enumerate(samples, start=1):
-
-        result = engine.process_sample(sample)
-
-        print(f"Sample {i}")
-        print(result)
-        print("-" * 50)
+    }
+    print("--- [Week 4] Full Telemetry Prediction Test ---")
+    print(predictor.compute_risk(sample))

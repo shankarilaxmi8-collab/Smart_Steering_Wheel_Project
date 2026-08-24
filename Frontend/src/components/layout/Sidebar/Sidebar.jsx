@@ -1,4 +1,5 @@
 import { useContext, useState } from "react";
+
 import {
   LayoutDashboard,
   HeartPulse,
@@ -16,9 +17,9 @@ import { ThemeContext } from "../../../app/providers";
 
 function Sidebar({
   profile,
-  data,
   activeTab,
   setActiveTab,
+  onLogout,
 }) {
   const { theme } = useContext(ThemeContext);
 
@@ -35,7 +36,7 @@ function Sidebar({
   return (
     <aside
       className={`${
-        collapsed ? "w-20" : "w-72"
+        collapsed ? "w-20" : "w-64"
       } flex flex-col transition-all duration-300`}
       style={{
         backgroundColor: theme.surface,
@@ -45,15 +46,12 @@ function Sidebar({
       {/* Header */}
 
       <div className="px-6 pt-6 pb-5">
-
         <div className="flex items-center justify-between">
 
           {!collapsed && (
-
             <div>
-
               <h2
-                className="text-xl font-bold"
+                className="text-lg font-bold"
                 style={{ color: theme.text }}
               >
                 Steering AI
@@ -65,14 +63,14 @@ function Sidebar({
               >
                 Vehicle Dashboard
               </p>
-
             </div>
-
           )}
 
           <button
+            type="button"
             onClick={() => setCollapsed(!collapsed)}
-            className="p-2 rounded-xl hover:bg-white/5 transition"
+            className="p-2 rounded-xl hover:bg-white/5 transition cursor-pointer"
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {collapsed ? (
               <Menu size={22} color={theme.text} />
@@ -82,10 +80,11 @@ function Sidebar({
           </button>
 
         </div>
-
       </div>
 
       <div className="flex-1 flex flex-col px-4">
+
+        {/* Driver Profile */}
 
         {!collapsed && (
           <div
@@ -94,8 +93,6 @@ function Sidebar({
               backgroundColor: theme.surfaceSecondary,
             }}
           >
-            {/* Profile */}
-
             <div className="flex items-center gap-3">
 
               <UserCircle
@@ -107,7 +104,7 @@ function Sidebar({
               <div className="flex-1 min-w-0">
 
                 <h3
-                  className="font-semibold text-lg truncate"
+                  className="font-semibold text-base truncate"
                   style={{ color: theme.text }}
                 >
                   {profile?.name || "Driver"}
@@ -121,84 +118,95 @@ function Sidebar({
                 </p>
 
               </div>
-
             </div>
 
-            {/* Buttons */}
+            {/* Profile Actions */}
 
             <div className="mt-5 flex gap-3">
 
+              {/* EDIT → SETTINGS */}
+
               <button
-                className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl transition"
+                type="button"
+                onClick={() => setActiveTab("Settings")}
+                className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl transition cursor-pointer hover:brightness-110"
                 style={{
                   backgroundColor: theme.primary,
                   color: "#fff",
                 }}
               >
-                <Pencil size={16}/>
+                <Pencil size={16} />
                 Edit
               </button>
 
+              {/* LOGOUT */}
+
               <button
-                className="flex items-center justify-center w-12 rounded-xl transition hover:bg-red-500/20"
+                type="button"
+                onClick={onLogout}
+                className="flex items-center justify-center w-12 rounded-xl transition cursor-pointer hover:bg-red-500/20"
+                aria-label="Log out"
               >
-                <LogOut size={18}/>
+                <LogOut size={18} color={theme.text} />
               </button>
 
             </div>
-
           </div>
         )}
 
-      {!collapsed && (
-        <p
-          className="px-7 mb-3 text-[11px] uppercase tracking-[0.25em]"
-          style={{ color: theme.textSecondary }}
-        >
-          Navigation
-        </p>
-      )}
+        {/* Navigation Label */}
 
-      <nav className="space-y-3 flex-1">
+        {!collapsed && (
+          <p
+            className="px-7 mb-3 text-[11px] uppercase tracking-[0.25em]"
+            style={{ color: theme.textSecondary }}
+          >
+            Navigation
+          </p>
+        )}
 
-        {menuItems.map(({ icon: Icon, label, active }) => (
+        {/* Navigation */}
 
-          <button
-            key={label}
-            className={`w-full flex items-center ${
-              collapsed ? "justify-center" : "gap-4"
-            } px-4 py-3.5 rounded-2xl transition-all duration-300 hover:bg-white/5`}
-            style={{
-              backgroundColor:
-                activeTab === label
+        <nav className="space-y-3 flex-1">
+
+          {menuItems.map(({ icon: Icon, label }) => (
+
+            <button
+              type="button"
+              key={label}
+              className={`w-full flex items-center ${
+                collapsed ? "justify-center" : "gap-4"
+              } px-4 py-3.5 rounded-2xl transition-all duration-300 hover:bg-white/5 cursor-pointer`}
+              style={{
+                backgroundColor:
+                  activeTab === label
                     ? theme.primary
                     : "transparent",
 
-              color:
-                activeTab === label
+                color:
+                  activeTab === label
                     ? "#fff"
                     : theme.textSecondary,
-            }}
-            onClick={() => setActiveTab(label)}
-          >
+              }}
+              onClick={() => setActiveTab(label)}
+            >
 
-            <Icon size={20} />
+              <Icon size={20} />
 
-            {!collapsed && (
-              <span className="font-medium">
-                {label}
-              </span>
-            )}
+              {!collapsed && (
+                <span className="text-[15px] font-medium">
+                  {label}
+                </span>
+              )}
 
-          </button>
+            </button>
 
-        ))}
+          ))}
 
-      </nav>
-
+        </nav>
       </div>
 
-      {/* Bottom */}
+      {/* Bottom System Status */}
 
       <div
         className="mx-4 mb-5 mt-8 rounded-2xl p-4"
@@ -243,7 +251,7 @@ function Sidebar({
               />
 
               <span
-                className="font-semibold text-lg truncate"
+                className="font-semibold text-base truncate"
                 style={{
                   color: theme.success,
                 }}
@@ -263,7 +271,7 @@ function Sidebar({
             </p>
 
             <p
-              className="font-semibold mt-1"
+              className="font-semibold text-[15px] mt-1"
               style={{
                 color: theme.text,
               }}
@@ -276,7 +284,7 @@ function Sidebar({
         )}
 
       </div>
-    
+
     </aside>
   );
 }

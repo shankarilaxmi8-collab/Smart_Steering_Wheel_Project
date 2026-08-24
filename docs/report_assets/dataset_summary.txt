@@ -1,0 +1,4 @@
+synthetic_dataset_rows: 90000
+synthetic_label_counts: {'0': 30000, '1': 30000, '2': 30000}
+replay_dataset_rows: 296
+replay_label_counts: {'0': 176, '1': 40, '2': 80}

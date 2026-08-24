@@ -1,155 +1,294 @@
 import { useState, useContext } from "react";
-import { ThemeContext } from "../app/providers";
-import { saveDriverProfile } from "../utils/storage";
 
-function DriverSetupPage() {
+import { ThemeContext } from "../app/providers";
+
+import {
+  saveDriverProfile,
+  DEFAULT_DRIVER_PROFILE,
+  startDriverSession,
+} from "../utils/storage";
+
+
+function DriverSetupPage({ onLogin }) {
 
   const { theme } = useContext(ThemeContext);
 
-  const [form, setForm] = useState({
-    name: "",
-    age: "",
-    gender: "",
-    bloodGroup: "",
-    licenseNumber: "",
-    emergencyName: "",
-    emergencyPhone: "",
-    medicalConditions: "",
-    medications: "",
-  });
+  const [form, setForm] = useState(DEFAULT_DRIVER_PROFILE);
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | FORM CHANGE
+  |--------------------------------------------------------------------------
+  */
 
   function handleChange(e) {
+
     setForm({
       ...form,
       [e.target.name]: e.target.value,
     });
+
   }
 
+
+  /*
+  |--------------------------------------------------------------------------
+  | SUBMIT
+  |--------------------------------------------------------------------------
+  */
+
   function handleSubmit(e) {
+
     e.preventDefault();
 
     saveDriverProfile(form);
 
-    window.location.reload();
+    startDriverSession();
+
+    onLogin(form);
+
   }
 
+
   return (
+
     <div
-      className="min-h-screen flex items-center justify-center px-6"
+      className="
+        min-h-screen
+        flex
+        items-center
+        justify-center
+        px-6
+        py-10
+        transition-colors
+        duration-300
+      "
       style={{
-        background: "#0D1117",
+        background: theme.background,
+        color: theme.text,
       }}
     >
+
       <div
-        className="w-full max-w-4xl rounded-3xl p-10"
+        className="
+          w-full
+          max-w-4xl
+          rounded-3xl
+          p-8
+          md:p-10
+          transition-colors
+          duration-300
+        "
         style={{
           background: theme.surface,
           border: `1px solid ${theme.border}`,
+          boxShadow:
+            theme.mode === "dark"
+              ? "0 20px 60px rgba(0, 0, 0, 0.25)"
+              : "0 20px 60px rgba(0, 0, 0, 0.08)",
         }}
       >
-        <h1
-          className="text-5xl font-bold"
-          style={{ color: theme.text }}
-        >
-          Driver Registration
-        </h1>
 
-        <p
-          className="mt-3 mb-10 text-lg"
-          style={{ color: theme.textSecondary }}
-        >
-          Complete your profile before using the Smart Steering Wheel Dashboard.
-        </p>
+        {/* ============================================================
+            HEADER
+        ============================================================= */}
+
+        <div className="mb-10">
+
+          <div className="flex items-center gap-3">
+
+            <div
+              className="w-1 h-10 rounded-full"
+              style={{
+                background: theme.primary,
+              }}
+            />
+
+            <div>
+
+              <h1
+                className="
+                  text-3xl
+                  md:text-5xl
+                  font-bold
+                  tracking-tight
+                "
+                style={{
+                  color: theme.text,
+                }}
+              >
+                Driver Registration
+              </h1>
+
+            </div>
+
+          </div>
+
+
+          <p
+            className="mt-4 text-base md:text-lg"
+            style={{
+              color: theme.textSecondary,
+            }}
+          >
+            Complete your profile before using the Smart Steering
+            Wheel Dashboard.
+          </p>
+
+        </div>
+
+
+        {/* ============================================================
+            FORM
+        ============================================================= */}
 
         <form
           onSubmit={handleSubmit}
-          className="grid grid-cols-2 gap-6"
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
         >
 
-          <Input
+          {/* FULL NAME */}
+
+          <SettingsInput
             label="Full Name"
             name="name"
             value={form.name}
             onChange={handleChange}
             required
+            theme={theme}
           />
 
-          <div>
-            <label className="block text-sm text-slate-400 mb-2">
-                Age
-            </label>
 
-            <select
-                name="age"
-                value={form.age}
-                onChange={handleChange}
-                className="w-full rounded-xl px-4 py-3 bg-[#111827] border border-slate-700 text-white outline-none focus:border-green-400"
-                required
-            >
-                <option value="">Select Age</option>
+          {/* AGE */}
 
-                {Array.from({ length: 83 }, (_, i) => (
-                <option key={i} value={i + 18}>
-                    {i + 18}
+          <ThemeSelect
+            label="Age"
+            name="age"
+            value={form.age}
+            onChange={handleChange}
+            required
+            theme={theme}
+          >
+
+            <option value="">
+              Select Age
+            </option>
+
+            {Array.from(
+              { length: 83 },
+              (_, i) => (
+                <option
+                  key={i}
+                  value={i + 18}
+                >
+                  {i + 18}
                 </option>
-                ))}
-            </select>
-          </div>
+              )
+            )}
 
-          <div>
-            <label className="block text-sm text-slate-400 mb-2">
-                Gender
-            </label>
+          </ThemeSelect>
 
-            <select
-                name="gender"
-                value={form.gender}
-                onChange={handleChange}
-                className="w-full rounded-xl px-4 py-3 bg-[#111827] border border-slate-700 text-white outline-none focus:border-green-400"
-                required
-            >
-                <option value="">Select Gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-                <option value="Prefer not to say">Prefer not to say</option>
-            </select>
-          </div>
 
-          <div>
-            <label className="block text-sm text-slate-400 mb-2">
-                Blood Group
-            </label>
+          {/* GENDER */}
 
-            <select
-                name="bloodGroup"
-                value={form.bloodGroup}
-                onChange={handleChange}
-                className="w-full rounded-xl px-4 py-3 bg-[#111827] border border-slate-700 text-white outline-none focus:border-green-400"
-                required
-            >
-                <option value="">Select Blood Group</option>
+          <ThemeSelect
+            label="Gender"
+            name="gender"
+            value={form.gender}
+            onChange={handleChange}
+            required
+            theme={theme}
+          >
 
-                <option value="A+">A+</option>
-                <option value="A-">A-</option>
-                <option value="B+">B+</option>
-                <option value="B-">B-</option>
-                <option value="AB+">AB+</option>
-                <option value="AB-">AB-</option>
-                <option value="O+">O+</option>
-                <option value="O-">O-</option>
-            </select>
-          </div>
+            <option value="">
+              Select Gender
+            </option>
 
-          <Input
+            <option value="Male">
+              Male
+            </option>
+
+            <option value="Female">
+              Female
+            </option>
+
+            <option value="Other">
+              Other
+            </option>
+
+            <option value="Prefer not to say">
+              Prefer not to say
+            </option>
+
+          </ThemeSelect>
+
+
+          {/* BLOOD GROUP */}
+
+          <ThemeSelect
+            label="Blood Group"
+            name="bloodGroup"
+            value={form.bloodGroup}
+            onChange={handleChange}
+            required
+            theme={theme}
+          >
+
+            <option value="">
+              Select Blood Group
+            </option>
+
+            <option value="A+">
+              A+
+            </option>
+
+            <option value="A-">
+              A-
+            </option>
+
+            <option value="B+">
+              B+
+            </option>
+
+            <option value="B-">
+              B-
+            </option>
+
+            <option value="AB+">
+              AB+
+            </option>
+
+            <option value="AB-">
+              AB-
+            </option>
+
+            <option value="O+">
+              O+
+            </option>
+
+            <option value="O-">
+              O-
+            </option>
+
+          </ThemeSelect>
+
+
+          {/* EMERGENCY CONTACT NAME */}
+
+          <SettingsInput
             label="Emergency Contact Name"
             name="emergencyName"
             value={form.emergencyName}
             onChange={handleChange}
             required
+            theme={theme}
           />
 
-          <Input
+
+          {/* EMERGENCY CONTACT */}
+
+          <SettingsInput
             label="Emergency Contact"
             name="emergencyPhone"
             type="tel"
@@ -158,37 +297,69 @@ function DriverSetupPage() {
             value={form.emergencyPhone}
             onChange={handleChange}
             required
+            theme={theme}
           />
 
-          <Input
+
+          {/* MEDICAL CONDITIONS */}
+
+          <SettingsInput
             label="Medical Conditions"
             name="medicalConditions"
             value={form.medicalConditions}
             onChange={handleChange}
+            theme={theme}
           />
 
-          <Input
+
+          {/* CURRENT MEDICATIONS */}
+
+          <SettingsInput
             label="Current Medications"
             name="medications"
             value={form.medications}
             onChange={handleChange}
+            theme={theme}
           />
 
-          <Input
+
+          {/* DRIVING LICENSE */}
+
+          <SettingsInput
             label="Driving License Number"
             name="licenseNumber"
             value={form.licenseNumber}
             onChange={handleChange}
             required
+            theme={theme}
           />
 
-          <div className="col-span-2 flex justify-end mt-4">
+
+          {/* ==========================================================
+              SUBMIT
+          =========================================================== */}
+
+          <div className="md:col-span-2 flex justify-end mt-2">
 
             <button
-              className="px-8 py-3 rounded-xl font-semibold transition hover:scale-105"
+              type="submit"
+              className="
+                px-8
+                py-3
+                rounded-xl
+                font-semibold
+                transition-all
+                duration-200
+                hover:scale-[1.02]
+                hover:brightness-110
+                cursor-pointer
+              "
               style={{
-                background: "#74C69D",
-                color: "#0D1117",
+                background: theme.primary,
+                color:
+                  theme.mode === "dark"
+                    ? "#071014"
+                    : "#FFFFFF",
               }}
             >
               Register Driver
@@ -199,40 +370,125 @@ function DriverSetupPage() {
         </form>
 
       </div>
+
     </div>
   );
 }
 
-function Select({ label, children, ...props }) {
-    return (
-        <div>
-        <label className="block text-sm text-slate-400 mb-2">
-            {label}
-        </label>
 
-        <select
-            {...props}
-            className="w-full rounded-xl px-4 py-3 bg-[#111827] border border-slate-700 text-white outline-none focus:border-green-400"
-        >
-            {children}
-        </select>
-        </div>
-    );
-}
+/*
+|--------------------------------------------------------------------------
+| INPUT
+|--------------------------------------------------------------------------
+*/
 
-function Input({ label, ...props }) {
+function SettingsInput({
+  label,
+  theme,
+  ...props
+}) {
+
   return (
+
     <div>
-      <label className="block text-sm text-slate-400 mb-2">
+
+      <label
+        className="
+          block
+          text-[10px]
+          uppercase
+          tracking-widest
+          mb-2
+        "
+        style={{
+          color: theme.textSecondary,
+        }}
+      >
         {label}
       </label>
 
       <input
         {...props}
-        className="w-full rounded-xl px-4 py-3 bg-[#111827] border border-slate-700 text-white outline-none focus:border-green-400"
+        className="
+          w-full
+          rounded-xl
+          px-4
+          py-3
+          border
+          outline-none
+          text-sm
+          transition-colors
+          duration-200
+        "
+        style={{
+          background: theme.background,
+          borderColor: theme.border,
+          color: theme.text,
+        }}
       />
+
     </div>
   );
 }
+
+
+/*
+|--------------------------------------------------------------------------
+| SELECT
+|--------------------------------------------------------------------------
+*/
+
+function ThemeSelect({
+  label,
+  theme,
+  children,
+  ...props
+}) {
+
+  return (
+
+    <div>
+
+      <label
+        className="
+          block
+          text-[10px]
+          uppercase
+          tracking-widest
+          mb-2
+        "
+        style={{
+          color: theme.textSecondary,
+        }}
+      >
+        {label}
+      </label>
+
+      <select
+        {...props}
+        className="
+          w-full
+          rounded-xl
+          px-4
+          py-3
+          border
+          outline-none
+          text-sm
+          transition-colors
+          duration-200
+        "
+        style={{
+          background: theme.background,
+          borderColor: theme.border,
+          color: theme.text,
+        }}
+      >
+        {children}
+      </select>
+
+    </div>
+  );
+}
+
 
 export default DriverSetupPage;

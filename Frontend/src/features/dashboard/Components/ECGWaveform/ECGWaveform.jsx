@@ -1,72 +1,126 @@
 import "./ECGWaveform.css";
 
-function ECGWaveform() {
+function ECGWaveform({
+    samples = [],
+    loading = false,
+}) {
 
-  return (
-    <div className="ecg-wave-container">
+    /*
+    |--------------------------------------------------------------------------
+    | NO ECG DATA
+    |--------------------------------------------------------------------------
+    */
 
-      <svg
-        className="ecg-svg"
-        viewBox="0 0 1000 250"
-        preserveAspectRatio="none"
-      >
+    if (
+        loading ||
+        !samples ||
+        samples.length === 0
+    ) {
 
-        <path
-          className="ecg-line"
-          d="
-          M0 125
-          L70 125
-          L90 123
-          L110 126
-          L130 125
+        return (
+            <div
+                className="
+                    ecg-wave-container
+                    flex
+                    items-center
+                    justify-center
+                    h-full
+                    w-full
+                "
+            >
 
-          L170 125
-          L190 80
-          L205 210
-          L220 30
-          L235 125
+                <span className="text-xs text-slate-500">
+                    {loading
+                        ? "Connecting to ECG..."
+                        : "Waiting for ECG signal..."
+                    }
+                </span>
 
-          L300 125
-          L320 123
-          L340 126
-          L360 125
+            </div>
+        );
+    }
 
-          L400 125
-          L420 80
-          L435 210
-          L450 30
-          L465 125
 
-          L530 125
-          L550 123
-          L570 126
-          L590 125
+    /*
+    |--------------------------------------------------------------------------
+    | ECG → SVG
+    |--------------------------------------------------------------------------
+    */
 
-          L630 125
-          L650 80
-          L665 210
-          L680 30
-          L695 125
+    const width = 1000;
+    const height = 250;
 
-          L760 125
-          L780 123
-          L800 126
-          L820 125
+    const centerY = height / 2;
 
-          L860 125
-          L880 80
-          L895 210
-          L910 30
-          L925 125
+    const scaleY = 90;
 
-          L1000 125
-          "
-        />
 
-      </svg>
+    const points = samples.map(
+        (value, index) => {
 
-    </div>
-  );
+            const x =
+                samples.length === 1
+                    ? 0
+                    : (
+                        index /
+                        (samples.length - 1)
+                    ) * width;
+
+            const numericValue =
+                Number(value) || 0;
+
+            const y =
+                centerY -
+                numericValue * scaleY;
+
+            return `${x},${y}`;
+        }
+    );
+
+
+    const pathData =
+        points.length > 1
+            ? `M ${points.join(" L ")}`
+            : "";
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | RENDER
+    |--------------------------------------------------------------------------
+    */
+
+    return (
+
+        <div
+            className="
+                ecg-wave-container
+                h-full
+                w-full
+            "
+        >
+
+            <svg
+                className="
+                    ecg-svg
+                    w-full
+                    h-full
+                "
+                viewBox={`0 0 ${width} ${height}`}
+                preserveAspectRatio="none"
+            >
+
+                <path
+                    className="ecg-line"
+                    d={pathData}
+                    fill="none"
+                />
+
+            </svg>
+
+        </div>
+
+    );
 }
 
 export default ECGWaveform;

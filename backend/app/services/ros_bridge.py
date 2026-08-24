@@ -1,87 +1,89 @@
+"""ROS 2 ingress that converts topic values into the same public telemetry contract."""
+
 import asyncio
+from datetime import datetime, timezone
 
 try:
     import rclpy
     from rclpy.node import Node
-    from std_msgs.msg import Float32, Int32, String
+    from std_msgs.msg import Float32, Int32
+
     ROS2_AVAILABLE = True
 except ImportError:
     ROS2_AVAILABLE = False
     Node = object
 
-from AI_Module.AIML.Week4.predict_risk import predict_risk
-from backend.app.websocket.manager import manager
 from backend.app.database import SessionLocal
+from backend.app.models.schemas import TelemetryInput
 from backend.app.models.telemetry_db import TelemetryLog
+from backend.app.services.ai_adapter import predict_telemetry
+from backend.app.websocket.manager import manager
 
 
 class ROS2BridgeNode(Node):
+    """Publishes advisory risk telemetry; it never commands vehicle controls."""
+
     def __init__(self, loop):
         self.loop = loop
-        self.emergency_publisher = None
-
-        if ROS2_AVAILABLE:
-            super().__init__('ros2_fastapi_bridge')
-            self.create_subscription(Int32, '/heart_rate', self.hr_callback, 10)
-            self.create_subscription(Float32, '/skin_temperature', self.temp_callback, 10)
-            self.create_subscription(Float32, '/gsr', self.gsr_callback, 10)
-            self.create_subscription(Float32, '/grip_pressure', self.grip_callback, 10)
-            self.emergency_publisher = self.create_publisher(String, '/vehicle/emergency_stop', 10)
-
         self.current_frame = {
             "heart_rate": 75.0,
-            "gsr": 2.0,
-            "grip_pressure": 4.0,
-            "skin_temperature": 36.6,
-            "prediction": {}
+            "hrv": 35.0,
+            "gsr": 3.0,
+            "grip_pressure": 25.0,
+            "skin_temperature": 34.0,
+            "ecg_signal": 0.0,
+            "rr_interval": 800.0,
+            "qrs_duration": 90.0,
+            "st_deviation": 0.0,
+            "qt_interval": 390.0,
         }
+        if ROS2_AVAILABLE:
+            super().__init__("ros2_fastapi_bridge")
+            self.create_subscription(Int32, "/heart_rate", self.hr_callback, 10)
+            self.create_subscription(Float32, "/skin_temperature", self.temp_callback, 10)
+            self.create_subscription(Float32, "/gsr", self.gsr_callback, 10)
+            self.create_subscription(Float32, "/grip_pressure", self.grip_callback, 10)
 
-    def _trigger_emergency_stop(self, status: str):
-        if ROS2_AVAILABLE and self.emergency_publisher:
-            msg = String()
-            msg.data = f"EMERGENCY_STOP_ACTIVE: Driver Risk Level is {status}"
-            self.emergency_publisher.publish(msg)
-            self.get_logger().error(f"🚨 CRITICAL ALERT PUBLISHED: {msg.data}")
-        else:
-            print(f"🚨 [MOCK EMERGENCY TRIGGER]: Status is {status}")
-
-    def _process_and_broadcast(self):
-        features = [
-            self.current_frame["heart_rate"],
-            self.current_frame["gsr"],
-            self.current_frame["grip_pressure"],
-            self.current_frame["skin_temperature"]
-        ]
-
-        prediction = predict_risk(features)
-        self.current_frame["prediction"] = prediction
-
-        status = prediction.get("stabilized_prediction", "Normal").upper()
-
-        if status == "CRITICAL":
-            self._trigger_emergency_stop(status)
-
-        asyncio.run_coroutine_threadsafe(
-            manager.send_json(self.current_frame),
-            self.loop
-        )
+    def _process_and_broadcast(self) -> None:
+        telemetry = TelemetryInput(**self.current_frame)
+        prediction = predict_telemetry(telemetry)
+        payload = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            **telemetry.model_dump(exclude={"timestamp"}),
+            "condition": prediction.status,
+            "prediction": prediction.model_dump(),
+            "sensor_status": "Connected",
+            "ecg": [],
+            "ecg_sampling_rate": 250,
+            "ecg_status": "AWAITING_ECG_STREAM",
+            "emergency_protocol": {"active": prediction.status == "CRITICAL", "mode": "ADVISORY_ONLY"},
+        }
+        asyncio.run_coroutine_threadsafe(manager.send_json(payload), self.loop)
 
         db = SessionLocal()
         try:
-            log_entry = TelemetryLog(
-                heart_rate=self.current_frame["heart_rate"],
-                gsr=self.current_frame["gsr"],
-                grip_pressure=self.current_frame["grip_pressure"],
-                skin_temperature=self.current_frame["skin_temperature"],
-                raw_prediction=prediction.get("raw_prediction", "Normal"),
-                stabilized_prediction=prediction.get("stabilized_prediction", "Normal"),
-                alert_level=status
+            db.add(
+                TelemetryLog(
+                    heart_rate=telemetry.heart_rate,
+                    hrv=telemetry.hrv,
+                    gsr=telemetry.gsr,
+                    grip_pressure=telemetry.grip_pressure,
+                    skin_temperature=telemetry.skin_temperature,
+                    ecg_signal=telemetry.ecg_signal,
+                    rr_interval=telemetry.rr_interval or 60_000.0 / telemetry.heart_rate,
+                    qrs_duration=telemetry.qrs_duration,
+                    st_deviation=telemetry.st_deviation,
+                    qt_interval=telemetry.qt_interval,
+                    confidence=prediction.confidence,
+                    raw_prediction=prediction.raw_prediction,
+                    stabilized_prediction=prediction.stabilized_prediction,
+                    alert_level=prediction.status,
+                )
             )
-            db.add(log_entry)
             db.commit()
-        except Exception as err:
+        except Exception:
             db.rollback()
-            print(f"DB Write Error: {err}")
+            raise
         finally:
             db.close()
 

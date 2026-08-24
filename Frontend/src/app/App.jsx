@@ -1,47 +1,119 @@
 import { useEffect, useState } from "react";
 
 import DashboardLayout from "../layouts/DashboardLayout";
-import DriverSetup from "../pages/DriverSetupPage";
+import DriverSetupPage from "../pages/DriverSetupPage";
 
-import { getDriverStatus } from "../services/api/api";
-import { getDriverProfile } from "../utils/storage";
+import {
+    getDriverProfile,
+    isDriverLoggedIn,
+} from "../utils/storage";
+
 
 function App() {
 
-  const [profile, setProfile] = useState(null);
+    /*
+    |--------------------------------------------------------------------------
+    | DRIVER SESSION
+    |--------------------------------------------------------------------------
+    |
+    | App.jsx controls which part of the application is displayed:
+    |
+    |   Active driver session
+    |       -> Dashboard
+    |
+    |   No active driver session
+    |       -> Driver Registration
+    |
+    */
 
-  useEffect(() => {
 
-    async function load() {
+    const [profile, setProfile] = useState(null);
 
-      try {
+
+    /*
+    |--------------------------------------------------------------------------
+    | INITIAL SESSION CHECK
+    |--------------------------------------------------------------------------
+    */
+
+    useEffect(() => {
 
         const savedProfile = getDriverProfile();
 
-        setProfile(savedProfile);
+        const sessionActive =
+            isDriverLoggedIn();
 
-        const data = await getDriverStatus();
 
-        console.log(data);
+        /*
+         * Display the dashboard only when:
+         *
+         * 1. A driver profile exists
+         * 2. A driver session is active
+         */
 
-      } catch (err) {
+        if (
+            savedProfile &&
+            sessionActive
+        ) {
 
-        console.error("API Error:", err);
+            setProfile(savedProfile);
 
-      }
+        } else {
+
+            setProfile(null);
+
+        }
+
+    }, []);
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | DRIVER REGISTRATION / LOGIN
+    |--------------------------------------------------------------------------
+    */
+
+    function handleLogin(driverProfile) {
+
+        /*
+         * DriverSetupPage already:
+         *
+         * 1. Saves the driver profile
+         * 2. Starts the driver session
+         *
+         * We only update React state here.
+         */
+
+        setProfile(driverProfile);
 
     }
 
-    load();
 
-  }, []);
+    /*
+    |--------------------------------------------------------------------------
+    | RENDER
+    |--------------------------------------------------------------------------
+    */
 
-  return profile ? (
-    <DashboardLayout profile={profile} />
-  ) : (
-    <DriverSetup />
-  );
+    if (!profile) {
+
+        return (
+            <DriverSetupPage
+                onLogin={handleLogin}
+            />
+        );
+
+    }
+
+
+    return (
+        <DashboardLayout
+            profile={profile}
+            setProfile={setProfile}
+        />
+    );
 
 }
+
 
 export default App;

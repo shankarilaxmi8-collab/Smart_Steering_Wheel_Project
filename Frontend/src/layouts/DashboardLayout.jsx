@@ -1,81 +1,206 @@
-import { useState } from "react";
+import {
+    useContext,
+    useState,
+} from "react";
+
+import {
+    endDriverSession,
+} from "../utils/storage";
 
 import Header from "../components/layout/Header/Header";
+
 import Sidebar from "../components/layout/Sidebar/Sidebar";
 
 import useDriverData from "../hooks/useDriverData";
+
 import DashboardPage from "../pages/DashboardPage";
 import VitalsPage from "../pages/VitalsPage";
 import AnalyticsPage from "../pages/AnalyticsPage";
 import HistoryPage from "../pages/HistoryPage";
 import SettingsPage from "../pages/SettingsPage";
 
-function DashboardLayout({ profile }) {
+import {
+    ThemeContext,
+} from "../app/providers";
 
-  const { data, loading, error } = useDriverData();
 
-  const [activeTab, setActiveTab] = useState("Dashboard");
+function DashboardLayout({
+    profile,
+    setProfile,
+}) {
 
-  return (
-    <div className="h-screen flex flex-col">
+    const { theme } =
+        useContext(
+            ThemeContext
+        );
 
-      <Header />
 
-      <div className="flex flex-1">
+    /*
+    |--------------------------------------------------------------------------
+    | SINGLE LIVE DATA CONNECTION
+    |--------------------------------------------------------------------------
+    */
 
-        <Sidebar
-            profile={profile}
-            data={data}
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-        />
+    const {
+        data,
+        loading,
+        error,
+        location,
+        wsStatus,
+    } = useDriverData();
 
-        <main className="flex-1 bg-[#0D1117] p-6 overflow-auto">
 
-          {activeTab === "Dashboard" && (
-              <DashboardPage
-                  profile={profile}
-                  data={data}
-                  loading={loading}
-                  error={error}
-              />
-          )}
+    const [activeTab, setActiveTab] =
+        useState("Dashboard");
 
-          {activeTab === "Vitals" && (
-              <VitalsPage
-                  data={data}
-                  loading={loading}
-                  error={error}
-              />
-          )}
 
-          {activeTab === "Analytics" && (
-              <AnalyticsPage
-                  data={data}
-                  loading={loading}
-                  error={error}
-              />
-          )}
+    /*
+    |--------------------------------------------------------------------------
+    | LOGOUT
+    |--------------------------------------------------------------------------
+    */
 
-          {activeTab === "History" && (
-              <HistoryPage
-                  profile={profile}
-                  data={data}
-              />
-          )}
+    function handleLogout() {
 
-          {activeTab === "Settings" && (
-              <SettingsPage
-                  profile={profile}
-              />
-          )}
+        endDriverSession();
 
-        </main>
+        setProfile(null);
 
-      </div>
+    }
 
-    </div>
-  );
+
+    return (
+
+        <div
+            className="
+                min-h-screen
+                flex
+                flex-col
+                transition-colors
+                duration-300
+            "
+            style={{
+                backgroundColor:
+                    theme.background,
+
+                color:
+                    theme.text,
+            }}
+        >
+
+            <Header
+                setActiveTab={
+                    setActiveTab
+                }
+            />
+
+
+            <div
+                className="
+                    flex
+                    flex-1
+                    min-h-0
+                "
+            >
+
+                <Sidebar
+                    profile={profile}
+                    data={data}
+                    activeTab={activeTab}
+                    setActiveTab={
+                        setActiveTab
+                    }
+                    onLogout={
+                        handleLogout
+                    }
+                />
+
+
+                <main
+                    className="
+                        flex-1
+                        p-6
+                        overflow-auto
+                        transition-colors
+                        duration-300
+                    "
+                    style={{
+                        backgroundColor:
+                            theme.background,
+
+                        color:
+                            theme.text,
+                    }}
+                >
+
+                    {activeTab === "Dashboard" && (
+
+                        <DashboardPage
+                            profile={profile}
+                            data={data}
+                            loading={loading}
+                            error={error}
+                            location={location}
+                            setActiveTab={
+                                setActiveTab
+                            }
+                            wsStatus={
+                                wsStatus
+                            }
+                        />
+
+                    )}
+
+
+                    {activeTab === "Vitals" && (
+
+                        <VitalsPage
+                            data={data}
+                            loading={loading}
+                            error={error}
+                        />
+
+                    )}
+
+
+                    {activeTab === "Analytics" && (
+
+                        <AnalyticsPage
+                            data={data}
+                            loading={loading}
+                            error={error}
+                        />
+
+                    )}
+
+
+                    {activeTab === "History" && (
+
+                        <HistoryPage
+                            profile={profile}
+                            data={data}
+                        />
+
+                    )}
+
+
+                    {activeTab === "Settings" && (
+
+                        <SettingsPage
+                            profile={profile}
+                        />
+
+                    )}
+
+                </main>
+
+            </div>
+
+        </div>
+
+    );
+
 }
+
 
 export default DashboardLayout;

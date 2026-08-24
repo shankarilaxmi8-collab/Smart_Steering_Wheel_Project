@@ -1,13 +1,22 @@
 import { useContext, useEffect, useState } from "react";
-import { Bell, UserCircle, Wifi } from "lucide-react";
+import {
+  UserCircle,
+  Wifi,
+  Moon,
+  Sun,
+} from "lucide-react";
 
 import { ThemeContext } from "../../../app/providers";
-import { Moon, Sun } from "lucide-react";
 
-function Header() {
+function Header({ setActiveTab }) {
   const [time, setTime] = useState("");
   const [date, setDate] = useState("");
-  const { themeMode, theme, toggleTheme } = useContext(ThemeContext);
+
+  const {
+    themeMode,
+    theme,
+    toggleTheme,
+  } = useContext(ThemeContext);
 
   useEffect(() => {
     const updateDateTime = () => {
@@ -38,128 +47,333 @@ function Header() {
     return () => clearInterval(interval);
   }, []);
 
- return (
-  <header
-    className="h-24 flex items-center justify-between px-8 transition-all duration-300"
-    style={{
-      backgroundColor: theme.surface,
-      borderBottom: `1px solid ${theme.border}`,
-    }}
-  >
+  return (
+    <header
+      className="
+        flex
+        items-center
+        justify-between
+        gap-6
+        px-7
+        lg:px-9
+        py-2
+        border-b
+        min-h-[72px]
+      "
+      style={{
+        backgroundColor: theme.background,
+        borderColor: theme.border,
+      }}
+    >
 
-    {/* Left */}
+      {/* =====================================================
+          BRAND
+      ====================================================== */}
 
-    <div>
-      <div>
-        <h1
-          className="text-4xl font-bold tracking-wide"
-          style={{ color: theme.text }}
-        >
-            Smart-<span style={{ color: theme.primary }}>Steering</span> Wheel
-        
-        </h1>
+      <div className="min-w-0">
+
+        <div className="flex items-baseline gap-2 flex-wrap">
+
+          {/* CardiOath */}
+
+          <h1
+            className="
+              text-[30px]
+              lg:text-[32px]
+              font-bold
+              tracking-tight
+              leading-none
+              whitespace-nowrap
+            "
+            style={{
+              color: theme.text,
+            }}
+          >
+            Cardi
+            <span
+              style={{
+                color: theme.primary,
+              }}
+            >
+              Oath
+            </span>
+          </h1>
+
+          {/* SmartSteering Wheel */}
+
+          <span
+            className="
+              text-[22px]
+              lg:text-[24px]
+              font-semibold
+              tracking-tight
+              leading-none
+              whitespace-nowrap
+            "
+            style={{
+              color: theme.text,
+            }}
+          >
+            – SmartSteering Wheel
+          </span>
+
+        </div>
+
+        {/* Description */}
 
         <p
-          className="text-sm font-medium mt-1"
-          style={{ color: theme.primary }}
+          className="
+            mt-1.5
+            text-[11px]
+            font-medium
+            tracking-wide
+          "
+          style={{
+            color: theme.textSecondary,
+          }}
         >
-          AI Driver Health Monitoring System 
+          AI Driver Health Monitoring System
         </p>
+
       </div>
-    </div>
 
-    {/* Right */}
 
-    <div className="flex items-center gap-8">
-
-      {/* Clock */}
-
-      <div className="text-right">
-        <p
-          className="text-lg font-semibold"
-          style={{ color: theme.text }}
-        >
-          {time}
-        </p>
-
-        <p
-          className="text-sm"
-          style={{ color: theme.textSecondary }}
-        >
-          {date}
-        </p>
-      </div>
-
-      {/* Connection */}
+      {/* =====================================================
+          RIGHT SIDE
+      ====================================================== */}
 
       <div
-        className="flex items-center gap-2 px-4 py-2 rounded-full"
-        style={{
-          backgroundColor: theme.success + "20",
-          border: `1px solid ${theme.success}40`,
-        }}
+        className="
+          flex
+          items-center
+          gap-3
+          lg:gap-4
+          shrink-0
+        "
       >
+
+        {/* =================================================
+            CLOCK
+        ================================================== */}
+
         <div
-          className="w-2 h-2 rounded-full animate-pulse"
-          style={{ backgroundColor: theme.success }}
-        />
-
-        <Wifi
-          size={16}
-          color={theme.success}
-        />
-
-        <span
-          className="text-sm font-semibold"
-          style={{ color: theme.success }}
+          className="
+            hidden
+            sm:block
+            text-right
+            pr-2
+          "
         >
-          System Online
-        </span>
+
+          <p
+            className="
+              text-sm
+              lg:text-base
+              font-semibold
+              tabular-nums
+              leading-tight
+            "
+            style={{
+              color: theme.text,
+            }}
+          >
+            {time}
+          </p>
+
+          <p
+            className="
+              text-[10px]
+              lg:text-[11px]
+              mt-1
+              whitespace-nowrap
+            "
+            style={{
+              color: theme.textSecondary,
+            }}
+          >
+            {date}
+          </p>
+
+        </div>
+
+
+        {/* =================================================
+            CONNECTION STATUS
+        ================================================== */}
+
+        <div
+          className="
+            flex
+            items-center
+            gap-2
+            px-3
+            py-2
+            rounded-full
+            transition-all
+            duration-200
+          "
+          style={{
+            backgroundColor: theme.success + "12",
+            border: `1px solid ${theme.success}35`,
+          }}
+        >
+
+          {/* Status Indicator */}
+
+          <span
+            className="
+              relative
+              flex
+              w-2
+              h-2
+            "
+          >
+
+            <span
+              className="
+                absolute
+                inline-flex
+                w-full
+                h-full
+                rounded-full
+                opacity-60
+                animate-ping
+              "
+              style={{
+                backgroundColor: theme.success,
+              }}
+            />
+
+            <span
+              className="
+                relative
+                inline-flex
+                w-2
+                h-2
+                rounded-full
+              "
+              style={{
+                backgroundColor: theme.success,
+              }}
+            />
+
+          </span>
+
+
+          <Wifi
+            size={14}
+            strokeWidth={2}
+            color={theme.success}
+          />
+
+          <span
+            className="
+              text-[11px]
+              font-semibold
+              whitespace-nowrap
+            "
+            style={{
+              color: theme.success,
+            }}
+          >
+            System Online
+          </span>
+
+        </div>
+
+
+        {/* =================================================
+            THEME TOGGLE
+        ================================================== */}
+
+        <button
+          type="button"
+          onClick={toggleTheme}
+          aria-label={
+            themeMode === "dark"
+              ? "Switch to light mode"
+              : "Switch to dark mode"
+          }
+          className="
+            group
+            w-10
+            h-10
+            rounded-full
+            flex
+            items-center
+            justify-center
+            border
+            transition-all
+            duration-200
+            hover:-translate-y-0.5
+            cursor-pointer
+          "
+          style={{
+            backgroundColor: theme.surfaceSecondary,
+            borderColor: theme.border,
+          }}
+        >
+
+          {themeMode === "dark" ? (
+            <Sun
+              size={18}
+              strokeWidth={2}
+              color={theme.text}
+              className="transition-transform duration-300 group-hover:rotate-12"
+            />
+          ) : (
+            <Moon
+              size={18}
+              strokeWidth={2}
+              color={theme.text}
+              className="transition-transform duration-300 group-hover:-rotate-12"
+            />
+          )}
+
+        </button>
+
+
+        {/* =================================================
+            PROFILE
+        ================================================== */}
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("Settings")}
+          aria-label="Open profile settings"
+          className="
+            group
+            w-10
+            h-10
+            rounded-full
+            flex
+            items-center
+            justify-center
+            border
+            transition-all
+            duration-200
+            hover:-translate-y-0.5
+            cursor-pointer
+          "
+          style={{
+            backgroundColor: theme.surfaceSecondary,
+            borderColor: theme.border,
+          }}
+        >
+
+          <UserCircle
+            size={22}
+            strokeWidth={2}
+            color={theme.text}
+            className="transition-transform duration-200 group-hover:scale-105"
+          />
+
+        </button>
+
       </div>
 
-      {/* Notification */}
-
-      <button
-        onClick={toggleTheme}
-        className="w-11 h-11 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-105"
-        style={{
-          backgroundColor: theme.surfaceSecondary,
-        }}
-      >
-        {themeMode === "dark" ? (
-          <Sun size={20} color={theme.text} />
-        ) : (
-          <Moon size={20} color={theme.text} />
-        )}
-      </button>
-
-<button
-  className="w-11 h-11 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-105"
-  style={{
-    backgroundColor: theme.surfaceSecondary,
-  }}
->
-  <Bell size={22} color={theme.text} />
-</button>
-
-      {/* Profile */}
-
-      <button
-        className="w-11 h-11 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-105"
-        style={{
-          backgroundColor: theme.surfaceSecondary,
-        }}
-      >
-        <UserCircle
-          size={26}
-          color={theme.text}
-        />
-      </button>
-
-    </div>
-
-  </header>
- );
+    </header>
+  );
 }
 
 export default Header;

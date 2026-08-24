@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 
 import { ThemeContext } from "../../../../app/providers";
+import { metricStatusLabel } from "../../../../utils/metricStatus";
 
 function AlertsPanel({ data, loading, error }) {
 
@@ -15,7 +16,168 @@ function AlertsPanel({ data, loading, error }) {
 
   const [history, setHistory] = useState([]);
 
-    if (loading) {
+  const vitals = data?.vitals || {};
+
+  const metricStatuses = {
+    heart_rate: metricStatusLabel(data, "heart_rate").toLowerCase(),
+    hrv: metricStatusLabel(data, "hrv").toLowerCase(),
+    gsr: metricStatusLabel(data, "gsr").toLowerCase(),
+    skin_temperature: metricStatusLabel(data, "skin_temperature").toLowerCase(),
+  };
+  const hasBackendMetricStatuses = Object.values(metricStatuses).every(
+    (status) => status !== "unavailable"
+  );
+  const useLegacyThresholds = false;
+  const alerts = [];
+
+  if (useLegacyThresholds && vitals.heartRate < 60)
+    alerts.push({
+      title: "Low Heart Rate",
+      message: `Heart rate dropped to ${vitals.heartRate} BPM.`,
+      severity: "warning",
+      color: "#60A5FA",
+      icon: <AlertTriangle size={42} />,
+    });
+
+  else if (useLegacyThresholds && vitals.heartRate > 100)
+    alerts.push({
+      title: "High Heart Rate",
+      message: `Heart rate increased to ${vitals.heartRate} BPM.`,
+      severity: "warning",
+      color: "#F6C667",
+      icon: <AlertTriangle size={42} />,
+    });
+
+  if (useLegacyThresholds && vitals.hrv < 30)
+    alerts.push({
+      title: "Low HRV",
+      message: `HRV reduced to ${vitals.hrv} ms.`,
+      severity: "warning",
+      color: "#F4A261",
+      icon: <AlertTriangle size={42} />,
+    });
+
+  else if (useLegacyThresholds && vitals.hrv > 70)
+    alerts.push({
+      title: "High HRV",
+      message: `HRV increased to ${vitals.hrv} ms.`,
+      severity: "info",
+      color: "#60A5FA",
+      icon: <CheckCircle2 size={42} />,
+    });
+
+  if (useLegacyThresholds && vitals.sweat < 2)
+    alerts.push({
+      title: "Low Sweat Activity",
+      message: `Sweat activity decreased to ${vitals.sweat} µS.`,
+      severity: "info",
+      color: "#60A5FA",
+      icon: <CheckCircle2 size={42} />,
+    });
+
+  else if (useLegacyThresholds && vitals.sweat > 5)
+    alerts.push({
+      title: "High Sweat Activity",
+      message: `Sweat activity increased to ${vitals.sweat} µS.`,
+      severity: "warning",
+      color: "#F59E0B",
+      icon: <AlertTriangle size={42} />,
+    });
+
+  if (useLegacyThresholds && vitals.palmTemp < 35.5)
+    alerts.push({
+      title: "Low Palm Temperature",
+      message: `Palm temperature is ${vitals.palmTemp} °C.`,
+      severity: "info",
+      color: "#60A5FA",
+      icon: <CheckCircle2 size={42} />,
+    });
+
+  else if (useLegacyThresholds && vitals.palmTemp > 37.5)
+    alerts.push({
+      title: "High Palm Temperature",
+      message: `Palm temperature is ${vitals.palmTemp} °C.`,
+      severity: "critical",
+      color: "#EF4444",
+      icon: <ShieldAlert size={42} />,
+    });
+
+  if (hasBackendMetricStatuses) {
+    [
+      ["heart_rate", "Heart Rate", vitals.heartRate, "BPM"],
+      ["hrv", "HRV", vitals.hrv, "ms"],
+      ["gsr", "Sweat Activity", vitals.sweat, "µS"],
+      ["skin_temperature", "Palm Temperature", vitals.palmTemp, "°C"],
+    ].forEach(([key, label, value, unit]) => {
+      const severity = metricStatuses[key];
+      if (severity !== "warning" && severity !== "critical") return;
+      const critical = severity === "critical";
+      alerts.push({
+        title: `${critical ? "Critical" : "Warning"} ${label}`,
+        message: `${label} is ${value ?? "unavailable"}${value == null ? "" : ` ${unit}`}.`,
+        severity,
+        color: critical ? "#EF4444" : "#F59E0B",
+        icon: critical ? <ShieldAlert size={42} /> : <AlertTriangle size={42} />,
+      });
+    });
+  }
+
+  const severityOrder = {
+      critical: 3,
+      warning: 2,
+      info: 1,
+  };
+
+  alerts.sort(
+      (a, b) => severityOrder[b.severity] - severityOrder[a.severity]
+  );
+
+  const currentAlert =
+      alerts[0] || (!hasBackendMetricStatuses ? {
+          title: "Telemetry Unavailable",
+          message: "Waiting for a complete live telemetry update.",
+          severity: "unavailable",
+          color: theme.textSecondary,
+          icon: <AlertTriangle size={42} />,
+      } : {
+          title: "No Critical Alerts",
+          message: "All monitored vitals are within safe operating limits.",
+          severity: "normal",
+          color: "#22C55E",
+          icon: <CheckCircle2 size={42} />,
+      });
+
+  useEffect(() => {
+
+      if (!currentAlert.title) return;
+
+      setHistory(prev => {
+
+          if (prev[0]?.title === currentAlert.title)
+              return prev;
+
+          return [
+              {
+                  time: new Date().toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                  }),
+                  title: currentAlert.title,
+                  message: currentAlert.message,
+                  severity: currentAlert.severity,
+              },
+              ...prev,
+          ].slice(0, 6);
+
+      });
+
+  }, [
+      currentAlert.title,
+      currentAlert.message,
+      currentAlert.severity,
+  ]);
+
+  if (loading) {
     return (
       <div
         className="alerts-panel"
@@ -44,117 +206,14 @@ function AlertsPanel({ data, loading, error }) {
     );
   }
 
-  const vitals = data?.vitals || {};
-
-  let title = "No Critical Alerts";
-  let message = "All monitored vitals are within safe operating limits.";
-  let color = "#84D8A4";
-  let icon = <CheckCircle2 size={42} />;
-
-  if (vitals.heartRate < 60)
-    alerts.push({
-      title: "Low Heart Rate",
-      message: `Heart rate dropped to ${vitals.heartRate} BPM.`,
-      severity: "warning",
-      color: "#60A5FA",
-      icon: <AlertTriangle size={42} />,
-    });
-
-  else if (vitals.heartRate > 100)
-    alerts.push({
-      title: "High Heart Rate",
-      message: `Heart rate increased to ${vitals.heartRate} BPM.`,
-      severity: "warning",
-      color: "#F6C667",
-      icon: <AlertTriangle size={42} />,
-    });
-
-  if (vitals.hrv < 30)
-    alerts.push({
-      title: "Low HRV",
-      message: `HRV reduced to ${vitals.hrv} ms.`,
-      severity: "warning",
-      color: "#F4A261",
-      icon: <AlertTriangle size={42} />,
-    });
-
-  else if (vitals.hrv > 70)
-    alerts.push({
-      title: "High HRV",
-      message: `HRV increased to ${vitals.hrv} ms.`,
-      severity: "info",
-      color: "#60A5FA",
-      icon: <CheckCircle2 size={42} />,
-    });
-
-  if (vitals.sweat < 2)
-    alerts.push({
-      title: "Low Sweat Activity",
-      message: `Sweat activity decreased to ${vitals.sweat} µS.`,
-      severity: "info",
-      color: "#60A5FA",
-      icon: <CheckCircle2 size={42} />,
-    });
-
-  else if (vitals.sweat > 5)
-    alerts.push({
-      title: "High Sweat Activity",
-      message: `Sweat activity increased to ${vitals.sweat} µS.`,
-      severity: "warning",
-      color: "#F59E0B",
-      icon: <AlertTriangle size={42} />,
-    });
-
-  if (vitals.palmTemp < 35.5)
-    alerts.push({
-      title: "Low Palm Temperature",
-      message: `Palm temperature is ${vitals.palmTemp} °C.`,
-      severity: "info",
-      color: "#60A5FA",
-      icon: <CheckCircle2 size={42} />,
-    });
-
-  else if (vitals.palmTemp > 37.5)
-    alerts.push({
-      title: "High Palm Temperature",
-      message: `Palm temperature is ${vitals.palmTemp} °C.`,
-      severity: "critical",
-      color: "#EF4444",
-      icon: <ShieldAlert size={42} />,
-    });
-
-  useEffect(() => {
-
-      if (!title) return;
-
-      setHistory(prev => {
-
-          if (prev[0]?.title === title)
-              return prev;
-
-          return [
-              {
-                  time: new Date().toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                  }),
-                  title,
-                  message,
-              },
-              ...prev,
-          ].slice(0, 6);
-
-      });
-
-  }, [title, message]);
-
   return (
 
     <div
-      className="rounded-3xl p-5 h-full min-h-[430px]"
+      data-status={String(currentAlert.severity ?? "unavailable").trim().toLowerCase()}
+      className={`status-card status-card-${String(currentAlert.severity ?? "unavailable").trim().toLowerCase()} rounded-3xl p-5 h-full min-h-[430px]`}
       style={{
         background: theme.surface,
-        border: `1px solid ${color}40`,
+        border: `1px solid ${currentAlert.color}40`
       }}
     >
 
@@ -163,20 +222,18 @@ function AlertsPanel({ data, loading, error }) {
       </h3>
 
       <div
-        className="alert-success"
-        style={{
-          color,
-        }}
+        className={`alert-success alert-${String(currentAlert.severity ?? "unavailable").trim().toLowerCase()}`}
+        style={{ color: currentAlert.color }}
       >
 
-        {icon}
+        {currentAlert.icon}
 
         <span
           style={{
             color: theme.text,
           }}
         >
-          {title}
+          {currentAlert.title}
         </span>
 
         <p
@@ -187,7 +244,7 @@ function AlertsPanel({ data, loading, error }) {
             lineHeight: 1.5,
           }}
         >
-          {message}
+          {currentAlert.message}
         </p>
 
       </div>
@@ -217,9 +274,13 @@ function AlertsPanel({ data, loading, error }) {
                   className="w-2 h-2 rounded-full mt-1"
                   style={{
                       backgroundColor:
-                          item.title === "No Critical Alerts"
-                              ? "#22C55E"
-                              : "#F59E0B",
+                          item.severity === "critical"
+                              ? "#EF4444"
+                              : item.severity === "warning"
+                              ? "#F59E0B"
+                              : item.severity === "info"
+                              ? "#60A5FA"
+                              : "#22C55E"
                   }}
               />
 

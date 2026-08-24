@@ -2,106 +2,238 @@ import { useContext } from "react";
 import { ThemeContext } from "../../../../app/providers";
 
 function MetricCard({
-  title,
-  value,
-  unit,
-  icon,
-  status = "Normal",
-  lastUpdated = "Just now",
+    title,
+    value,
+    unit,
+    icon,
+    status = "Normal",
+    lastUpdated = "Just now",
 }) {
-  const { theme } = useContext(ThemeContext);
+    const { theme, themeMode } = useContext(ThemeContext);
 
-  const getStatusColor = () => {
-    switch (status) {
-      case "Low":
-        return "#60A5FA"; // Blue
+    /*
+    |--------------------------------------------------------------------------
+    | STATUS COLOR
+    |--------------------------------------------------------------------------
+    */
 
-      case "Healthy":
-      case "Normal":
-        return "#84D8A4"; // Soft green
+    const getStatusColor = () => {
+        switch (status) {
+            case "Low":
+                return theme.info;
 
-      case "Stable":
-        return "#7DD3FC"; // Cyan
+            case "Healthy":
+            case "Normal":
+                return theme.success;
 
-      case "High":
-        return "#F59E0B"; // Amber
+            case "Stable":
+                return theme.info;
 
-      case "Critical":
-        return "#EF4444"; // Red
+            case "High":
+                return theme.warning;
 
-      default:
-        return theme.success;
-    }
-  };
+            case "Critical":
+                return theme.danger;
 
-  const statusColor = getStatusColor();
+            default:
+                return theme.success;
+        }
+    };
 
-  return (
-    <div
-      className="rounded-3xl p-6 h-52 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
-      style={{
-        backgroundColor: theme.surface,
-        border: `1px solid ${theme.border}`,
-      }}
-    >
-      {/* Top */}
-      <div className="flex items-center justify-between">
+    const statusColor = getStatusColor();
+
+    /*
+    |--------------------------------------------------------------------------
+    | CARD BORDER / GLOW
+    |--------------------------------------------------------------------------
+    */
+
+    const cardBorder =
+        themeMode === "light"
+            ? `1.5px solid ${statusColor}55`
+            : `1px solid ${theme.border}`;
+
+    const cardShadow =
+        themeMode === "light"
+            ? `0 4px 18px ${statusColor}18`
+            : `0 0 10px ${statusColor}08`;
+
+    /*
+    |--------------------------------------------------------------------------
+    | RENDER
+    |--------------------------------------------------------------------------
+    */
+
+    return (
         <div
-          className="w-12 h-12 rounded-2xl flex items-center justify-center"
-          style={{
-            backgroundColor: theme.surfaceSecondary,
-            color: theme.primary,
-          }}
+            className="
+                rounded-2xl
+                p-4
+                h-[172px]
+                flex
+                flex-col
+                justify-between
+                transition-all
+                duration-300
+                hover:-translate-y-1
+            "
+            style={{
+                backgroundColor: theme.surface,
+                border: cardBorder,
+                boxShadow: cardShadow,
+            }}
         >
-          {icon}
+
+            {/* =====================================================
+                TOP
+            ====================================================== */}
+
+            <div className="flex items-start justify-between">
+
+                {/* ICON */}
+
+                <div
+                    className="
+                        w-10
+                        h-10
+                        rounded-xl
+                        flex
+                        items-center
+                        justify-center
+                        flex-shrink-0
+                    "
+                    style={{
+                        backgroundColor:
+                            themeMode === "light"
+                                ? `${statusColor}12`
+                                : theme.surfaceSecondary,
+
+                        color: statusColor,
+
+                        border:
+                            themeMode === "light"
+                                ? `1px solid ${statusColor}25`
+                                : "none",
+                    }}
+                >
+                    {icon}
+                </div>
+
+
+                {/* STATUS */}
+
+                <span
+                    className="
+                        px-2.5
+                        py-1
+                        rounded-full
+                        text-[10px]
+                        font-semibold
+                        whitespace-nowrap
+                    "
+                    style={{
+                        backgroundColor: `${statusColor}18`,
+                        color: statusColor,
+
+                        border:
+                            themeMode === "light"
+                                ? `1px solid ${statusColor}25`
+                                : "none",
+                    }}
+                >
+                    {status}
+                </span>
+
+            </div>
+
+
+            {/* =====================================================
+                MIDDLE
+            ====================================================== */}
+
+            <div>
+
+                {/* TITLE */}
+
+                <p
+                    className="
+                        text-xs
+                        font-medium
+                        mb-1
+                    "
+                    style={{
+                        color: theme.textSecondary,
+                    }}
+                >
+                    {title}
+                </p>
+
+
+                {/* VALUE */}
+
+                <div
+                    className="
+                        flex
+                        items-end
+                        gap-1.5
+                        whitespace-nowrap
+                    "
+                >
+
+                    <span
+                        className="
+                            text-[28px]
+                            font-bold
+                            leading-none
+                            whitespace-nowrap
+                            tabular-nums
+                            flex-shrink-0
+                        "
+                        style={{
+                            color: theme.text,
+                        }}
+                    >
+                        {value}
+                    </span>
+
+
+                    <span
+                        className="
+                            text-xs
+                            mb-0.5
+                            whitespace-nowrap
+                            flex-shrink-0
+                        "
+                        style={{
+                            color: theme.textSecondary,
+                        }}
+                    >
+                        {unit}
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            {/* =====================================================
+                BOTTOM
+            ====================================================== */}
+
+            <div
+                className="
+                    text-[10px]
+                    leading-tight
+                "
+                style={{
+                    color: theme.textSecondary,
+                }}
+            >
+                Updated {lastUpdated}
+            </div>
+
         </div>
-
-        <span
-          className="px-3 py-1 rounded-full text-xs font-semibold"
-          style={{
-            backgroundColor: statusColor + "20",
-            color: statusColor,
-          }}
-        >
-          {status}
-        </span>
-      </div>
-
-      {/* Middle */}
-      <div>
-        <p
-          className="text-sm mb-2"
-          style={{ color: theme.textSecondary }}
-        >
-          {title}
-        </p>
-
-        <div className="flex items-end gap-2">
-          <span
-            className="text-4xl font-bold"
-            style={{ color: theme.text }}
-          >
-            {value}
-          </span>
-
-          <span
-            className="text-base mb-1"
-            style={{ color: theme.textSecondary }}
-          >
-            {unit}
-          </span>
-        </div>
-      </div>
-
-      {/* Bottom */}
-      <div
-        className="text-xs"
-        style={{ color: theme.textSecondary }}
-      >
-        Updated {lastUpdated}
-      </div>
-    </div>
-  );
+    );
 }
 
 export default MetricCard;

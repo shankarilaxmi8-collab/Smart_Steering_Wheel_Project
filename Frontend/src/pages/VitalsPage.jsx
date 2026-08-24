@@ -1,5 +1,8 @@
-import MetricCard from "../features/dashboard/components/MetricCard/MetricCard";
-import ECGChart from "../features/dashboard/components/ECGChart/ECGChart";
+import VitalMetricCard from "../features/vitals/components/VitalMetricCard/VitalMetricCard";
+import ECGVitalsCard from "../features/vitals/components/ECGVitalsCard/ECGVitalsCard";
+import { useContext } from "react";
+import { ThemeContext } from "../app/providers";
+import { metricStatusLabel } from "../utils/metricStatus";
 
 import {
     Heart,
@@ -12,272 +15,217 @@ function VitalsPage({
     data,
     loading,
     error,
+    wsStatus,
 }) {
-    console.log(data);
-    console.log(data?.vitals);
-    console.log(data?.vitals?.hrv);
+    const { theme } = useContext(ThemeContext);
 
-    const getHeartRateStatus = (hr) => {
-      if (hr == null) return "--";
-      if (hr < 60) return "Low";
-      if (hr <= 100) return "Normal";
-      return "High";
+    const getHeartRateStatus = () => {
+        return metricStatusLabel(data, "heart_rate");
     };
 
-    const getTempStatus = (temp) => {
-      if (temp == null) return "--";
-      if (temp < 35.5) return "Low";
-      if (temp <= 37.5) return "Normal";
-      return "High";
+    const getTempStatus = () => {
+        return metricStatusLabel(data, "skin_temperature");
     };
 
-    const getSweatStatus = (gsr) => {
-      if (gsr == null) return "--";
-      if (gsr < 2) return "Low";
-      if (gsr <= 5) return "Normal";
-      return "High";
+    const getSweatStatus = () => {
+        return metricStatusLabel(data, "gsr");
     };
 
-    const getHRVStatus = (hrv) => {
-      if (hrv == null) return "--";
-
-      if (hrv < 30) return "Low";
-
-      if (hrv <= 70) return "Healthy";
-
-      return "High";
+    const getHRVStatus = () => {
+        return metricStatusLabel(data, "hrv");
     };
-
-    const lastUpdated = new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-    });
-
-    if (loading)
-      return (
-          <div className="text-white">
-              Loading driver vitals...
-          </div>
-      );
-
-    if (error)
-      return (
-          <div className="text-red-400">
-              {error}
-          </div>
-      );
 
     const getDriverCondition = () => {
+        const metricStatuses = [
+            getHeartRateStatus(),
+            getHRVStatus(),
+            getTempStatus(),
+            getSweatStatus(),
+        ];
 
-        let score = 0;
-
-        const hr = data?.vitals?.heartRate;
-        const hrv = data?.vitals?.hrv;
-        const sweat = data?.vitals?.sweat;
-        const temp = data?.vitals?.palmTemp;
-
-        if (hr > 100) score++;
-
-        if (hrv < 30) score++;
-
-        if (sweat > 5) score++;
-
-        if (temp > 37.5) score++;
-
-        if (score >= 3)
+        if (metricStatuses.includes("Critical")) {
             return {
                 status: "CRITICAL",
-                color: "text-red-400",
-                message: "Immediate attention recommended."
+                color: theme.danger,
+                message: "Immediate attention recommended.",
             };
+        }
 
-        if (score >= 1)
+        if (metricStatuses.includes("Warning")) {
             return {
-                status: "CAUTION",
-                color: "text-yellow-400",
-                message: "Monitor driver condition closely."
+                status: "WARNING",
+                color: theme.warning,
+                message: "Monitor driver condition closely.",
             };
+        }
+
+        if (metricStatuses.includes("Unavailable")) {
+            return {
+                status: "Unavailable",
+                color: theme.textSecondary,
+                message: "Waiting for a complete live telemetry update.",
+            };
+        }
 
         return {
-            status: "SAFE",
-            color: "text-green-400",
-            message: "All vital signs are within acceptable limits."
+            status: "NORMAL",
+            color: theme.success,
+            message: "All vital signs are within acceptable limits.",
         };
-
     };
 
-  const condition = getDriverCondition();
+    const condition = getDriverCondition();
+
+    if (loading) {
+        return (
+            <div
+                className="flex items-center justify-center min-h-[300px]"
+                style={{ color: theme.textSecondary }}
+            >
+                Loading driver vitals...
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div
+                className="flex items-center justify-center min-h-[300px]"
+                style={{ color: theme.danger }}
+            >
+                {error}
+            </div>
+        );
+    }
 
     return (
+        <div
+            className="space-y-3"
+            style={{ color: theme.text }}
+        >
 
-        <div className="space-y-6">
+            {/* =========================
+                Page Header
+            ========================== */}
 
-            <div>
+            <div className="flex items-start justify-between gap-4">
 
-                <h1 className="text-3xl font-bold text-white">
-                    Driver Vitals
-                </h1>
+                {/* Page Title */}
 
-                <p className="text-slate-400 mt-2">
-                    Real-time physiological monitoring
-                </p>
+                <div>
+                    <h1
+                        className="text-2xl font-bold"
+                        style={{ color: theme.text }}
+                    >
+                        Driver Vitals
+                    </h1>
+
+                    <p
+                        className="mt-1 text-sm"
+                        style={{ color: theme.textSecondary }}
+                    >
+                        Real-time physiological monitoring
+                    </p>
+                </div>
+
+
+                {/* Overall Driver Condition */}
+
+                <div className="text-right pt-1">
+
+                    <div className="flex items-center justify-end gap-1.5">
+
+                        <span
+                            className="w-2.5 h-2.5 rounded-full animate-pulse"
+                            style={{
+                                background: condition.color,
+                            }}
+                        />
+
+                        <span
+                            className="text-base font-bold"
+                            style={{
+                                color: condition.color,
+                            }}
+                        >
+                            {condition.status}
+                        </span>
+
+                    </div>
+
+                    <p
+                        className="text-[10px] mt-0.5"
+                        style={{
+                            color: theme.textSecondary,
+                        }}
+                    >
+                        {condition.message}
+                    </p>
+
+                </div>
 
             </div>
 
-            <div className="grid grid-cols-4 gap-6 mt-6">
 
-                <MetricCard
+            {/* =========================
+                Vital Metric Cards
+            ========================== */}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+
+                <VitalMetricCard
                     title="Heart Rate"
                     value={data?.vitals?.heartRate ?? "--"}
                     unit="BPM"
-                    status={getHeartRateStatus(data?.vitals?.heartRate)}
-                    icon={<Heart size={26} />}
-                    lastUpdated={lastUpdated}
+                    status={getHeartRateStatus()}
+                    icon={<Heart size={18} />}
+                    normalMin={60}
+                    normalMax={100}
                 />
 
-                <MetricCard
+                <VitalMetricCard
                     title="HRV"
                     value={data?.vitals?.hrv ?? "--"}
                     unit="ms"
-                    status={getHRVStatus(data?.vitals?.hrv)}
-                    icon={<Activity size={26} />}
-                    lastUpdated={lastUpdated}
+                    status={getHRVStatus()}
+                    icon={<Activity size={18} />}
+                    normalMin={30}
+                    normalMax={70}
                 />
 
-                <MetricCard
+                <VitalMetricCard
                     title="Palm Temp"
                     value={data?.vitals?.palmTemp ?? "--"}
                     unit="°C"
-                    status={getTempStatus(data?.vitals?.palmTemp)}
-                    icon={<Thermometer size={26} />}
-                    lastUpdated={lastUpdated}
+                    status={getTempStatus()}
+                    icon={<Thermometer size={18} />}
+                    normalMin={35.5}
+                    normalMax={37.5}
                 />
 
-                <MetricCard
+                <VitalMetricCard
                     title="Sweat"
                     value={data?.vitals?.sweat ?? "--"}
                     unit="µS"
-                    status={getSweatStatus(data?.vitals?.sweat)}
-                    icon={<Droplets size={26} />}
+                    status={getSweatStatus()}
+                    icon={<Droplets size={18} />}
+                    normalMin={2}
+                    normalMax={5}
                 />
 
-
             </div>
 
-            <div className="mt-8">
 
-                <ECGChart />
+            {/* =========================
+                ECG
+            ========================== */}
 
-            </div>
-
-            <div className="bg-[#111827] rounded-3xl p-6">
-
-              <h2 className="text-xl font-semibold text-white mb-6">
-                  Current Health Summary
-              </h2>
-
-              <div className="grid grid-cols-2 gap-6">
-
-                  {/* Left */}
-
-                  <div className="space-y-4">
-
-                      <SummaryRow
-                          title="Heart Rate"
-                          value={`${data?.vitals?.heartRate ?? "--"} BPM`}
-                          status={getHeartRateStatus(data?.vitals?.heartRate)}
-                          color={
-                              getHeartRateStatus(data?.vitals?.heartRate) === "Normal"
-                                  ? "text-green-400"
-                                  : "text-yellow-400"
-                          }
-                      />
-
-                      <SummaryRow
-                          title="HRV"
-                          value={`${data?.vitals?.hrv ?? "--"} ms`}
-                          status={getHRVStatus(data?.vitals?.hrv)}
-                          color={
-                              getHRVStatus(data?.vitals?.hrv) === "Healthy"
-                                  ? "text-green-400"
-                                  : "text-yellow-400"
-                          }
-                      />
-
-                      <SummaryRow
-                          title="Palm Temperature"
-                          value={`${data?.vitals?.palmTemp ?? "--"} °C`}
-                          status={getTempStatus(data?.vitals?.palmTemp)}
-                          color={
-                              getTempStatus(data?.vitals?.palmTemp) === "Normal"
-                                  ? "text-green-400"
-                                  : "text-red-400"
-                          }
-                      />
-
-                      <SummaryRow
-                          title="Sweat Activity"
-                          value={`${data?.vitals?.sweat ?? "--"} µS`}
-                          status={getSweatStatus(data?.vitals?.sweat)}
-                          color={
-                              getSweatStatus(data?.vitals?.sweat) === "Normal"
-                                  ? "text-green-400"
-                                  : "text-yellow-400"
-                          }
-                      />
-
-                  </div>
-
-                  {/* Right */}
-
-                  <div className="rounded-2xl bg-[#0D1117] p-6 flex flex-col justify-center">
-
-                      <p className="text-slate-400 text-sm">
-                          Overall Driver Condition
-                      </p>
-
-                      <h1 className={`text-4xl font-bold ${condition.color} mt-3`}>
-                          {condition.status}
-                      </h1>
-
-                      <p className="text-slate-500 mt-4">
-                          {condition.message}
-                      </p>
-
-                  </div>
-
-              </div>
-
-          </div>
-
-        </div>
-
-    );
-}
-
-function SummaryRow({
-    title,
-    value,
-    status,
-    color,
-}) {
-    return (
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-
-            <span className="text-slate-400">
-                {title}
-            </span>
-
-            <div className="text-right">
-
-                <p className="text-white font-semibold">
-                    {value}
-                </p>
-
-                <p className={`text-sm ${color}`}>
-                    {status}
-                </p>
-
+            <div className="mt-3">
+                <ECGVitalsCard
+                    data={data}
+                    loading={loading}
+                    wsStatus={wsStatus}
+                />
             </div>
 
         </div>
