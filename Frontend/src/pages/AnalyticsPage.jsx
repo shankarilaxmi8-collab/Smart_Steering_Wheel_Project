@@ -1,6 +1,7 @@
 import { useContext } from "react";
 import AnalyticsPanel from "../features/dashboard/components/AnalyticsPanel/AnalyticsPanel";
 import { ThemeContext } from "../app/providers";
+import { metricStatusColor, metricStatusLabel, normalizeStatus, statusLabel } from "../utils/metricStatus";
 
 function AnalyticsPage({
     data,
@@ -9,50 +10,20 @@ function AnalyticsPage({
 }) {
     const { theme } = useContext(ThemeContext);
 
-    const getHeartRateStatus = (hr) => {
-        if (hr == null) return "--";
-        if (hr < 60) return "Low";
-        if (hr <= 100) return "Normal";
-        return "High";
+    const getHeartRateStatus = () => {
+        return metricStatusLabel(data, "heart_rate");
     };
 
-    const getHRVStatus = (hrv) => {
-        if (hrv == null) return "--";
-        if (hrv < 30) return "Low";
-        if (hrv <= 70) return "Healthy";
-        return "High";
+    const getHRVStatus = () => {
+        return metricStatusLabel(data, "hrv");
     };
 
-    const getTempStatus = (temp) => {
-        if (temp == null) return "--";
-        if (temp < 35.5) return "Low";
-        if (temp <= 37.5) return "Normal";
-        return "High";
+    const getTempStatus = () => {
+        return metricStatusLabel(data, "skin_temperature");
     };
 
-    const getSweatStatus = (gsr) => {
-        if (gsr == null) return "--";
-        if (gsr < 2) return "Low";
-        if (gsr <= 5) return "Normal";
-        return "High";
-    };
-
-    const getStatusColor = (status) => {
-        switch (status) {
-            case "Normal":
-            case "Healthy":
-                return theme.success;
-
-            case "Low":
-            case "High":
-                return theme.warning;
-
-            case "Critical":
-                return theme.danger;
-
-            default:
-                return theme.textSecondary;
-        }
+    const getSweatStatus = () => {
+        return metricStatusLabel(data, "gsr");
     };
 
     if (loading) {
@@ -131,11 +102,11 @@ function AnalyticsPage({
     };
 
     const getStability = () => {
-        const score = calculateDriverScore();
-
-        if (score >= 80) return "Stable";
-        if (score >= 60) return "Watch";
-        return "Unstable";
+        const statuses = [getHeartRateStatus(), getHRVStatus(), getTempStatus(), getSweatStatus()];
+        if (statuses.includes("Critical")) return "Critical";
+        if (statuses.includes("Warning")) return "Warning";
+        if (statuses.every((status) => status === "Normal")) return "Normal";
+        return "Unavailable";
     };
 
     const getRecommendation = () => {
@@ -159,11 +130,13 @@ function AnalyticsPage({
     const stability = getStability();
 
     const stabilityColor =
-        stability === "Stable"
+        stability === "Normal"
             ? theme.success
-            : stability === "Watch"
+            : stability === "Warning"
             ? theme.warning
-            : theme.danger;
+            : stability === "Critical"
+            ? theme.danger
+            : theme.textSecondary;
 
     const stabilityStatusColor = stabilityColor;
 
@@ -236,11 +209,13 @@ function AnalyticsPage({
                     title="Stability"
                     value={stability}
                     accent={
-                        stability === "Stable"
+                        stability === "Normal"
                             ? "success"
-                            : stability === "Watch"
+                            : stability === "Warning"
                             ? "warning"
-                            : "danger"
+                            : stability === "Critical"
+                            ? "danger"
+                            : "primary"
                     }
                     description="Current physiological stability"
                 />
@@ -537,27 +512,23 @@ function AnalyticsSignal({
     status,
     theme,
 }) {
-    const statusColor = {
-        Normal: theme.success,
-        Healthy: theme.success,
-        Low: theme.warning,
-        High: theme.warning,
-    };
-
-    const color = statusColor[status] || theme.textSecondary;
+    const normalizedStatus = normalizeStatus(status);
+    const color = metricStatusColor(normalizedStatus, theme);
 
     return (
         <div
-            className="
+            data-status={normalizedStatus}
+            className={`status-card status-card-${normalizedStatus}
                 rounded-xl
                 px-4
                 py-3.5
                 transition-all
                 duration-200
-            "
+            `}
             style={{
                 background: theme.background,
-                border: `1px solid ${theme.border}`,
+                border: `1px solid ${color}70`,
+                boxShadow: `0 0 12px ${color}14`,
             }}
         >
 
@@ -572,7 +543,7 @@ function AnalyticsSignal({
 
                 <div className="flex items-center gap-1.5">
 
-                    {status !== "--" && (
+                    {normalizedStatus !== "unavailable" && (
                         <span
                             className="w-1.5 h-1.5 rounded-full"
                             style={{ background: color }}
@@ -583,7 +554,7 @@ function AnalyticsSignal({
                         className="text-[11px] font-medium"
                         style={{ color }}
                     >
-                        {status}
+                        {statusLabel(normalizedStatus)}
                     </span>
 
                 </div>

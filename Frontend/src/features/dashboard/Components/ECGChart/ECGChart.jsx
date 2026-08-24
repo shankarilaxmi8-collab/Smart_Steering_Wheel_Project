@@ -73,10 +73,10 @@ function ECGChart({
 
         <div
             className="
-                rounded-3xl
+                rounded-2xl
                 border
-                p-4
-                h-[438px]
+                p-3.5
+                h-[360px]
                 flex
                 flex-col
                 transition-all
@@ -110,19 +110,21 @@ function ECGChart({
                     flex
                     justify-between
                     items-center
-                    mb-3
+                    mb-2
                 "
             >
+
+                {/* TITLE */}
 
                 <div>
 
                     <h2
                         className="
-                            text-lg
-                            font-bold
+                            text-base
+                            font-semibold
                             flex
                             items-center
-                            gap-3
+                            gap-2
                         "
                         style={{
                             color:
@@ -131,7 +133,7 @@ function ECGChart({
                     >
 
                         <Activity
-                            size={18}
+                            size={17}
                             color={
                                 theme.primary
                             }
@@ -144,8 +146,8 @@ function ECGChart({
 
                     <p
                         className="
-                            text-sm
-                            mt-1
+                            text-xs
+                            mt-0.5
                         "
                         style={{
                             color:
@@ -172,8 +174,8 @@ function ECGChart({
                         className="
                             flex
                             items-center
-                            gap-2
-                            px-3
+                            gap-1.5
+                            px-2.5
                             py-1
                             rounded-full
                         "
@@ -194,8 +196,8 @@ function ECGChart({
 
                         <div
                             className="
-                                w-2
-                                h-2
+                                w-1.5
+                                h-1.5
                                 rounded-full
                                 animate-pulse
                             "
@@ -209,7 +211,7 @@ function ECGChart({
 
                         <span
                             className="
-                                text-xs
+                                text-[10px]
                                 font-semibold
                             "
                             style={{
@@ -229,8 +231,8 @@ function ECGChart({
 
                     <p
                         className="
-                            mt-2
-                            text-xs
+                            mt-1
+                            text-[10px]
                         "
                         style={{
                             color:
@@ -254,6 +256,7 @@ function ECGChart({
             <div
                 className="
                     flex-1
+                    min-h-0
                     rounded-xl
                     relative
                     overflow-hidden
@@ -285,9 +288,9 @@ function ECGChart({
                 <div
                     className="
                         absolute
-                        left-3
-                        top-3
-                        text-[10px]
+                        left-2.5
+                        top-2
+                        text-[9px]
                         text-slate-500
                         z-10
                     "
@@ -299,10 +302,10 @@ function ECGChart({
                 <div
                     className="
                         absolute
-                        left-3
+                        left-2.5
                         top-1/2
                         -translate-y-1/2
-                        text-[10px]
+                        text-[9px]
                         text-slate-500
                         z-10
                     "
@@ -314,9 +317,9 @@ function ECGChart({
                 <div
                     className="
                         absolute
-                        left-3
-                        bottom-3
-                        text-[10px]
+                        left-2.5
+                        bottom-2
+                        text-[9px]
                         text-slate-500
                         z-10
                     "
@@ -339,9 +342,9 @@ function ECGChart({
                 <div
                     className="
                         absolute
-                        bottom-3
-                        right-4
-                        text-[10px]
+                        bottom-2
+                        right-3
+                        text-[9px]
                         z-10
                     "
                     style={{
@@ -360,11 +363,11 @@ function ECGChart({
                     <div
                         className="
                             absolute
-                            bottom-3
+                            bottom-2
                             left-1/2
                             -translate-x-1/2
-                            text-xs
-                            px-3
+                            text-[10px]
+                            px-2.5
                             py-1
                             rounded-lg
                             z-20
@@ -393,9 +396,9 @@ function ECGChart({
                 className="
                     grid
                     grid-cols-4
-                    gap-4
-                    mt-3
-                    pt-3
+                    gap-3
+                    mt-2
+                    pt-2
                     border-t
                 "
                 style={{
@@ -410,7 +413,7 @@ function ECGChart({
 
                     <p
                         className="
-                            text-xs
+                            text-[9px]
                             font-medium
                             uppercase
                             tracking-wide
@@ -425,9 +428,9 @@ function ECGChart({
 
                     <p
                         className="
-                            text-lg
+                            text-sm
                             font-bold
-                            mt-1
+                            mt-0.5
                         "
                         style={{
                             color:
@@ -446,7 +449,7 @@ function ECGChart({
 
                     <p
                         className="
-                            text-xs
+                            text-[9px]
                             font-medium
                             uppercase
                             tracking-wide
@@ -461,9 +464,9 @@ function ECGChart({
 
                     <p
                         className="
-                            text-lg
+                            text-sm
                             font-bold
-                            mt-1
+                            mt-0.5
                         "
                         style={{
                             color:
@@ -482,7 +485,7 @@ function ECGChart({
 
                     <p
                         className="
-                            text-xs
+                            text-[9px]
                             font-medium
                             uppercase
                             tracking-wide
@@ -497,9 +500,9 @@ function ECGChart({
 
                     <p
                         className="
-                            text-lg
+                            text-sm
                             font-bold
-                            mt-1
+                            mt-0.5
                         "
                         style={{
                             color:
@@ -518,7 +521,7 @@ function ECGChart({
 
                     <p
                         className="
-                            text-xs
+                            text-[9px]
                             font-medium
                             uppercase
                             tracking-wide
@@ -536,13 +539,13 @@ function ECGChart({
                         className="
                             flex
                             items-center
-                            gap-2
-                            mt-1
+                            gap-1.5
+                            mt-0.5
                         "
                     >
 
                         <Wifi
-                            size={16}
+                            size={13}
                             color={
                                 connected
                                     ? theme.success
@@ -553,7 +556,7 @@ function ECGChart({
 
                         <span
                             className="
-                                text-sm
+                                text-xs
                                 font-semibold
                             "
                             style={{

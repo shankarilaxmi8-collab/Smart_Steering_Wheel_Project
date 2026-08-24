@@ -115,8 +115,7 @@ function MapController({
         );
 
     }, [
-        position?.lat,
-        position?.lng,
+        position,
         followVehicle,
         map,
     ]);

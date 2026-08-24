@@ -2,13 +2,12 @@ import "./ECGWaveform.css";
 
 function ECGWaveform({
     samples = [],
-    connected = false,
     loading = false,
 }) {
 
     /*
     |--------------------------------------------------------------------------
-    | No ECG data
+    | NO ECG DATA
     |--------------------------------------------------------------------------
     */
 
@@ -19,7 +18,16 @@ function ECGWaveform({
     ) {
 
         return (
-            <div className="ecg-wave-container flex items-center justify-center">
+            <div
+                className="
+                    ecg-wave-container
+                    flex
+                    items-center
+                    justify-center
+                    h-full
+                    w-full
+                "
+            >
 
                 <span className="text-xs text-slate-500">
                     {loading
@@ -43,11 +51,6 @@ function ECGWaveform({
     const height = 250;
 
     const centerY = height / 2;
-
-    /*
-     * ECG values are roughly in the range
-     * -1 to +1 mV.
-     */
 
     const scaleY = 90;
 
@@ -81,12 +84,28 @@ function ECGWaveform({
             : "";
 
 
+    /*
+    |--------------------------------------------------------------------------
+    | RENDER
+    |--------------------------------------------------------------------------
+    */
+
     return (
 
-        <div className="ecg-wave-container">
+        <div
+            className="
+                ecg-wave-container
+                h-full
+                w-full
+            "
+        >
 
             <svg
-                className="ecg-svg"
+                className="
+                    ecg-svg
+                    w-full
+                    h-full
+                "
                 viewBox={`0 0 ${width} ${height}`}
                 preserveAspectRatio="none"
             >
@@ -100,6 +119,7 @@ function ECGWaveform({
             </svg>
 
         </div>
+
     );
 }
 

@@ -58,12 +58,18 @@ function MetricCard({
             ? `0 4px 18px ${statusColor}18`
             : `0 0 10px ${statusColor}08`;
 
+    /*
+    |--------------------------------------------------------------------------
+    | RENDER
+    |--------------------------------------------------------------------------
+    */
+
     return (
         <div
             className="
-                rounded-3xl
-                p-6
-                h-52
+                rounded-2xl
+                p-4
+                h-[172px]
                 flex
                 flex-col
                 justify-between
@@ -77,22 +83,24 @@ function MetricCard({
                 boxShadow: cardShadow,
             }}
         >
+
             {/* =====================================================
                 TOP
             ====================================================== */}
 
             <div className="flex items-start justify-between">
 
-                {/* Icon */}
+                {/* ICON */}
 
                 <div
                     className="
-                        w-12
-                        h-12
-                        rounded-2xl
+                        w-10
+                        h-10
+                        rounded-xl
                         flex
                         items-center
                         justify-center
+                        flex-shrink-0
                     "
                     style={{
                         backgroundColor:
@@ -112,15 +120,16 @@ function MetricCard({
                 </div>
 
 
-                {/* Status */}
+                {/* STATUS */}
 
                 <span
                     className="
-                        px-3
+                        px-2.5
                         py-1
                         rounded-full
-                        text-xs
+                        text-[10px]
                         font-semibold
+                        whitespace-nowrap
                     "
                     style={{
                         backgroundColor: `${statusColor}18`,
@@ -144,8 +153,14 @@ function MetricCard({
 
             <div>
 
+                {/* TITLE */}
+
                 <p
-                    className="text-sm mb-2"
+                    className="
+                        text-xs
+                        font-medium
+                        mb-1
+                    "
                     style={{
                         color: theme.textSecondary,
                     }}
@@ -154,10 +169,26 @@ function MetricCard({
                 </p>
 
 
-                <div className="flex items-end gap-2">
+                {/* VALUE */}
+
+                <div
+                    className="
+                        flex
+                        items-end
+                        gap-1.5
+                        whitespace-nowrap
+                    "
+                >
 
                     <span
-                        className="text-4xl font-bold"
+                        className="
+                            text-[28px]
+                            font-bold
+                            leading-none
+                            whitespace-nowrap
+                            tabular-nums
+                            flex-shrink-0
+                        "
                         style={{
                             color: theme.text,
                         }}
@@ -167,7 +198,12 @@ function MetricCard({
 
 
                     <span
-                        className="text-base mb-1"
+                        className="
+                            text-xs
+                            mb-0.5
+                            whitespace-nowrap
+                            flex-shrink-0
+                        "
                         style={{
                             color: theme.textSecondary,
                         }}
@@ -185,7 +221,10 @@ function MetricCard({
             ====================================================== */}
 
             <div
-                className="text-xs"
+                className="
+                    text-[10px]
+                    leading-tight
+                "
                 style={{
                     color: theme.textSecondary,
                 }}

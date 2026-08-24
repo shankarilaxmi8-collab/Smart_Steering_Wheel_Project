@@ -3,6 +3,7 @@ import "./SensorStatus.css";
 import { useContext } from "react";
 
 import { ThemeContext } from "../../../../app/providers";
+import { metricStatusColor, normalizeStatus, statusLabel } from "../../../../utils/metricStatus";
 
 import {
     User,
@@ -106,22 +107,12 @@ function SensorStatus({
         String(
             data?.condition ??
             data?.profile?.status ??
-            "NORMAL"
+            ""
         ).toUpperCase();
 
 
     const grip =
         Number(data?.grip_pressure ?? 0);
-
-
-    const prediction =
-        data?.prediction?.stabilized_prediction ??
-        data?.prediction?.raw_prediction ??
-        "NORMAL";
-
-
-    const normalizedPrediction =
-        String(prediction).toUpperCase();
 
 
     /*
@@ -134,7 +125,7 @@ function SensorStatus({
         String(
             data?.sensorStatus ??
             data?.sensor_status ??
-            "Connected"
+            "Disconnected"
         ).toUpperCase();
 
 
@@ -148,33 +139,10 @@ function SensorStatus({
     |--------------------------------------------------------------------------
     */
 
-    let driverStatus = "Active";
-
-
-    if (
-        condition === "ALERT" ||
-        condition === "DROWSY" ||
-        condition === "STRESS" ||
-        condition === "FATIGUE"
-    ) {
-        driverStatus = "Alert";
-    }
-
-
-    if (
-        normalizedPrediction === "WARNING"
-    ) {
-        driverStatus = "Alert";
-    }
-
-
-    if (
-        normalizedPrediction === "CARDIAC_EVENT" ||
-        condition === "EMERGENCY" ||
-        condition === "CRITICAL"
-    ) {
-        driverStatus = "Critical";
-    }
+    const normalizedStatus = sensorsConnected
+        ? normalizeStatus(data?.status ?? condition ?? data?.prediction?.status)
+        : "unavailable";
+    const driverStatus = statusLabel(normalizedStatus);
 
 
     /*
@@ -183,16 +151,8 @@ function SensorStatus({
     |--------------------------------------------------------------------------
     */
 
-    let gripStatus = "Strong";
-
-
-    if (grip < 20) {
-        gripStatus = "Weak";
-    }
-
-    else if (grip < 40) {
-        gripStatus = "Moderate";
-    }
+    // Grip has no Dashboard metric threshold, so it cannot be classified safely.
+    const gripStatus = "Unavailable";
 
 
     /*
@@ -201,26 +161,7 @@ function SensorStatus({
     |--------------------------------------------------------------------------
     */
 
-    let sensorAccent = theme.success;
-
-
-    if (
-        condition === "EMERGENCY" ||
-        condition === "CRITICAL" ||
-        normalizedPrediction === "CARDIAC_EVENT"
-    ) {
-        sensorAccent = theme.danger;
-    }
-
-    else if (
-        condition === "ALERT" ||
-        condition === "DROWSY" ||
-        condition === "STRESS" ||
-        condition === "FATIGUE" ||
-        normalizedPrediction === "WARNING"
-    ) {
-        sensorAccent = theme.warning;
-    }
+    const sensorAccent = metricStatusColor(normalizedStatus, theme);
 
 
     /*
@@ -249,10 +190,12 @@ function SensorStatus({
 
     return (
         <div
-            className="
+            data-status={normalizedStatus}
+            className={`
                 sensor-card
+                status-card-${normalizedStatus}
                 hover:-translate-y-1
-            "
+            `}
             style={{
                 backgroundColor: theme.surface,
 
@@ -283,7 +226,7 @@ function SensorStatus({
                 <div className="sensor-item">
 
                     <User
-                        size={18}
+                        size={15}
                         className="sensor-icon"
                         style={{
                             color: sensorAccent,
@@ -299,12 +242,7 @@ function SensorStatus({
 
                         <span
                             style={{
-                                color:
-                                    driverStatus === "Critical"
-                                        ? theme.danger
-                                        : driverStatus === "Alert"
-                                            ? theme.warning
-                                            : theme.success,
+                                color: sensorAccent,
                             }}
                         >
                             {driverStatus}
@@ -319,7 +257,7 @@ function SensorStatus({
                 <div className="sensor-item">
 
                     <ShieldCheck
-                        size={18}
+                        size={15}
                         className="sensor-icon"
                         style={{
                             color: sensorAccent,
@@ -335,13 +273,10 @@ function SensorStatus({
 
                         <span
                             style={{
-                                color:
-                                    condition === "NORMAL"
-                                        ? theme.success
-                                        : sensorAccent,
+                                color: sensorAccent,
                             }}
                         >
-                            {condition}
+                            {driverStatus}
                         </span>
                     </span>
 
@@ -353,7 +288,7 @@ function SensorStatus({
                 <div className="sensor-item">
 
                     <Gauge
-                        size={18}
+                        size={15}
                         className="sensor-icon"
                         style={{
                             color: sensorAccent,
@@ -369,15 +304,10 @@ function SensorStatus({
 
                         <span
                             style={{
-                                color:
-                                    normalizedPrediction === "CARDIAC_EVENT"
-                                        ? theme.danger
-                                        : normalizedPrediction === "WARNING"
-                                            ? theme.warning
-                                            : theme.success,
+                                color: sensorAccent,
                             }}
                         >
-                            {normalizedPrediction}
+                            {driverStatus}
                         </span>
                     </span>
 
@@ -389,7 +319,7 @@ function SensorStatus({
                 <div className="sensor-item">
 
                     <Hand
-                        size={18}
+                        size={15}
                         className="sensor-icon"
                         style={{
                             color: sensorAccent,
@@ -406,11 +336,11 @@ function SensorStatus({
                         <span
                             style={{
                                 color:
-                                    gripStatus === "Strong"
+                                    gripStatus === "Normal"
                                         ? theme.success
-                                        : gripStatus === "Moderate"
+                                        : gripStatus === "Warning"
                                             ? theme.warning
-                                            : theme.danger,
+                                            : theme.textSecondary,
                             }}
                         >
                             {gripStatus}
@@ -433,7 +363,7 @@ function SensorStatus({
                 <div className="sensor-item">
 
                     <div
-                        className="w-2.5 h-2.5 rounded-full"
+                        className="w-2 h-2 rounded-full"
                         style={{
                             backgroundColor:
                                 sensorsConnected

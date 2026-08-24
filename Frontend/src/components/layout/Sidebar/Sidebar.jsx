@@ -17,7 +17,6 @@ import { ThemeContext } from "../../../app/providers";
 
 function Sidebar({
   profile,
-  data,
   activeTab,
   setActiveTab,
   onLogout,
@@ -37,7 +36,7 @@ function Sidebar({
   return (
     <aside
       className={`${
-        collapsed ? "w-20" : "w-72"
+        collapsed ? "w-20" : "w-64"
       } flex flex-col transition-all duration-300`}
       style={{
         backgroundColor: theme.surface,
@@ -52,7 +51,7 @@ function Sidebar({
           {!collapsed && (
             <div>
               <h2
-                className="text-xl font-bold"
+                className="text-lg font-bold"
                 style={{ color: theme.text }}
               >
                 Steering AI
@@ -105,7 +104,7 @@ function Sidebar({
               <div className="flex-1 min-w-0">
 
                 <h3
-                  className="font-semibold text-lg truncate"
+                  className="font-semibold text-base truncate"
                   style={{ color: theme.text }}
                 >
                   {profile?.name || "Driver"}
@@ -195,7 +194,7 @@ function Sidebar({
               <Icon size={20} />
 
               {!collapsed && (
-                <span className="font-medium">
+                <span className="text-[15px] font-medium">
                   {label}
                 </span>
               )}
@@ -252,7 +251,7 @@ function Sidebar({
               />
 
               <span
-                className="font-semibold text-lg truncate"
+                className="font-semibold text-base truncate"
                 style={{
                   color: theme.success,
                 }}
@@ -272,7 +271,7 @@ function Sidebar({
             </p>
 
             <p
-              className="font-semibold mt-1"
+              className="font-semibold text-[15px] mt-1"
               style={{
                 color: theme.text,
               }}

@@ -2,6 +2,7 @@ import VitalMetricCard from "../features/vitals/components/VitalMetricCard/Vital
 import ECGVitalsCard from "../features/vitals/components/ECGVitalsCard/ECGVitalsCard";
 import { useContext } from "react";
 import { ThemeContext } from "../app/providers";
+import { metricStatusLabel } from "../utils/metricStatus";
 
 import {
     Heart,
@@ -18,63 +19,31 @@ function VitalsPage({
 }) {
     const { theme } = useContext(ThemeContext);
 
-    const getHeartRateStatus = (hr) => {
-        if (hr == null) return "--";
-        if (hr < 60) return "Low";
-        if (hr <= 100) return "Normal";
-        return "High";
+    const getHeartRateStatus = () => {
+        return metricStatusLabel(data, "heart_rate");
     };
 
-    const getTempStatus = (temp) => {
-        if (temp == null) return "--";
-        if (temp < 35.5) return "Low";
-        if (temp <= 37.5) return "Normal";
-        return "High";
+    const getTempStatus = () => {
+        return metricStatusLabel(data, "skin_temperature");
     };
 
-    const getSweatStatus = (gsr) => {
-        if (gsr == null) return "--";
-        if (gsr < 2) return "Low";
-        if (gsr <= 5) return "Normal";
-        return "High";
+    const getSweatStatus = () => {
+        return metricStatusLabel(data, "gsr");
     };
 
-    const getHRVStatus = (hrv) => {
-        if (hrv == null) return "--";
-        if (hrv < 30) return "Low";
-        if (hrv <= 70) return "Healthy";
-        return "High";
-    };
-
-    const getStatusColor = (status) => {
-        switch (status) {
-            case "Normal":
-            case "Healthy":
-                return theme.success;
-
-            case "Low":
-            case "High":
-                return theme.warning;
-
-            default:
-                return theme.textSecondary;
-        }
+    const getHRVStatus = () => {
+        return metricStatusLabel(data, "hrv");
     };
 
     const getDriverCondition = () => {
-        let score = 0;
+        const metricStatuses = [
+            getHeartRateStatus(),
+            getHRVStatus(),
+            getTempStatus(),
+            getSweatStatus(),
+        ];
 
-        const hr = data?.vitals?.heartRate;
-        const hrv = data?.vitals?.hrv;
-        const sweat = data?.vitals?.sweat;
-        const temp = data?.vitals?.palmTemp;
-
-        if (hr > 100) score++;
-        if (hrv < 30) score++;
-        if (sweat > 5) score++;
-        if (temp > 37.5) score++;
-
-        if (score >= 3) {
+        if (metricStatuses.includes("Critical")) {
             return {
                 status: "CRITICAL",
                 color: theme.danger,
@@ -82,11 +51,19 @@ function VitalsPage({
             };
         }
 
-        if (score >= 1) {
+        if (metricStatuses.includes("Warning")) {
             return {
                 status: "WARNING",
                 color: theme.warning,
                 message: "Monitor driver condition closely.",
+            };
+        }
+
+        if (metricStatuses.includes("Unavailable")) {
+            return {
+                status: "Unavailable",
+                color: theme.textSecondary,
+                message: "Waiting for a complete live telemetry update.",
             };
         }
 
@@ -123,27 +100,70 @@ function VitalsPage({
 
     return (
         <div
-            className="space-y-6"
+            className="space-y-3"
             style={{ color: theme.text }}
         >
+
             {/* =========================
                 Page Header
             ========================== */}
 
-            <div>
-                <h1
-                    className="text-3xl font-bold"
-                    style={{ color: theme.text }}
-                >
-                    Driver Vitals
-                </h1>
+            <div className="flex items-start justify-between gap-4">
 
-                <p
-                    className="mt-2"
-                    style={{ color: theme.textSecondary }}
-                >
-                    Real-time physiological monitoring
-                </p>
+                {/* Page Title */}
+
+                <div>
+                    <h1
+                        className="text-2xl font-bold"
+                        style={{ color: theme.text }}
+                    >
+                        Driver Vitals
+                    </h1>
+
+                    <p
+                        className="mt-1 text-sm"
+                        style={{ color: theme.textSecondary }}
+                    >
+                        Real-time physiological monitoring
+                    </p>
+                </div>
+
+
+                {/* Overall Driver Condition */}
+
+                <div className="text-right pt-1">
+
+                    <div className="flex items-center justify-end gap-1.5">
+
+                        <span
+                            className="w-2.5 h-2.5 rounded-full animate-pulse"
+                            style={{
+                                background: condition.color,
+                            }}
+                        />
+
+                        <span
+                            className="text-base font-bold"
+                            style={{
+                                color: condition.color,
+                            }}
+                        >
+                            {condition.status}
+                        </span>
+
+                    </div>
+
+                    <p
+                        className="text-[10px] mt-0.5"
+                        style={{
+                            color: theme.textSecondary,
+                        }}
+                    >
+                        {condition.message}
+                    </p>
+
+                </div>
+
             </div>
 
 
@@ -151,50 +171,46 @@ function VitalsPage({
                 Vital Metric Cards
             ========================== */}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mt-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
 
                 <VitalMetricCard
                     title="Heart Rate"
                     value={data?.vitals?.heartRate ?? "--"}
                     unit="BPM"
-                    status={getHeartRateStatus(data?.vitals?.heartRate)}
-                    icon={<Heart size={22} />}
+                    status={getHeartRateStatus()}
+                    icon={<Heart size={18} />}
                     normalMin={60}
                     normalMax={100}
-                    change={3}
                 />
 
                 <VitalMetricCard
                     title="HRV"
                     value={data?.vitals?.hrv ?? "--"}
                     unit="ms"
-                    status={getHRVStatus(data?.vitals?.hrv)}
-                    icon={<Activity size={22} />}
+                    status={getHRVStatus()}
+                    icon={<Activity size={18} />}
                     normalMin={30}
                     normalMax={70}
-                    change={2}
                 />
 
                 <VitalMetricCard
                     title="Palm Temp"
                     value={data?.vitals?.palmTemp ?? "--"}
                     unit="°C"
-                    status={getTempStatus(data?.vitals?.palmTemp)}
-                    icon={<Thermometer size={22} />}
+                    status={getTempStatus()}
+                    icon={<Thermometer size={18} />}
                     normalMin={35.5}
                     normalMax={37.5}
-                    change={0.3}
                 />
 
                 <VitalMetricCard
                     title="Sweat"
                     value={data?.vitals?.sweat ?? "--"}
                     unit="µS"
-                    status={getSweatStatus(data?.vitals?.sweat)}
-                    icon={<Droplets size={22} />}
+                    status={getSweatStatus()}
+                    icon={<Droplets size={18} />}
                     normalMin={2}
                     normalMax={5}
-                    change={0.4}
                 />
 
             </div>
@@ -204,324 +220,12 @@ function VitalsPage({
                 ECG
             ========================== */}
 
-            <div className="mt-5">
+            <div className="mt-3">
                 <ECGVitalsCard
                     data={data}
                     loading={loading}
                     wsStatus={wsStatus}
                 />
-            </div>
-
-
-            {/* =========================
-                Current Health Summary
-            ========================== */}
-
-            <div
-                className="
-                    relative
-                    overflow-hidden
-                    rounded-3xl
-                    p-5
-                    transition-all
-                    duration-300
-                    ease-out
-                    hover:-translate-y-1
-                "
-                style={{
-                    background: theme.surface,
-                    border: `1px solid ${theme.border}`,
-                }}
-            >
-
-                {/* Ambient status glow */}
-
-                <div
-                    className="
-                        absolute
-                        -top-20
-                        -right-20
-                        w-48
-                        h-48
-                        rounded-full
-                        blur-3xl
-                        opacity-10
-                        pointer-events-none
-                    "
-                    style={{
-                        background: condition.color,
-                    }}
-                />
-
-
-                {/* Header */}
-
-                <div className="relative flex items-center justify-between">
-
-                    <div>
-                        <h2
-                            className="text-lg font-semibold"
-                            style={{ color: theme.text }}
-                        >
-                            Current Health Summary
-                        </h2>
-
-                        <p
-                            className="text-xs mt-1"
-                            style={{ color: theme.textSecondary }}
-                        >
-                            Overall physiological status
-                        </p>
-                    </div>
-
-
-                    {/* Overall status chip */}
-
-                    <div
-                        className="
-                            flex
-                            items-center
-                            gap-2
-                            px-3
-                            py-1.5
-                            rounded-full
-                            text-xs
-                            font-semibold
-                        "
-                        style={{
-                            background: `${condition.color}20`,
-                            color: condition.color,
-                            border: `1px solid ${condition.color}35`,
-                        }}
-                    >
-                        <span
-                            className="w-2 h-2 rounded-full"
-                            style={{
-                                background: condition.color,
-                            }}
-                        />
-
-                        {condition.status}
-                    </div>
-
-                </div>
-
-
-                {/* Main Content */}
-
-                <div
-                    className="
-                        relative
-                        grid
-                        grid-cols-1
-                        lg:grid-cols-[1.15fr_0.85fr]
-                        gap-5
-                        mt-5
-                    "
-                >
-
-                    {/* Vital Status List */}
-
-                    <div
-                        className="
-                            rounded-2xl
-                            p-3
-                        "
-                        style={{
-                            background: theme.surfaceSecondary,
-                            border: `1px solid ${theme.border}`,
-                        }}
-                    >
-
-                        <SummaryRow
-                            title="Heart Rate"
-                            value={`${data?.vitals?.heartRate ?? "--"} BPM`}
-                            status={getHeartRateStatus(data?.vitals?.heartRate)}
-                            color={getStatusColor(
-                                getHeartRateStatus(data?.vitals?.heartRate)
-                            )}
-                        />
-
-                        <SummaryRow
-                            title="HRV"
-                            value={`${data?.vitals?.hrv ?? "--"} ms`}
-                            status={getHRVStatus(data?.vitals?.hrv)}
-                            color={getStatusColor(
-                                getHRVStatus(data?.vitals?.hrv)
-                            )}
-                        />
-
-                        <SummaryRow
-                            title="Palm Temperature"
-                            value={`${data?.vitals?.palmTemp ?? "--"} °C`}
-                            status={getTempStatus(data?.vitals?.palmTemp)}
-                            color={getStatusColor(
-                                getTempStatus(data?.vitals?.palmTemp)
-                            )}
-                        />
-
-                        <SummaryRow
-                            title="Sweat Activity"
-                            value={`${data?.vitals?.sweat ?? "--"} µS`}
-                            status={getSweatStatus(data?.vitals?.sweat)}
-                            color={getStatusColor(
-                                getSweatStatus(data?.vitals?.sweat)
-                            )}
-                        />
-
-                    </div>
-
-
-                    {/* Overall Condition */}
-
-                    <div
-                        className="
-                            relative
-                            rounded-2xl
-                            p-5
-                            flex
-                            flex-col
-                            justify-center
-                            overflow-hidden
-                        "
-                        style={{
-                            background: theme.surfaceSecondary,
-                            border: `1px solid ${theme.border}`,
-                        }}
-                    >
-
-                        {/* Status glow */}
-
-                        <div
-                            className="
-                                absolute
-                                -bottom-12
-                                -right-12
-                                w-32
-                                h-32
-                                rounded-full
-                                blur-3xl
-                                opacity-15
-                            "
-                            style={{
-                                background: condition.color,
-                            }}
-                        />
-
-                        <p
-                            className="text-xs uppercase tracking-wider"
-                            style={{
-                                color: theme.textSecondary,
-                            }}
-                        >
-                            Overall Driver Condition
-                        </p>
-
-
-                        <div className="flex items-center gap-3 mt-3">
-
-                            <div
-                                className="w-3 h-3 rounded-full animate-pulse"
-                                style={{
-                                    background: condition.color,
-                                }}
-                            />
-
-                            <h3
-                                className="text-3xl font-bold"
-                                style={{
-                                    color: condition.color,
-                                }}
-                            >
-                                {condition.status}
-                            </h3>
-
-                        </div>
-
-
-                        <p
-                            className="text-sm mt-3 leading-relaxed"
-                            style={{
-                                color: theme.textSecondary,
-                            }}
-                        >
-                            {condition.message}
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-    );
-}
-
-
-function SummaryRow({
-    title,
-    value,
-    status,
-    color,
-}) {
-    const { theme } = useContext(ThemeContext);
-
-    return (
-        <div
-            className="
-                flex
-                items-center
-                justify-between
-                px-3
-                py-3
-                rounded-xl
-                transition-all
-                duration-200
-            "
-        >
-
-            <div className="flex items-center gap-3">
-
-                <div
-                    className="w-2 h-2 rounded-full"
-                    style={{
-                        background: color,
-                    }}
-                />
-
-                <span
-                    className="text-sm"
-                    style={{
-                        color: theme.textSecondary,
-                    }}
-                >
-                    {title}
-                </span>
-
-            </div>
-
-
-            <div className="flex items-center gap-3">
-
-                <span
-                    className="text-sm font-semibold"
-                    style={{
-                        color: theme.text,
-                    }}
-                >
-                    {value}
-                </span>
-
-                <span
-                    className="text-xs font-semibold"
-                    style={{
-                        color,
-                    }}
-                >
-                    {status}
-                </span>
-
             </div>
 
         </div>

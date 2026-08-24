@@ -90,33 +90,6 @@ function DashboardPage({
     |
     */
 
-    useEffect(() => {
-
-        console.log(
-            "🔄 DASHBOARD LIVE DATA UPDATED:",
-            liveData
-        );
-
-        console.log(
-            "🚦 DASHBOARD CONDITION:",
-            liveData?.condition
-        );
-
-        console.log(
-            "🤖 DASHBOARD PREDICTION:",
-            liveData?.prediction
-        );
-
-        console.log(
-            "❤️ DASHBOARD HEART RATE:",
-            liveData?.vitals?.heartRate
-        );
-
-    }, [
-        liveData,
-    ]);
-
-
     /*
     |--------------------------------------------------------------------------
     | VITAL STATUS HELPERS
@@ -329,7 +302,7 @@ function DashboardPage({
                 className="
                     grid
                     grid-cols-12
-                    gap-6
+                    gap-4
                 "
             >
 
@@ -366,7 +339,7 @@ function DashboardPage({
                         xl:col-span-8
                         grid
                         grid-rows-[auto_auto_auto]
-                        gap-6
+                        gap-4
                     "
                 >
 
@@ -391,7 +364,7 @@ function DashboardPage({
                             grid
                             grid-cols-1
                             md:grid-cols-2
-                            gap-6
+                            gap-4
                             items-stretch
                         "
                     >
@@ -439,7 +412,7 @@ function DashboardPage({
                         xl:col-span-4
                         flex
                         flex-col
-                        gap-6
+                        gap-4
                     "
                 >
 
@@ -452,7 +425,7 @@ function DashboardPage({
                         className="
                             grid
                             grid-cols-2
-                            gap-6
+                            gap-4
                             items-stretch
                         "
                     >

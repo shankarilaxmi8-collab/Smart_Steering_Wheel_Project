@@ -40,7 +40,7 @@ source venv/bin/activate
 ## Step 4: Install Dependencies
 
 ```bash
-pip install -r backend/requirements.txt
+pip install -r requirements.txt
 ```
 
 ---
@@ -146,7 +146,7 @@ Successful activation:
 Run from the main project folder:
 
 ```powershell
-pip install -r backend/requirements.txt
+pip install -r requirements.txt
 ```
 
 ---
@@ -196,3 +196,26 @@ When finished:
 ```bash
 deactivate
 ```
+## Deterministic dummy-data dashboard
+
+Install the backend runtime dependencies from the project root:
+
+```powershell
+.\venv\Scripts\python.exe -m pip install -r backend\requirements.txt
+.\venv\Scripts\python.exe -m uvicorn backend.app.main:app --reload
+```
+
+The `backend/data/processed_driver_features.csv` demo stream is deterministic:
+
+- label `0` is sent as `NORMAL`;
+- label `1` is sent as `WARNING`;
+- label `2` is sent as `CRITICAL`.
+
+The `/ws` payload exposes this as `status`, `condition`, and
+`scenario_status`. The optional ML result remains nested under `prediction`;
+it does not override the known dummy-data scenario. If the ML artifact cannot
+load, streaming remains available with `prediction.available: false`.
+
+Use `/api/v1/health` for process liveness and `/api/v1/ready` for model
+readiness. A readiness failure is expected when the model/dependencies are
+not installed.

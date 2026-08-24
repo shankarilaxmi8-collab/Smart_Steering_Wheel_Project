@@ -11,6 +11,7 @@ class TelemetryLog(Base):
     
     # --- OLD SENSORS ---
     heart_rate = Column(Float, nullable=False)
+    hrv = Column(Float, default=0.0)
     gsr = Column(Float, nullable=False)
     grip_pressure = Column(Float, nullable=False)
     skin_temperature = Column(Float, nullable=False)

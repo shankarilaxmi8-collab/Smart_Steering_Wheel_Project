@@ -124,37 +124,30 @@ export default function useDriverData() {
                         return;
                     }
 
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | DEBUG
-                    |--------------------------------------------------------------------------
-                    */
-
-                    console.log(
-                        "📊 DRIVER DATA:",
-                        apiData
-                    );
-
-                    console.log(
-                        "🚦 BACKEND CONDITION:",
-                        apiData.condition
-                    );
-
-                    console.log(
-                        "🤖 BACKEND PREDICTION:",
-                        apiData.prediction
-                    );
-
-                    console.log(
-                        "❤️ HEART RATE:",
-                        apiData.heart_rate
-                    );
-
-                    console.log(
-                        "💧 GSR:",
-                        apiData.gsr
-                    );
+                    if (apiData.type === "error") {
+                        setData((prev) => ({
+                            ...prev,
+                            vitals: {
+                                ...prev.vitals,
+                                heartRate: null,
+                                hrv: null,
+                                sweat: null,
+                                palmTemp: null,
+                                heartRateStatus: "Unavailable",
+                                hrvStatus: "Unavailable",
+                                sweatStatus: "Unavailable",
+                                palmTempStatus: "Unavailable",
+                            },
+                            condition: "UNKNOWN",
+                            prediction: null,
+                            riskLevel: "Unavailable",
+                            riskConfidence: null,
+                            sensorStatus: "Disconnected",
+                        }));
+                        setLoading(false);
+                        setError(apiData.detail ?? "Live telemetry is unavailable.");
+                        return;
+                    }
 
 
                     /*
@@ -204,17 +197,11 @@ export default function useDriverData() {
                         |
                         */
 
-                        const hasBackendCondition =
-                            apiData.condition != null ||
-                            apiData.status != null ||
-                            apiData.profile?.status != null;
-
-
                         const liveCondition =
-                            apiData.condition ??
                             apiData.status ??
+                            apiData.condition ??
                             apiData.profile?.status ??
-                            "NORMAL";
+                            "UNKNOWN";
 
 
                         const normalizedCondition =
@@ -263,13 +250,13 @@ export default function useDriverData() {
                                 livePrediction.prediction ??
                                 livePrediction.label ??
                                 livePrediction.class ??
-                                "NORMAL";
+                                "UNKNOWN";
 
 
                             const raw =
                                 livePrediction.raw_prediction ??
                                 stabilized ??
-                                "NORMAL";
+                                "UNKNOWN";
 
 
                             let confidence =
@@ -354,7 +341,7 @@ export default function useDriverData() {
                         else {
 
                             livePrediction =
-                                "NORMAL";
+                                "UNKNOWN";
 
                         }
 
@@ -365,8 +352,7 @@ export default function useDriverData() {
                         |--------------------------------------------------------------------------
                         */
 
-                        let predictionLabel =
-                            "NORMAL";
+                        let predictionLabel;
 
 
                         if (
@@ -377,7 +363,7 @@ export default function useDriverData() {
                             predictionLabel =
                                 livePrediction.stabilized_prediction ??
                                 livePrediction.raw_prediction ??
-                                "NORMAL";
+                                "UNKNOWN";
 
                         }
 
@@ -385,7 +371,7 @@ export default function useDriverData() {
 
                             predictionLabel =
                                 livePrediction ??
-                                "NORMAL";
+                                "UNKNOWN";
 
                         }
 
@@ -501,7 +487,9 @@ export default function useDriverData() {
 
 
                         let heartRateStatus =
-                            "Normal";
+                            Number.isFinite(heartRateNumber)
+                                ? "Normal"
+                                : "Unavailable";
 
 
                         if (heartRateCritical) {
@@ -515,6 +503,13 @@ export default function useDriverData() {
 
                             heartRateStatus =
                                 "High";
+
+                        }
+
+                        else if (heartRateNumber < 60) {
+
+                            heartRateStatus =
+                                "Low";
 
                         }
 
@@ -540,7 +535,9 @@ export default function useDriverData() {
 
 
                         let sweatStatus =
-                            "Normal";
+                            Number.isFinite(sweatNumber)
+                                ? "Normal"
+                                : "Unavailable";
 
 
                         if (sweatCritical) {
@@ -554,6 +551,13 @@ export default function useDriverData() {
 
                             sweatStatus =
                                 "High";
+
+                        }
+
+                        else if (sweatNumber < 2) {
+
+                            sweatStatus =
+                                "Low";
 
                         }
 
@@ -579,7 +583,9 @@ export default function useDriverData() {
 
 
                         let palmTempStatus =
-                            "Normal";
+                            Number.isFinite(palmTempNumber)
+                                ? "Normal"
+                                : "Unavailable";
 
 
                         if (palmTempCritical) {
@@ -596,6 +602,13 @@ export default function useDriverData() {
 
                         }
 
+                        else if (palmTempNumber < 35.5) {
+
+                            palmTempStatus =
+                                "Low";
+
+                        }
+
 
                         /*
                         |--------------------------------------------------------------------------
@@ -604,13 +617,22 @@ export default function useDriverData() {
                         */
 
                         const hrvLow =
-                            false;
+                            Number.isFinite(hrvNumber) &&
+                            hrvNumber < 30;
+
+                        const hrvHigh =
+                            Number.isFinite(hrvNumber) &&
+                            hrvNumber > 70;
 
 
                         const hrvStatus =
-                            hrvLow
-                                ? "Low"
-                                : "Normal";
+                            !Number.isFinite(hrvNumber)
+                                ? "Unavailable"
+                                : hrvLow
+                                    ? "Low"
+                                    : hrvHigh
+                                        ? "High"
+                                        : "Normal";
 
 
                         /*
@@ -673,19 +695,6 @@ export default function useDriverData() {
                         |
                         */
 
-                        const physiologicalCritical =
-                            heartRateCritical ||
-                            sweatCritical ||
-                            palmTempCritical;
-
-
-                        const physiologicalWarning =
-                            heartRateHigh ||
-                            sweatHigh ||
-                            palmTempHigh ||
-                            hrvLow;
-
-
                         /*
                         |--------------------------------------------------------------------------
                         | OVERALL RISK
@@ -720,9 +729,9 @@ export default function useDriverData() {
                         |
                         */
 
-                        let riskLevel = "LOW";
+                        let riskLevel;
 
-                        let riskRecommendation = "Continue Driving";
+                        let riskRecommendation;
 
 
                         /*
@@ -733,7 +742,7 @@ export default function useDriverData() {
 
                         if (aiCritical) {
 
-                            riskLevel = "HIGH";
+                            riskLevel = "High";
 
                             riskRecommendation =
                                 "Stop Driving Immediately";
@@ -748,7 +757,7 @@ export default function useDriverData() {
 
                         else if (aiWarning) {
 
-                            riskLevel = "MEDIUM";
+                            riskLevel = "Normal";
 
                             riskRecommendation =
                                 "Monitor Driver";
@@ -763,7 +772,7 @@ export default function useDriverData() {
 
                         else {
 
-                            riskLevel = "LOW";
+                            riskLevel = "Low";
 
                             riskRecommendation =
                                 "Continue Driving";
@@ -980,6 +989,17 @@ export default function useDriverData() {
 
 
                             condition:
+                                normalizedCondition,
+
+
+                            // One canonical status for all dashboard status cards.
+                            status:
+                                normalizedCondition,
+
+
+                            scenarioStatus:
+                                apiData.scenario_status ??
+                                apiData.scenarioStatus ??
                                 normalizedCondition,
 
 

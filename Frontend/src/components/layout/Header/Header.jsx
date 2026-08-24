@@ -53,37 +53,37 @@ function Header({ setActiveTab }) {
         flex
         items-center
         justify-between
-        px-8
-        py-4
+        gap-6
+        px-7
+        lg:px-9
+        py-2
         border-b
+        min-h-[72px]
       "
       style={{
         backgroundColor: theme.background,
         borderColor: theme.border,
       }}
     >
+
       {/* =====================================================
           BRAND
       ====================================================== */}
 
-      <div>
-        {/* BRAND NAME */}
+      <div className="min-w-0">
 
-        <h1
-          className="
-            flex
-            items-baseline
-            gap-2
-            leading-tight
-          "
-        >
-          {/* CARDIOOATH */}
+        <div className="flex items-baseline gap-2 flex-wrap">
 
-          <span
+          {/* CardiOath */}
+
+          <h1
             className="
-              text-4xl
+              text-[30px]
+              lg:text-[32px]
               font-bold
-              tracking-wide
+              tracking-tight
+              leading-none
+              whitespace-nowrap
             "
             style={{
               color: theme.text,
@@ -97,15 +97,18 @@ function Header({ setActiveTab }) {
             >
               Oath
             </span>
-          </span>
+          </h1>
 
-          {/* SMART STEERING WHEEL */}
+          {/* SmartSteering Wheel */}
 
           <span
             className="
-              text-3xl
-              font-bold
-              tracking-wide
+              text-[22px]
+              lg:text-[24px]
+              font-semibold
+              tracking-tight
+              leading-none
+              whitespace-nowrap
             "
             style={{
               color: theme.text,
@@ -113,15 +116,16 @@ function Header({ setActiveTab }) {
           >
             – SmartSteering Wheel
           </span>
-        </h1>
 
-        {/* AI DESCRIPTION */}
+        </div>
+
+        {/* Description */}
 
         <p
           className="
-            text-xs
+            mt-1.5
+            text-[11px]
             font-medium
-            mt-1
             tracking-wide
           "
           style={{
@@ -130,21 +134,45 @@ function Header({ setActiveTab }) {
         >
           AI Driver Health Monitoring System
         </p>
+
       </div>
+
 
       {/* =====================================================
           RIGHT SIDE
       ====================================================== */}
 
-      <div className="flex items-center gap-6">
+      <div
+        className="
+          flex
+          items-center
+          gap-3
+          lg:gap-4
+          shrink-0
+        "
+      >
 
         {/* =================================================
             CLOCK
         ================================================== */}
 
-        <div className="text-right">
+        <div
+          className="
+            hidden
+            sm:block
+            text-right
+            pr-2
+          "
+        >
+
           <p
-            className="text-base font-semibold"
+            className="
+              text-sm
+              lg:text-base
+              font-semibold
+              tabular-nums
+              leading-tight
+            "
             style={{
               color: theme.text,
             }}
@@ -153,17 +181,24 @@ function Header({ setActiveTab }) {
           </p>
 
           <p
-            className="text-xs"
+            className="
+              text-[10px]
+              lg:text-[11px]
+              mt-1
+              whitespace-nowrap
+            "
             style={{
               color: theme.textSecondary,
             }}
           >
             {date}
           </p>
+
         </div>
 
+
         {/* =================================================
-            CONNECTION
+            CONNECTION STATUS
         ================================================== */}
 
         <div
@@ -174,41 +209,81 @@ function Header({ setActiveTab }) {
             px-3
             py-2
             rounded-full
+            transition-all
+            duration-200
           "
           style={{
-            backgroundColor: theme.success + "20",
-            border: `1px solid ${theme.success}40`,
+            backgroundColor: theme.success + "12",
+            border: `1px solid ${theme.success}35`,
           }}
         >
-          <div
+
+          {/* Status Indicator */}
+
+          <span
             className="
+              relative
+              flex
               w-2
               h-2
-              rounded-full
-              animate-pulse
             "
-            style={{
-              backgroundColor: theme.success,
-            }}
-          />
+          >
+
+            <span
+              className="
+                absolute
+                inline-flex
+                w-full
+                h-full
+                rounded-full
+                opacity-60
+                animate-ping
+              "
+              style={{
+                backgroundColor: theme.success,
+              }}
+            />
+
+            <span
+              className="
+                relative
+                inline-flex
+                w-2
+                h-2
+                rounded-full
+              "
+              style={{
+                backgroundColor: theme.success,
+              }}
+            />
+
+          </span>
+
 
           <Wifi
-            size={15}
+            size={14}
+            strokeWidth={2}
             color={theme.success}
           />
 
           <span
-            className="text-xs font-semibold"
+            className="
+              text-[11px]
+              font-semibold
+              whitespace-nowrap
+            "
             style={{
               color: theme.success,
             }}
           >
             System Online
           </span>
+
         </div>
 
+
         {/* =================================================
-            THEME
+            THEME TOGGLE
         ================================================== */}
 
         <button
@@ -220,33 +295,43 @@ function Header({ setActiveTab }) {
               : "Switch to dark mode"
           }
           className="
+            group
             w-10
             h-10
             rounded-full
             flex
             items-center
             justify-center
+            border
             transition-all
             duration-200
-            hover:scale-105
+            hover:-translate-y-0.5
             cursor-pointer
           "
           style={{
             backgroundColor: theme.surfaceSecondary,
+            borderColor: theme.border,
           }}
         >
+
           {themeMode === "dark" ? (
             <Sun
-              size={19}
+              size={18}
+              strokeWidth={2}
               color={theme.text}
+              className="transition-transform duration-300 group-hover:rotate-12"
             />
           ) : (
             <Moon
-              size={19}
+              size={18}
+              strokeWidth={2}
               color={theme.text}
+              className="transition-transform duration-300 group-hover:-rotate-12"
             />
           )}
+
         </button>
+
 
         {/* =================================================
             PROFILE
@@ -257,28 +342,36 @@ function Header({ setActiveTab }) {
           onClick={() => setActiveTab("Settings")}
           aria-label="Open profile settings"
           className="
+            group
             w-10
             h-10
             rounded-full
             flex
             items-center
             justify-center
+            border
             transition-all
             duration-200
-            hover:scale-105
+            hover:-translate-y-0.5
             cursor-pointer
           "
           style={{
             backgroundColor: theme.surfaceSecondary,
+            borderColor: theme.border,
           }}
         >
+
           <UserCircle
-            size={24}
+            size={22}
+            strokeWidth={2}
             color={theme.text}
+            className="transition-transform duration-200 group-hover:scale-105"
           />
+
         </button>
 
       </div>
+
     </header>
   );
 }

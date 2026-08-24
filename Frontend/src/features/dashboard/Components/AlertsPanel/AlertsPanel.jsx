@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 
 import { ThemeContext } from "../../../../app/providers";
+import { metricStatusLabel } from "../../../../utils/metricStatus";
 
 function AlertsPanel({ data, loading, error }) {
 
@@ -17,9 +18,19 @@ function AlertsPanel({ data, loading, error }) {
 
   const vitals = data?.vitals || {};
 
+  const metricStatuses = {
+    heart_rate: metricStatusLabel(data, "heart_rate").toLowerCase(),
+    hrv: metricStatusLabel(data, "hrv").toLowerCase(),
+    gsr: metricStatusLabel(data, "gsr").toLowerCase(),
+    skin_temperature: metricStatusLabel(data, "skin_temperature").toLowerCase(),
+  };
+  const hasBackendMetricStatuses = Object.values(metricStatuses).every(
+    (status) => status !== "unavailable"
+  );
+  const useLegacyThresholds = false;
   const alerts = [];
 
-  if (vitals.heartRate < 60)
+  if (useLegacyThresholds && vitals.heartRate < 60)
     alerts.push({
       title: "Low Heart Rate",
       message: `Heart rate dropped to ${vitals.heartRate} BPM.`,
@@ -28,7 +39,7 @@ function AlertsPanel({ data, loading, error }) {
       icon: <AlertTriangle size={42} />,
     });
 
-  else if (vitals.heartRate > 100)
+  else if (useLegacyThresholds && vitals.heartRate > 100)
     alerts.push({
       title: "High Heart Rate",
       message: `Heart rate increased to ${vitals.heartRate} BPM.`,
@@ -37,7 +48,7 @@ function AlertsPanel({ data, loading, error }) {
       icon: <AlertTriangle size={42} />,
     });
 
-  if (vitals.hrv < 30)
+  if (useLegacyThresholds && vitals.hrv < 30)
     alerts.push({
       title: "Low HRV",
       message: `HRV reduced to ${vitals.hrv} ms.`,
@@ -46,7 +57,7 @@ function AlertsPanel({ data, loading, error }) {
       icon: <AlertTriangle size={42} />,
     });
 
-  else if (vitals.hrv > 70)
+  else if (useLegacyThresholds && vitals.hrv > 70)
     alerts.push({
       title: "High HRV",
       message: `HRV increased to ${vitals.hrv} ms.`,
@@ -55,7 +66,7 @@ function AlertsPanel({ data, loading, error }) {
       icon: <CheckCircle2 size={42} />,
     });
 
-  if (vitals.sweat < 2)
+  if (useLegacyThresholds && vitals.sweat < 2)
     alerts.push({
       title: "Low Sweat Activity",
       message: `Sweat activity decreased to ${vitals.sweat} µS.`,
@@ -64,7 +75,7 @@ function AlertsPanel({ data, loading, error }) {
       icon: <CheckCircle2 size={42} />,
     });
 
-  else if (vitals.sweat > 5)
+  else if (useLegacyThresholds && vitals.sweat > 5)
     alerts.push({
       title: "High Sweat Activity",
       message: `Sweat activity increased to ${vitals.sweat} µS.`,
@@ -73,7 +84,7 @@ function AlertsPanel({ data, loading, error }) {
       icon: <AlertTriangle size={42} />,
     });
 
-  if (vitals.palmTemp < 35.5)
+  if (useLegacyThresholds && vitals.palmTemp < 35.5)
     alerts.push({
       title: "Low Palm Temperature",
       message: `Palm temperature is ${vitals.palmTemp} °C.`,
@@ -82,7 +93,7 @@ function AlertsPanel({ data, loading, error }) {
       icon: <CheckCircle2 size={42} />,
     });
 
-  else if (vitals.palmTemp > 37.5)
+  else if (useLegacyThresholds && vitals.palmTemp > 37.5)
     alerts.push({
       title: "High Palm Temperature",
       message: `Palm temperature is ${vitals.palmTemp} °C.`,
@@ -90,6 +101,26 @@ function AlertsPanel({ data, loading, error }) {
       color: "#EF4444",
       icon: <ShieldAlert size={42} />,
     });
+
+  if (hasBackendMetricStatuses) {
+    [
+      ["heart_rate", "Heart Rate", vitals.heartRate, "BPM"],
+      ["hrv", "HRV", vitals.hrv, "ms"],
+      ["gsr", "Sweat Activity", vitals.sweat, "µS"],
+      ["skin_temperature", "Palm Temperature", vitals.palmTemp, "°C"],
+    ].forEach(([key, label, value, unit]) => {
+      const severity = metricStatuses[key];
+      if (severity !== "warning" && severity !== "critical") return;
+      const critical = severity === "critical";
+      alerts.push({
+        title: `${critical ? "Critical" : "Warning"} ${label}`,
+        message: `${label} is ${value ?? "unavailable"}${value == null ? "" : ` ${unit}`}.`,
+        severity,
+        color: critical ? "#EF4444" : "#F59E0B",
+        icon: critical ? <ShieldAlert size={42} /> : <AlertTriangle size={42} />,
+      });
+    });
+  }
 
   const severityOrder = {
       critical: 3,
@@ -102,13 +133,19 @@ function AlertsPanel({ data, loading, error }) {
   );
 
   const currentAlert =
-      alerts[0] || {
+      alerts[0] || (!hasBackendMetricStatuses ? {
+          title: "Telemetry Unavailable",
+          message: "Waiting for a complete live telemetry update.",
+          severity: "unavailable",
+          color: theme.textSecondary,
+          icon: <AlertTriangle size={42} />,
+      } : {
           title: "No Critical Alerts",
           message: "All monitored vitals are within safe operating limits.",
           severity: "normal",
           color: "#22C55E",
           icon: <CheckCircle2 size={42} />,
-      };
+      });
 
   useEffect(() => {
 
@@ -172,7 +209,8 @@ function AlertsPanel({ data, loading, error }) {
   return (
 
     <div
-      className="rounded-3xl p-5 h-full min-h-[430px]"
+      data-status={String(currentAlert.severity ?? "unavailable").trim().toLowerCase()}
+      className={`status-card status-card-${String(currentAlert.severity ?? "unavailable").trim().toLowerCase()} rounded-3xl p-5 h-full min-h-[430px]`}
       style={{
         background: theme.surface,
         border: `1px solid ${currentAlert.color}40`
@@ -184,7 +222,7 @@ function AlertsPanel({ data, loading, error }) {
       </h3>
 
       <div
-        className="alert-success"
+        className={`alert-success alert-${String(currentAlert.severity ?? "unavailable").trim().toLowerCase()}`}
         style={{ color: currentAlert.color }}
       >
 

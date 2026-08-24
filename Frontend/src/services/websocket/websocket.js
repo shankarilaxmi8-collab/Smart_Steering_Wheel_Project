@@ -1,4 +1,5 @@
-const WS_URL = "ws://localhost:8000/ws";
+const configuredUrl = import.meta.env.VITE_WS_URL;
+const WS_URL = configuredUrl || `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.hostname || "localhost"}:8000/ws`;
 
 export function connectWebSocket(
     onMessage,

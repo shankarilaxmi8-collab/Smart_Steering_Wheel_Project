@@ -2,6 +2,10 @@ import { useContext } from "react";
 import { ArrowRight } from "lucide-react";
 
 import { ThemeContext } from "../../../../app/providers";
+import {
+    normalizeStatus,
+    statusLabel,
+} from "../../../../utils/metricStatus";
 
 
 function StatusBanner({
@@ -32,8 +36,10 @@ function StatusBanner({
                 return theme.warning;
 
             case "NORMAL":
-            default:
                 return theme.success;
+
+            default:
+                return theme.textSecondary;
 
         }
 
@@ -51,28 +57,26 @@ function StatusBanner({
         return (
             <div
                 className="
-                    rounded-3xl
-                    px-7
-                    py-8
+                    rounded-2xl
+                    px-5
+                    py-5
                     text-center
                     animate-pulse
                 "
                 style={{
-                    backgroundColor:
-                        theme.surface,
+                    backgroundColor: theme.surface,
 
                     border:
                         themeMode === "light"
                             ? `1.5px solid ${theme.cardBorder}`
                             : `1px solid ${theme.border}`,
 
-                    color:
-                        theme.text,
+                    color: theme.text,
 
                     boxShadow:
                         themeMode === "light"
                             ? `0 3px 14px ${theme.cardGlow}18`
-                            : "0 0 30px rgba(0, 0, 0, 0.15)",
+                            : "0 0 20px rgba(0, 0, 0, 0.15)",
                 }}
             >
                 Loading Driver Status...
@@ -93,9 +97,9 @@ function StatusBanner({
         return (
             <div
                 className="
-                    rounded-3xl
-                    px-7
-                    py-8
+                    rounded-2xl
+                    px-5
+                    py-5
                     text-center
                 "
                 style={{
@@ -126,56 +130,19 @@ function StatusBanner({
 
 
     /*
-        |--------------------------------------------------------------------------
-        | SINGLE SOURCE OF TRUTH
-        |--------------------------------------------------------------------------
-        |
-        | useDriverData() calculates:
-        |
-        | LOW    -> NORMAL
-        | MEDIUM -> WARNING
-        | HIGH   -> CRITICAL
-        |
-        | StatusBanner only displays that result.
-        |
-        */
+    |--------------------------------------------------------------------------
+    | SINGLE SOURCE OF TRUTH
+    |--------------------------------------------------------------------------
+    */
 
-        const backendRisk =
-            String(
-                data?.riskLevel ??
-                "LOW"
-            )
-                .trim()
-                .toUpperCase();
+    const normalizedStatus = normalizeStatus(
+        data?.status ??
+        data?.condition ??
+        data?.prediction?.status
+    );
 
-
-        let statusLevel = "NORMAL";
-
-
-        if (
-            backendRisk === "HIGH"
-        ) {
-
-            statusLevel =
-                "CRITICAL";
-
-        }
-
-        else if (
-            backendRisk === "MEDIUM"
-        ) {
-
-            statusLevel =
-                "WARNING";
-
-        }
-
-        else {
-
-            statusLevel =
-                "NORMAL";
-
-        }
+    const statusLevel =
+        normalizedStatus.toUpperCase();
 
 
     /*
@@ -185,9 +152,7 @@ function StatusBanner({
     */
 
     const color =
-        getStatusColor(
-            statusLevel
-        );
+        getStatusColor(statusLevel);
 
 
     /*
@@ -197,11 +162,7 @@ function StatusBanner({
     */
 
     const riskLevel =
-        statusLevel === "CRITICAL"
-            ? "HIGH"
-            : statusLevel === "WARNING"
-                ? "MEDIUM"
-                : "LOW";
+        statusLabel(normalizedStatus);
 
 
     /*
@@ -215,7 +176,9 @@ function StatusBanner({
             ? "Immediate Attention"
             : statusLevel === "WARNING"
                 ? "Attention Required"
-                : "Driver Alert";
+                : statusLevel === "NORMAL"
+                    ? "Driver Alert"
+                    : "Unavailable";
 
 
     /*
@@ -225,34 +188,28 @@ function StatusBanner({
     */
 
     let confidenceValue =
-        Number(
-            data?.riskConfidence ??
-            data?.prediction?.confidence ??
-            0
-        );
+        Number(data?.prediction?.confidence);
 
 
     if (
         Number.isFinite(confidenceValue) &&
         confidenceValue > 1
     ) {
-
         confidenceValue =
             confidenceValue / 100;
-
     }
 
 
     const confidence =
-        Number.isFinite(
-            confidenceValue
-        ) &&
-        confidenceValue > 0
-
-            ? `${Math.round(
-                confidenceValue * 100
-            )}%`
-
+        Number.isFinite(confidenceValue) &&
+        confidenceValue >= 0
+            ? `${
+                confidenceValue * 100 < 1
+                    ? (confidenceValue * 100).toFixed(1)
+                    : Math.round(
+                        confidenceValue * 100
+                    )
+            }%`
             : "N/A";
 
 
@@ -263,18 +220,29 @@ function StatusBanner({
     */
 
     let heading =
-        "SYSTEM STATUS: NORMAL";
+        "SYSTEM STATUS: UNAVAILABLE";
 
     let subtitle =
-        "Optimal Driver Condition Detected";
+        "Live Driver Status Unavailable";
 
     let message =
-        "All monitored indicators are currently within the expected range.";
+        "Waiting for a live AI risk assessment.";
 
 
-    if (
-        statusLevel === "WARNING"
-    ) {
+    if (statusLevel === "NORMAL") {
+
+        heading =
+            "SYSTEM STATUS: NORMAL";
+
+        subtitle =
+            "Optimal Driver Condition Detected";
+
+        message =
+            "All monitored indicators are currently within the expected range.";
+
+    }
+
+    else if (statusLevel === "WARNING") {
 
         heading =
             "SYSTEM STATUS: WARNING";
@@ -287,10 +255,7 @@ function StatusBanner({
 
     }
 
-
-    else if (
-        statusLevel === "CRITICAL"
-    ) {
+    else if (statusLevel === "CRITICAL") {
 
         heading =
             "SYSTEM STATUS: CRITICAL";
@@ -306,24 +271,7 @@ function StatusBanner({
 
     /*
     |--------------------------------------------------------------------------
-    | DEBUG
-    |--------------------------------------------------------------------------
-    */
-
-    console.log(
-        "🚦 STATUS BANNER:",
-        {
-            backendRisk,
-            statusLevel,
-            riskLevel,
-            confidence,
-        }
-    );
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | BORDER
+    | BORDER / SHADOW
     |--------------------------------------------------------------------------
     */
 
@@ -333,20 +281,12 @@ function StatusBanner({
             : `1.5px solid ${color}55`;
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | SHADOW
-    |--------------------------------------------------------------------------
-    */
-
     const bannerShadow =
         themeMode === "light"
-
             ? `
                 0 3px 12px rgba(20, 35, 51, 0.05),
                 0 0 14px ${color}20
               `
-
             : `0 0 14px ${color}10`;
 
 
@@ -359,13 +299,16 @@ function StatusBanner({
     return (
 
         <div
-            className="
-                rounded-3xl
-                px-7
-                py-5
+            data-status={normalizedStatus}
+            className={`
+                risk-card
+                status-card-${normalizedStatus}
+                rounded-2xl
+                px-5
+                py-4
                 transition-all
                 duration-300
-            "
+            `}
             style={{
                 backgroundColor:
                     theme.surface,
@@ -378,42 +321,42 @@ function StatusBanner({
             }}
         >
 
-            {/* HEADING */}
+            {/* =====================================================
+                HEADING
+            ====================================================== */}
 
             <div
                 className="
                     flex
                     justify-center
                     items-center
-                    gap-3
+                    gap-2
                 "
             >
 
                 <span
                     className="
-                        w-3
-                        h-3
+                        w-2.5
+                        h-2.5
                         rounded-full
                         animate-pulse
                         shrink-0
                     "
                     style={{
-                        backgroundColor:
-                            color,
-
-                        boxShadow:
-                            `0 0 8px ${color}55`,
+                        backgroundColor: color,
+                        boxShadow: `0 0 7px ${color}55`,
                     }}
                 />
 
                 <h1
                     className="
-                        text-3xl
-                        sm:text-4xl
-                        lg:text-5xl
-                        font-extrabold
+                        text-2xl
+                        sm:text-3xl
+                        lg:text-4xl
+                        font-bold
                         tracking-wide
                         text-center
+                        leading-tight
                     "
                     style={{
                         color,
@@ -425,14 +368,15 @@ function StatusBanner({
             </div>
 
 
-            {/* SUBTITLE */}
+            {/* =====================================================
+                SUBTITLE
+            ====================================================== */}
 
             <p
                 className="
                     text-sm
-                    lg:text-base
                     text-center
-                    mt-2
+                    mt-1.5
                 "
                 style={{
                     color:
@@ -443,17 +387,18 @@ function StatusBanner({
             </p>
 
 
-            {/* MESSAGE */}
+            {/* =====================================================
+                MESSAGE
+            ====================================================== */}
 
             <p
                 className="
                     text-xs
-                    lg:text-sm
                     text-center
                     max-w-3xl
                     mx-auto
-                    mt-2
-                    leading-6
+                    mt-1.5
+                    leading-5
                 "
                 style={{
                     color:
@@ -464,10 +409,12 @@ function StatusBanner({
             </p>
 
 
-            {/* DIVIDER */}
+            {/* =====================================================
+                DIVIDER
+            ====================================================== */}
 
             <div
-                className="my-4"
+                className="my-3"
                 style={{
                     borderTop:
                         `1px solid ${theme.border}`,
@@ -475,7 +422,9 @@ function StatusBanner({
             />
 
 
-            {/* BOTTOM */}
+            {/* =====================================================
+                BOTTOM INFORMATION
+            ====================================================== */}
 
             <div
                 className="
@@ -484,7 +433,7 @@ function StatusBanner({
                     lg:flex-row
                     items-center
                     justify-between
-                    gap-5
+                    gap-4
                 "
             >
 
@@ -500,7 +449,7 @@ function StatusBanner({
                     <p
                         className="
                             uppercase
-                            tracking-[0.25em]
+                            tracking-[0.2em]
                             text-[9px]
                         "
                         style={{
@@ -513,10 +462,9 @@ function StatusBanner({
 
                     <h3
                         className="
-                            text-xl
-                            lg:text-2xl
+                            text-lg
                             font-bold
-                            mt-1
+                            mt-0.5
                         "
                         style={{
                             color,
@@ -540,7 +488,7 @@ function StatusBanner({
                     <p
                         className="
                             uppercase
-                            tracking-[0.25em]
+                            tracking-[0.2em]
                             text-[9px]
                         "
                         style={{
@@ -553,10 +501,9 @@ function StatusBanner({
 
                     <h3
                         className="
-                            text-xl
-                            lg:text-2xl
+                            text-lg
                             font-bold
-                            mt-1
+                            mt-0.5
                         "
                         style={{
                             color:
@@ -581,7 +528,7 @@ function StatusBanner({
                     <p
                         className="
                             uppercase
-                            tracking-[0.25em]
+                            tracking-[0.2em]
                             text-[9px]
                         "
                         style={{
@@ -594,10 +541,9 @@ function StatusBanner({
 
                     <h3
                         className="
-                            text-xl
-                            lg:text-2xl
+                            text-lg
                             font-bold
-                            mt-1
+                            mt-0.5
                         "
                         style={{
                             color:
@@ -625,19 +571,18 @@ function StatusBanner({
                             setActiveTab?.("Vitals")
                         }
                         className="
-                            px-4
+                            px-3.5
                             py-2
                             text-xs
-                            lg:text-sm
                             rounded-xl
                             cursor-pointer
                             flex
                             items-center
-                            gap-2
+                            gap-1.5
                             font-medium
                             transition-all
-                            duration-300
-                            hover:scale-105
+                            duration-200
+                            hover:scale-[1.03]
                         "
                         style={{
                             backgroundColor:
@@ -658,7 +603,7 @@ function StatusBanner({
                         View Details
 
                         <ArrowRight
-                            size={16}
+                            size={15}
                         />
 
                     </button>

@@ -1,66 +1,156 @@
 import asyncio
 import threading
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, WebSocket, Depends
+from datetime import datetime, timezone
+
+from fastapi import Depends, FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
+from backend.app.database import Base, SessionLocal, engine, get_db, migrate_schema
+from backend.app.models.schemas import DriverStatus, PredictionResult, TelemetryInput
+from backend.app.models.telemetry_db import TelemetryLog
+from backend.app.services.ai_adapter import predict_telemetry, unavailable_prediction
+from backend.app.services.ros_bridge import ROS2BridgeNode
+from backend.app.services.simulator import generate_ecg_chunk, get_sensor_data
+from backend.app.websocket.manager import manager
+
 try:
     import rclpy
+
     ROS2_AVAILABLE = True
 except ImportError:
     ROS2_AVAILABLE = False
 
-from backend.app.services.simulator import (
-    get_sensor_data,
-    generate_ecg_chunk,
-)
-from backend.app.models.schemas import DriverStatus
-from backend.app.websocket.manager import manager
-from AI_Module.AIML.Week4.predict_risk import predict_risk
-from backend.app.services.ros_bridge import ROS2BridgeNode
-from backend.app.database import Base, engine, get_db
-from backend.app.models.telemetry_db import TelemetryLog
 
-
-def spin_ros(node):
-    if ROS2_AVAILABLE:
-        rclpy.spin(node)
+def _run_ros(node: ROS2BridgeNode) -> None:
+    rclpy.spin(node)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
-
+    migrate_schema()
+    ros_node = None
     if ROS2_AVAILABLE:
         rclpy.init()
-        loop = asyncio.get_running_loop()
-        ros_node = ROS2BridgeNode(loop=loop)
-        ros_thread = threading.Thread(target=spin_ros, args=(ros_node,), daemon=True)
-        ros_thread.start()
-        print("🚀 ROS 2 Bridge started successfully.")
-    else:
-        print("⚠️ rclpy not found! Running backend in standalone mode.")
-
+        ros_node = ROS2BridgeNode(loop=asyncio.get_running_loop())
+        threading.Thread(target=_run_ros, args=(ros_node,), daemon=True).start()
     yield
-
     if ROS2_AVAILABLE:
+        if ros_node is not None:
+            ros_node.destroy_node()
         rclpy.shutdown()
 
 
-app = FastAPI(
-    title="Smart Steering Wheel API",
-    version="0.1.0",
-    lifespan=lifespan
-)
-
+app = FastAPI(title="Smart Steering Wheel API", version="1.0.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_credentials=False,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
 )
+
+
+def _timestamp(value: datetime | None = None) -> str:
+    return (value or datetime.now(timezone.utc)).isoformat()
+
+
+def _serialize_log(log: TelemetryLog) -> dict:
+    raw_prediction = "CRITICAL" if log.raw_prediction == "CARDIAC_EVENT" else log.raw_prediction
+    stabilized_prediction = (
+        "CRITICAL" if log.stabilized_prediction == "CARDIAC_EVENT" else log.stabilized_prediction
+    )
+    prediction = PredictionResult(
+        raw_prediction=raw_prediction,
+        stabilized_prediction=stabilized_prediction,
+        status=stabilized_prediction,
+        confidence=log.confidence,
+        risk_score=round(log.confidence * 100, 2),
+    )
+    return {
+        "schema_version": "1.0",
+        "id": log.id,
+        "timestamp": _timestamp(log.timestamp),
+        "heart_rate": log.heart_rate,
+        "hrv": log.hrv,
+        "gsr": log.gsr,
+        "grip_pressure": log.grip_pressure,
+        "skin_temperature": log.skin_temperature,
+        "ecg_signal": log.ecg_signal,
+        "rr_interval": log.rr_interval,
+        "qrs_duration": log.qrs_duration,
+        "st_deviation": log.st_deviation,
+        "qt_interval": log.qt_interval,
+        "condition": stabilized_prediction,
+        "status": stabilized_prediction,
+        "scenario_status": "UNKNOWN",
+        "prediction": prediction.model_dump(),
+        "sensor_status": "Recorded",
+        "alert_level": log.alert_level,
+    }
+
+
+def _persist(db: Session, telemetry: TelemetryInput, prediction: PredictionResult) -> TelemetryLog:
+    log = TelemetryLog(
+        timestamp=telemetry.timestamp or datetime.now(timezone.utc),
+        heart_rate=telemetry.heart_rate,
+        hrv=telemetry.hrv,
+        gsr=telemetry.gsr,
+        grip_pressure=telemetry.grip_pressure,
+        skin_temperature=telemetry.skin_temperature,
+        ecg_signal=telemetry.ecg_signal,
+        rr_interval=telemetry.rr_interval or 60_000.0 / telemetry.heart_rate,
+        qrs_duration=telemetry.qrs_duration,
+        st_deviation=telemetry.st_deviation,
+        qt_interval=telemetry.qt_interval,
+        confidence=prediction.confidence,
+        raw_prediction=prediction.raw_prediction,
+        stabilized_prediction=prediction.stabilized_prediction,
+        alert_level=prediction.status,
+    )
+    db.add(log)
+    db.commit()
+    db.refresh(log)
+    return log
+
+
+def _live_payload(
+    timestamp: str | int,
+    telemetry: TelemetryInput,
+    scenario_status: str,
+    prediction: PredictionResult,
+    ecg: list[float],
+) -> dict:
+    """Build the versioned live contract.
+
+    `status` is the deterministic CSV scenario in demo mode.  The ML result is
+    intentionally preserved inside `prediction` for evaluation, rather than
+    being allowed to overwrite incomplete dummy telemetry.
+    """
+    return {
+        "schema_version": "1.0",
+        "timestamp": timestamp,
+        "heart_rate": telemetry.heart_rate,
+        "hrv": telemetry.hrv,
+        "gsr": telemetry.gsr,
+        "grip_pressure": telemetry.grip_pressure,
+        "skin_temperature": telemetry.skin_temperature,
+        "ecg_signal": telemetry.ecg_signal,
+        "rr_interval": telemetry.rr_interval or 60_000.0 / telemetry.heart_rate,
+        "qrs_duration": telemetry.qrs_duration,
+        "st_deviation": telemetry.st_deviation,
+        "qt_interval": telemetry.qt_interval,
+        "condition": scenario_status,
+        "status": scenario_status,
+        "scenario_status": scenario_status,
+        "prediction": prediction.model_dump(),
+        "sensor_status": "Connected",
+        "ecg": ecg,
+        "ecg_sampling_rate": 250,
+        "ecg_status": "SIMULATED",
+    }
 
 
 @app.get("/")
@@ -70,375 +160,105 @@ def root():
 
 @app.get("/api/v1/health")
 def health():
-    return {"status": "healthy", "version": "1.0"}
+    try:
+        # Fail readiness early when the configured model or dependency cannot load.
+        from backend.app.services.ai_adapter import get_predictor
+
+        get_predictor()
+        model_status = "ready"
+    except Exception as error:
+        model_status = f"unavailable: {type(error).__name__}"
+    return {"status": "healthy", "version": app.version, "model": model_status}
+
+
+@app.get("/api/v1/ready")
+def readiness():
+    """Readiness differs from liveness: serving demo status does not make ML ready."""
+    try:
+        from backend.app.services.ai_adapter import get_predictor
+
+        get_predictor()
+    except Exception as error:
+        raise HTTPException(status_code=503, detail=f"Risk model unavailable: {type(error).__name__}") from error
+    return {"status": "ready", "version": app.version}
 
 
 @app.get("/api/v1/status", response_model=DriverStatus)
 def status():
-    sensor = get_sensor_data()
-    # Construct 9-feature vector matching the trained model requirement
-    ai_input = {
-
-        "heart_rate":
-            sensor.get("heart_rate", 75.0),
-
-        "gsr":
-            sensor.get("gsr", 2.0),
-
-        "skin_temperature":
-            sensor.get("skin_temperature", 36.6),
-
-        "grip_pressure":
-            sensor.get("grip_pressure", 4.0),
-
-        "ecg_signal":
-            sensor.get("ecg_signal", 0.0),
-
-        "rr_interval":
-            sensor.get("rr_interval", 780.0),
-
-        "qrs_duration":
-            sensor.get("qrs_duration", 94.0),
-
-        "st_deviation":
-            sensor.get("st_deviation", 0.03),
-
-        "qt_interval":
-            sensor.get("qt_interval", 395.0),
-
-    }
-
-    prediction = predict_risk(ai_input)
-    sensor["prediction"] = prediction
-    return sensor
-
-
-@app.get("/api/v1/history")
-def get_history(limit: int = 50, db: Session = Depends(get_db)):
+    timestamp, telemetry, scenario_status = get_sensor_data()
     try:
-        logs = db.query(TelemetryLog).order_by(TelemetryLog.timestamp.desc()).limit(limit).all()
-        return [
-            {
-                "id": log.id,
-                "timestamp": str(log.timestamp) if log.timestamp else None,
-                "heart_rate": log.heart_rate,
-                "gsr": log.gsr,
-                "grip_pressure": log.grip_pressure,
-                "skin_temperature": log.skin_temperature,
-                "raw_prediction": log.raw_prediction,
-                "stabilized_prediction": log.stabilized_prediction,
-                "alert_level": getattr(log, "alert_level", "NORMAL")
-            }
-            for log in logs
-        ][::-1]
-    except Exception as e:
-        return {"error": f"Database Query Error: {str(e)}"}
+        prediction = predict_telemetry(telemetry)
+    except Exception:
+        prediction = unavailable_prediction()
+    return _live_payload(timestamp, telemetry, scenario_status, prediction, ecg=[])
 
 
-@app.post("/api/v1/sensors")
-def receive_sensor_data(data: dict, db: Session = Depends(get_db)):
-    # Step 1: Run the AI prediction
-    from AI_Module.AIML.Week4.predict_risk import predict_risk
-    ai_result = predict_risk(data)
-    
-    # Step 2: Save it to the database!
-    new_log = TelemetryLog(
-        heart_rate=data.get("heart_rate", 75.0),
-        gsr=data.get("gsr", 3.0),
-        grip_pressure=data.get("grip_pressure", 15.0),
-        skin_temperature=data.get("skin_temperature", 33.0),
-        ecg_signal=data.get("ecg_signal", 0.0),
-        rr_interval=data.get("rr_interval", 800.0),
-        qrs_duration=data.get("qrs_duration", 90.0),
-        st_deviation=data.get("st_deviation", 0.0),
-        qt_interval=data.get("qt_interval", 390.0),
-        
-        raw_prediction=ai_result["raw_prediction"],
-        stabilized_prediction=ai_result["stabilized_prediction"],
-        confidence=ai_result["confidence"],
-        alert_level=ai_result["stabilized_prediction"]
-    )
-    
-    db.add(new_log)
-    db.commit()
-    
-    return {
-        "message": "Data successfully saved to database!",
-        "prediction": ai_result
-    }
+@app.post("/api/v1/sensors", status_code=201)
+def receive_sensor_data(data: TelemetryInput, db: Session = Depends(get_db)):
+    try:
+        prediction = predict_telemetry(data)
+        log = _persist(db, data, prediction)
+    except HTTPException:
+        raise
+    except Exception as error:
+        db.rollback()
+        raise HTTPException(status_code=503, detail="Unable to process telemetry") from error
+    return {"message": "Telemetry stored", "record": _serialize_log(log)}
 
 
 @app.get("/api/v1/sensors")
 def get_latest_sensors(db: Session = Depends(get_db)):
-    try:
-        log = db.query(TelemetryLog).order_by(TelemetryLog.timestamp.desc()).first()
-        if not log:
-            return {"message": "No sensor data logged yet."}
+    log = db.query(TelemetryLog).order_by(TelemetryLog.timestamp.desc()).first()
+    if log is None:
+        raise HTTPException(status_code=404, detail="No telemetry has been recorded")
+    return _serialize_log(log)
 
-        return {
-            "id": log.id,
-            "timestamp": str(log.timestamp) if log.timestamp else None,
-            "heart_rate": log.heart_rate,
-            "gsr": log.gsr,
-            "grip_pressure": log.grip_pressure,
-            "skin_temperature": log.skin_temperature,
-            
-            # --- NEW FIELDS FOR THE AI / FRONTEND ---
-            "ecg_signal": getattr(log, "ecg_signal", 0.0),
-            "rr_interval": getattr(log, "rr_interval", 0.0),
-            "qrs_duration": getattr(log, "qrs_duration", 0.0),
-            "st_deviation": getattr(log, "st_deviation", 0.0),
-            "qt_interval": getattr(log, "qt_interval", 0.0),
-            "confidence": getattr(log, "confidence", 0.0),
-            # ----------------------------------------
-            
-            "raw_prediction": log.raw_prediction,
-            "stabilized_prediction": log.stabilized_prediction,
-            "alert_level": getattr(log, "alert_level", "NORMAL")
-        }
-    except Exception as e:
-        return {"error": f"Database Query Error: {str(e)}"}
+
+@app.get("/api/v1/history")
+def get_history(limit: int = Query(default=50, ge=1, le=1000), db: Session = Depends(get_db)):
+    logs = db.query(TelemetryLog).order_by(TelemetryLog.timestamp.desc()).limit(limit).all()
+    return [_serialize_log(log) for log in reversed(logs)]
 
 
 @app.get("/api/v1/alerts")
-def get_critical_alerts(db: Session = Depends(get_db)):
-    try:
-        alerts = db.query(TelemetryLog).filter(TelemetryLog.alert_level == "CRITICAL").order_by(TelemetryLog.timestamp.desc()).all()
-        return [
-            {
-                "id": log.id,
-                "timestamp": str(log.timestamp) if log.timestamp else None,
-                "heart_rate": log.heart_rate,
-                "gsr": log.gsr,
-                "grip_pressure": log.grip_pressure,
-                "skin_temperature": log.skin_temperature,
-                "raw_prediction": log.raw_prediction,
-                "stabilized_prediction": log.stabilized_prediction,
-                "alert_level": log.alert_level
-            }
-            for log in alerts
-        ]
-    except Exception as e:
-        return {"error": f"Database Query Error: {str(e)}"}
+def get_alerts(limit: int = Query(default=100, ge=1, le=1000), db: Session = Depends(get_db)):
+    alerts = (
+        db.query(TelemetryLog)
+        .filter(TelemetryLog.alert_level.in_(["WARNING", "CRITICAL"]))
+        .order_by(TelemetryLog.timestamp.desc())
+        .limit(limit)
+        .all()
+    )
+    return [_serialize_log(log) for log in reversed(alerts)]
 
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-
     await manager.connect(websocket)
-
-    print("========================================")
-    print("✅ FRONTEND WEBSOCKET CONNECTED")
-    print("========================================")
-
-
+    ecg_phase = 0.0
     try:
-
         while True:
-
-            # --------------------------------------------------------------
-            # SENSOR DATA
-            # --------------------------------------------------------------
-
-            sensor = get_sensor_data()
-
-            print(
-                "📊 Sensor data:",
-                sensor
-            )
-
-
-            heart_rate = sensor.get(
-                "heart_rate",
-                75.0
-            )
-
-
-            # --------------------------------------------------------------
-            # ECG
-            # --------------------------------------------------------------
-
+            timestamp, telemetry, scenario_status = get_sensor_data()
             try:
+                prediction = predict_telemetry(telemetry)
+            except Exception:
+                # Keep dummy telemetry usable when the optional model cannot
+                # load; the contract makes this visible via prediction.available.
+                prediction = unavailable_prediction()
 
-                ecg_samples = generate_ecg_chunk(
-                    heart_rate=int(heart_rate),
-                    num_samples=50,
-                )
-
-            except Exception as ecg_error:
-
-                print(
-                    "❌ ECG generation error:",
-                    ecg_error
-                )
-
-                ecg_samples = []
-
-
-            # --------------------------------------------------------------
-            # AI
-            # --------------------------------------------------------------
-
+            ecg = generate_ecg_chunk(telemetry.heart_rate, phase_offset=ecg_phase)
+            ecg_phase = (ecg_phase + len(ecg) * telemetry.heart_rate / (60.0 * 250.0)) % 1.0
+            payload = _live_payload(timestamp, telemetry, scenario_status, prediction, ecg)
+            db = SessionLocal()
             try:
-
-                features = [
-
-                    sensor.get(
-                        "heart_rate",
-                        75.0
-                    ),
-
-                    sensor.get(
-                        "gsr",
-                        2.0
-                    ),
-
-                    sensor.get(
-                        "grip_pressure",
-                        4.0
-                    ),
-
-                    sensor.get(
-                        "skin_temperature",
-                        36.6
-                    ),
-
-                    sensor.get(
-                        "rr_interval",
-                        780.0
-                    ),
-
-                    sensor.get(
-                        "qrs_duration",
-                        94.0
-                    ),
-
-                    sensor.get(
-                        "st_deviation",
-                        0.03
-                    ),
-
-                    sensor.get(
-                        "qt_interval",
-                        395.0
-                    ),
-
-                    sensor.get(
-                        "ecg_status",
-                        0.0
-                    ),
-
-                ]
-
-
-                prediction = predict_risk(
-                    features
-                )
-
-
-            except Exception as prediction_error:
-
-                print(
-                    "⚠️ AI prediction error:",
-                    prediction_error
-                )
-
-
-                prediction = {
-
-                    "raw_prediction":
-                        "NORMAL",
-
-                    "stabilized_prediction":
-                        "NORMAL",
-
-                    "confidence":
-                        0.0,
-
-                }
-
-
-            # --------------------------------------------------------------
-            # PAYLOAD
-            # --------------------------------------------------------------
-
-            payload = {
-
-                **sensor,
-
-
-                # ECG
-                "ecg": ecg_samples,
-
-                "ecg_sampling_rate": 250,
-
-                "ecg_status": 0.0,
-
-
-                # AI
-                "prediction": prediction,
-
-
-                # Connection
-                "sensor_status": "Connected",
-
-
-                # Timestamp
-                "timestamp":
-                    sensor.get(
-                        "timestamp"
-                    ),
-
-            }
-
-            # --------------------------------------------------------------
-            # SEND
-            # --------------------------------------------------------------
-
-            await websocket.send_json(
-                payload
-            )
-
-
-            """print(
-                f"📡 SENT → "
-                f"HR={heart_rate}, "
-                f"ECG={len(ecg_samples)} samples"
-            )"""
-            print("\n================ WEBSOCKET PAYLOAD ================")
-            print("Heart Rate:", payload.get("heart_rate"))
-            print("HRV:", payload.get("hrv"))
-            print("GSR:", payload.get("gsr"))
-            print("Grip:", payload.get("grip_pressure"))
-            print("Temperature:", payload.get("skin_temperature"))
-            print("Condition:", payload.get("condition"))
-            print("Prediction:", payload.get("prediction"))
-            print("Sensor Status:", payload.get("sensor_status"))
-            print("====================================================\n")
-
-
-            await asyncio.sleep(
-                0.2
-            )
-
-
-    except Exception as e:
-
-        print(
-            "❌ WEBSOCKET ERROR:",
-            repr(e)
-        )
-
-
+                _persist(db, telemetry, prediction)
+            except Exception:
+                db.rollback()
+            finally:
+                db.close()
+            await websocket.send_json(payload)
+            await asyncio.sleep(0.2)
+    except WebSocketDisconnect:
+        pass
     finally:
-
-        if websocket in manager.active_connections:
-
-            manager.disconnect(
-                websocket
-            )
-
-
-        print(
-            "🔌 FRONTEND WEBSOCKET CLOSED"
-        )
+        manager.disconnect(websocket)

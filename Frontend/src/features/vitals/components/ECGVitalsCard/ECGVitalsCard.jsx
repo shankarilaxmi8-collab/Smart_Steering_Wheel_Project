@@ -14,9 +14,9 @@ function ECGVitalsCard({
   const [expanded, setExpanded] = useState(false);
 
   /*
-  |--------------------------------------------------------------------------
+  |-------------------------------------------------------------------------- 
   | LIVE DATA
-  |--------------------------------------------------------------------------
+  |-------------------------------------------------------------------------- 
   */
 
   const heartRate =
@@ -39,9 +39,9 @@ function ECGVitalsCard({
     (connected ? "Excellent" : "Waiting");
 
   /*
-  |--------------------------------------------------------------------------
+  |-------------------------------------------------------------------------- 
   | CARD
-  |--------------------------------------------------------------------------
+  |-------------------------------------------------------------------------- 
   */
 
   return (
@@ -53,9 +53,9 @@ function ECGVitalsCard({
         relative
         overflow-hidden
         rounded-3xl
-        p-5
+        p-4
         h-full
-        min-h-[350px]
+        min-h-[300px]
         cursor-pointer
         transition-all
         duration-300
@@ -117,8 +117,8 @@ function ECGVitalsCard({
 
           <div
             className="
-              w-10
-              h-10
+              w-9
+              h-9
               rounded-xl
               flex
               items-center
@@ -129,7 +129,7 @@ function ECGVitalsCard({
               color: theme.primary,
             }}
           >
-            <Activity size={20} />
+            <Activity size={19} />
           </div>
 
           <div>
@@ -144,7 +144,7 @@ function ECGVitalsCard({
             </h2>
 
             <p
-              className="text-xs"
+              className="text-[11px]"
               style={{
                 color: theme.textSecondary,
               }}
@@ -207,6 +207,7 @@ function ECGVitalsCard({
 
       </div>
 
+
       {/* =====================================================
           ECG Waveform
       ====================================================== */}
@@ -214,8 +215,8 @@ function ECGVitalsCard({
       <div
         className="
           relative
-          mt-4
-          h-[175px]
+          mt-3
+          h-[145px]
           rounded-2xl
           overflow-hidden
         "
@@ -316,11 +317,12 @@ function ECGVitalsCard({
 
       </div>
 
+
       {/* =====================================================
           Compact ECG Summary
       ====================================================== */}
 
-      <div className="grid grid-cols-3 gap-3 mt-4">
+      <div className="grid grid-cols-3 gap-3 mt-3">
 
         {/* Heart Rate */}
 
@@ -342,6 +344,7 @@ function ECGVitalsCard({
             }}
           >
             {heartRate}
+
             <span
               className="text-[10px] font-normal ml-1"
               style={{
@@ -353,6 +356,7 @@ function ECGVitalsCard({
           </p>
 
         </div>
+
 
         {/* Signal */}
 
@@ -379,6 +383,7 @@ function ECGVitalsCard({
           </p>
 
         </div>
+
 
         {/* Status */}
 
@@ -422,68 +427,6 @@ function ECGVitalsCard({
         </div>
 
       </div>
-
-      {/* =====================================================
-          Expanded Information
-      ====================================================== */}
-
-      <div
-        className={`
-          overflow-hidden
-          transition-all
-          duration-300
-          ${
-            expanded
-              ? "max-h-16 opacity-100 mt-3 pt-3 border-t"
-              : "max-h-0 opacity-0"
-          }
-        `}
-        style={{
-          borderColor: theme.border,
-        }}
-      >
-
-        <div className="flex items-center justify-between">
-
-          <span
-            className="text-xs"
-            style={{
-              color: theme.textSecondary,
-            }}
-          >
-            Sampling Rate
-          </span>
-
-          <span
-            className="text-xs font-semibold"
-            style={{
-              color: theme.text,
-            }}
-          >
-            {samplingRate}
-          </span>
-
-        </div>
-
-      </div>
-
-      {/* Hint */}
-
-      {!expanded && (
-        <p
-          className="
-            text-[9px]
-            text-center
-            mt-3
-            opacity-50
-          "
-          style={{
-            color: theme.textSecondary,
-          }}
-        >
-          Hover or tap for details
-        </p>
-      )}
 
     </div>
   );

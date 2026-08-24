@@ -1,7 +1,10 @@
-import { useEffect, useContext, useRef, useState } from "react";
-import VitalSparkline from "../VitalSparkline/VitalSparkline";
+import { useEffect, useContext, useState } from "react";
 import { ThemeContext } from "../../../../app/providers";
-import { CountUp } from "react-countup";
+import {
+  metricStatusColor,
+  normalizeStatus,
+  statusLabel,
+} from "../../../../utils/metricStatus";
 
 function VitalMetricCard({
   title,
@@ -14,89 +17,100 @@ function VitalMetricCard({
 }) {
   const { theme } = useContext(ThemeContext);
 
-  const cardRef = useRef(null);
-
   const [history, setHistory] = useState([]);
   const [sessionHistory, setSessionHistory] = useState([]);
   const [changeValue, setChangeValue] = useState(0);
-  const [hovered, setHovered] = useState(false);
-  const [tapped, setTapped] = useState(false);
 
-  const expanded = hovered || tapped;
-
-  useEffect(() => {
-
-    const handleOutsideClick = (event) => {
-
-      if (
-        cardRef.current &&
-        !cardRef.current.contains(event.target)
-      ) {
-        setTapped(false);
-      }
-
-    };
-
-    document.addEventListener("pointerdown", handleOutsideClick);
-
-    return () => {
-      document.removeEventListener("pointerdown", handleOutsideClick);
-    };
-
-  }, []);
+  /*
+  |--------------------------------------------------------------------------
+  | LIVE HISTORY
+  |--------------------------------------------------------------------------
+  */
 
   useEffect(() => {
+    if (value == null || value === "--") return;
 
-    if (value == null) return;
+    const numericValue = Number(value);
 
-    setHistory(prev => {
+    if (Number.isNaN(numericValue)) return;
 
-      const updated = [...prev, Number(value)].slice(-20);
+    setHistory((prev) => {
+      const updated = [...prev, numericValue].slice(-20);
 
       if (updated.length >= 2) {
-
         const latest = updated[updated.length - 1];
         const previous = updated[updated.length - 2];
 
-        setChangeValue((latest - previous).toFixed(1));
-
+        setChangeValue(Number((latest - previous).toFixed(1)));
       }
 
       return updated;
-
     });
-
   }, [value]);
 
+  /*
+  |--------------------------------------------------------------------------
+  | SESSION STATISTICS
+  |--------------------------------------------------------------------------
+  */
+
   useEffect(() => {
+    if (value == null || value === "--") return;
 
-      if(value == null) return;
+    const numericValue = Number(value);
 
+    if (Number.isNaN(numericValue)) return;
 
-      setSessionHistory(prev => [
-          ...prev,
-          Number(value)
-      ]);
+    setSessionHistory((prev) => [
+      ...prev,
+      numericValue,
+    ]);
+  }, [value]);
 
-  },[value]);
+  /*
+  |--------------------------------------------------------------------------
+  | STATUS
+  |--------------------------------------------------------------------------
+  */
 
-  const percent = Math.min(
-    100,
-    Math.max(
-      0,
-      ((Number(value) - normalMin) / (normalMax - normalMin)) * 100
-    )
+  const normalizedStatus = normalizeStatus(status);
+
+  const statusText = statusLabel(normalizedStatus);
+
+  const statusColor = metricStatusColor(
+    normalizedStatus,
+    theme
   );
 
-  // Status Chip Color
-  const statusColor =
-    status === "Normal" || status === "Healthy"
-      ? "#22C55E"
-      : status === "Low"
-      ? "#3B82F6"
-      : "#F59E0B";
+  /*
+  |--------------------------------------------------------------------------
+  | RANGE POSITION
+  |--------------------------------------------------------------------------
+  */
 
-  // Trend Color
+  const numericValue = Number(value);
+
+  const percent =
+    value == null ||
+    value === "--" ||
+    Number.isNaN(numericValue)
+      ? 0
+      : Math.min(
+          100,
+          Math.max(
+            0,
+            ((numericValue - normalMin) /
+              (normalMax - normalMin)) *
+              100
+          )
+        );
+
+  /*
+  |--------------------------------------------------------------------------
+  | TREND
+  |--------------------------------------------------------------------------
+  */
+
   const trendColor =
     changeValue > 0
       ? "#22C55E"
@@ -104,378 +118,439 @@ function VitalMetricCard({
       ? "#EF4444"
       : theme.textSecondary;
 
-  const lowest =
-      sessionHistory.length
-          ? Math.min(...sessionHistory).toFixed(1)
-          : value;
+  const trendText =
+    changeValue > 0
+      ? `▲ +${changeValue} ${unit}`
+      : changeValue < 0
+      ? `▼ ${changeValue} ${unit}`
+      : "● No Change";
 
+  /*
+  |--------------------------------------------------------------------------
+  | SESSION VALUES
+  |--------------------------------------------------------------------------
+  */
+
+  const lowest =
+    sessionHistory.length > 0
+      ? Math.min(...sessionHistory).toFixed(1)
+      : value;
 
   const peak =
-      sessionHistory.length
-          ? Math.max(...sessionHistory).toFixed(1)
-          : value;
-
+    sessionHistory.length > 0
+      ? Math.max(...sessionHistory).toFixed(1)
+      : value;
 
   const average =
-      sessionHistory.length
-          ? (
-              sessionHistory.reduce(
-                  (a,b)=>a+b,
-                  0
-              ) /
-              sessionHistory.length
-          ).toFixed(1)
-          : value;
+    sessionHistory.length > 0
+      ? (
+          sessionHistory.reduce(
+            (total, current) => total + current,
+            0
+          ) / sessionHistory.length
+        ).toFixed(1)
+      : value;
 
   return (
     <div
-      onPointerEnter={(e) => {
-        if (e.pointerType === "mouse") {
-          setHovered(true);
-        }
-      }}
-      onPointerLeave={(e) => {
-        if (e.pointerType === "mouse") {
-          setHovered(false);
-        }
-      }}
-      onClick={() => setTapped(prev => !prev)}
-      className="
+      data-status={normalizedStatus}
+      className={`
+        status-card
+        status-card-${normalizedStatus}
+        group
         relative
         overflow-hidden
-        rounded-3xl
-        p-4
+        rounded-2xl
+        p-5
+        min-h-[340px]
         h-full
-        transition-all duration-300 ease-out
-        cursor-pointer
+        flex
+        flex-col
+        transition-all
+        duration-300
+        ease-out
         hover:-translate-y-1
-        hover:scale-[1.015]
-      "
+      `}
       style={{
-          background: theme.surface,
-          border: expanded
-            ? `1px solid ${theme.primary}55`
-            : `1px solid ${theme.border}`,
-
-          boxShadow: expanded
-            ? `0 12px 30px ${theme.primary}15`
-            : "none",
+        background: `linear-gradient(
+          145deg,
+          ${theme.surface},
+          ${theme.surfaceSecondary}
+        )`,
+        border: `1px solid ${statusColor}65`,
+        boxShadow: `0 6px 20px ${statusColor}10`,
       }}
     >
-      {/* Animated Glow */}
+
+      {/* =====================================================
+          SUBTLE STATUS GLOW
+      ====================================================== */}
 
       <div
-        className="absolute -top-16 -right-16 w-40 h-40 rounded-full blur-3xl opacity-20 animate-pulse"
+        className="
+          pointer-events-none
+          absolute
+          -top-20
+          -right-20
+          w-40
+          h-40
+          rounded-full
+          blur-3xl
+          opacity-[0.08]
+          transition-opacity
+          duration-300
+          group-hover:opacity-[0.14]
+        "
         style={{
-          background: theme.primary,
+          background: statusColor,
         }}
       />
 
-      <div
-        className="absolute -bottom-10 -left-10 w-28 h-28 rounded-full blur-2xl opacity-10"
-        style={{
-          background: "#22C55E",
-        }}
-      />
+      {/* =====================================================
+          HEADER
+      ====================================================== */}
 
-      {/* Header */}
+      <div className="relative flex items-start justify-between">
 
-      <div className="flex justify-between items-center">
+        {/* Icon + Title */}
 
         <div className="flex items-center gap-3">
 
           <div
-            className="relative w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300"
+            className="
+              relative
+              w-11
+              h-11
+              rounded-xl
+              flex
+              items-center
+              justify-center
+              shrink-0
+            "
             style={{
-              background: theme.surfaceSecondary,
+              background: `${theme.primary}18`,
               color: theme.primary,
+              border: `1px solid ${theme.primary}25`,
             }}
           >
+            {icon}
+          </div>
 
-            <div
-              className="absolute inset-0 rounded-xl animate-pulse opacity-20"
+          <div>
+
+            <p
+              className="text-[15px] font-semibold"
               style={{
-                background: theme.primary,
+                color: theme.text,
               }}
-            />
+            >
+              {title}
+            </p>
 
-            <div className="relative">
-              {icon}
-            </div>
+            <p
+              className="text-[10px] uppercase tracking-wider mt-0.5"
+              style={{
+                color: theme.textSecondary,
+              }}
+            >
+              Live reading
+            </p>
 
           </div>
 
+        </div>
+
+
+        {/* Status + Trend */}
+
+        <div className="flex flex-col items-end">
+
           <span
-            className="font-semibold"
-            style={{ color: theme.text }}
+            className="
+              px-2.5
+              py-1
+              rounded-full
+              text-[11px]
+              font-semibold
+            "
+            style={{
+              background: `${statusColor}18`,
+              color: statusColor,
+              border: `1px solid ${statusColor}25`,
+            }}
           >
-            {title}
+            {statusText}
+          </span>
+
+          <span
+            className="text-[11px] font-semibold mt-2 whitespace-nowrap"
+            style={{
+              color: trendColor,
+            }}
+          >
+            {trendText}
           </span>
 
         </div>
 
-        <span
-          className="px-2.5 py-1 rounded-full text-xs font-semibold"
-          style={{
-            background: statusColor + "20",
-            color: statusColor,
-          }}
-        >
-          {status}
-        </span>
-
       </div>
 
-      {/* Value */}
 
-      <div className="mt-3 flex items-end gap-2">
+      {/* =====================================================
+          CURRENT VALUE
+      ====================================================== */}
 
-        <span
-          className="text-[46px] font-bold tracking-tight"
-          style={{
-            color: theme.text,
-            textShadow: `0 0 12px ${theme.primary}30`,
-          }}
-        >
-          {value}
-        </span>
+      <div className="relative mt-7">
 
-        <span
-          className="mb-2"
-          style={{ color: theme.textSecondary }}
-        >
-          {unit}
-        </span>
+        <div className="flex items-baseline gap-2">
 
-      </div>
+          <span
+            className="
+              text-[48px]
+              leading-none
+              font-bold
+              tracking-tight
+            "
+            style={{
+              color: theme.text,
+              textShadow: `0 0 16px ${theme.primary}18`,
+            }}
+          >
+            {value}
+          </span>
 
-      {/* Live Trend */}
-
-      <div
-        className="mt-2 text-sm font-semibold"
-        style={{ color: trendColor }}
-      >
-        {changeValue > 0 && `▲ +${changeValue} ${unit}`}
-        {changeValue < 0 && `▼ ${changeValue} ${unit}`}
-        {changeValue == 0 && `● No Change`}
-      </div>
-
-      {/* Live Activity */}
-
-      <div className="mt-3">
-
-          <div className="flex items-center justify-between mb-2">
-
-              <span
-                  className="text-xs uppercase tracking-wider"
-                  style={{ color: theme.textSecondary }}
-              >
-                  Live Activity
-              </span>
-
-              <div className="flex items-center gap-2">
-
-                  <div className="relative">
-
-                      <div
-                          className="absolute inset-0 rounded-full animate-ping"
-                          style={{
-                              background:"#22C55E"
-                          }}
-                      />
-
-                      <div
-                          className="relative w-2 h-2 rounded-full"
-                          style={{
-                              background:"#22C55E"
-                          }}
-                      />
-
-                  </div>
-
-                  <span
-                      className="text-xs font-semibold"
-                      style={{ color: "#22C55E" }}
-                  >
-                      LIVE
-                  </span>
-
-              </div>
-
-          </div>
-
-          <VitalSparkline
-              data={history}
-              color={theme.primary}
-          />
-
-      </div>
-
-      <div
-          className="flex justify-between mt-2 text-[11px]"
-          style={{
+          <span
+            className="text-sm font-medium"
+            style={{
               color: theme.textSecondary,
-          }}
-      >
-          <span>Updated just now</span>
-
-          <span>
-              {new Date().toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-              })}
+            }}
+          >
+            {unit}
           </span>
+
+        </div>
+
+        <p
+          className="text-[10px] uppercase tracking-wider mt-2"
+          style={{
+            color: theme.textSecondary,
+          }}
+        >
+          Current reading
+        </p>
+
       </div>
+
+
+      {/* =====================================================
+          SESSION STATISTICS
+      ====================================================== */}
 
       <div
-        className={`
-          overflow-hidden
-          transition-all
-          duration-500
-          ${expanded
-            ? "max-h-32 opacity-100 mt-4"
-            : "max-h-0 opacity-0 mt-0"
-          }
-        `}
+        className="
+          relative
+          mt-5
+          pt-4
+          border-t
+          grid
+          grid-cols-3
+          gap-2
+        "
+        style={{
+          borderColor: theme.border,
+        }}
       >
 
+        {/* Lowest */}
 
-          <div
-              className="
-              pt-3
-              border-t
-              grid
-              grid-cols-3
-              gap-3
-              "
-              style={{
-                borderColor:theme.border
-              }}
+        <div>
+
+          <p
+            className="text-[10px] uppercase tracking-wide"
+            style={{
+              color: theme.textSecondary,
+            }}
           >
+            Lowest
+          </p>
+
+          <p
+            className="text-sm font-semibold mt-1"
+            style={{
+              color: theme.text,
+            }}
+          >
+            {lowest}
+          </p>
+
+        </div>
 
 
-            <div>
+        {/* Average */}
 
-              <p
-                className="text-xs"
-                style={{
-                  color:theme.textSecondary
-                }}
-              >
-                LOWEST
-              </p>
+        <div className="text-center">
 
-              <p
-                className="font-semibold"
-                style={{
-                  color:theme.text
-                }}
-              >
-                {lowest}
-              </p>
+          <p
+            className="text-[10px] uppercase tracking-wide"
+            style={{
+              color: theme.textSecondary,
+            }}
+          >
+            Average
+          </p>
 
-            </div>
+          <p
+            className="text-sm font-semibold mt-1"
+            style={{
+              color: theme.text,
+            }}
+          >
+            {average}
+          </p>
 
-
-
-            <div className="text-center">
-
-              <p
-                className="text-xs"
-                style={{
-                  color:theme.textSecondary
-                }}
-              >
-                AVERAGE
-              </p>
-
-              <p
-                className="font-semibold"
-                style={{
-                  color:theme.text
-                }}
-              >
-                {average}
-              </p>
-
-            </div>
+        </div>
 
 
-            <div className="text-right">
+        {/* Peak */}
 
-              <p
-                className="text-xs"
-                style={{
-                  color:theme.textSecondary
-                }}
-              >
-                PEAK
-              </p>
+        <div className="text-right">
 
-              <p
-                className="font-semibold"
-                style={{
-                  color:theme.text
-                }}
-              >
-                {peak}
-              </p>
+          <p
+            className="text-[10px] uppercase tracking-wide"
+            style={{
+              color: theme.textSecondary,
+            }}
+          >
+            Peak
+          </p>
 
-            </div>
+          <p
+            className="text-sm font-semibold mt-1"
+            style={{
+              color: theme.text,
+            }}
+          >
+            {peak}
+          </p>
 
-
-          </div>
+        </div>
 
       </div>
 
-      {/* Medical Reference */}
 
-      <div className="mt-4">
+      {/* =====================================================
+          UPDATED TIME
+      ====================================================== */}
 
-        <div className="flex justify-between items-center mb-2">
+      <div
+        className="
+          flex
+          items-center
+          justify-between
+          mt-4
+          text-[10px]
+        "
+        style={{
+          color: theme.textSecondary,
+        }}
+      >
+
+        <span>
+          Updated just now
+        </span>
+
+        <span>
+          {new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </span>
+
+      </div>
+
+
+      {/* =====================================================
+          HEALTHY RANGE
+      ====================================================== */}
+
+      <div className="relative mt-auto pt-5">
+
+        <div className="flex items-center justify-between mb-2">
 
           <span
-            className="text-xs uppercase tracking-wider"
-            style={{ color: theme.textSecondary }}
+            className="
+              text-[10px]
+              uppercase
+              tracking-wider
+              font-medium
+            "
+            style={{
+              color: theme.textSecondary,
+            }}
           >
-            Healthy Range
+            Healthy range
           </span>
 
           <span
-            className="text-xs font-medium"
-            style={{ color: theme.text }}
+            className="text-[10px] font-semibold"
+            style={{
+              color: theme.text,
+            }}
           >
             {normalMin}–{normalMax} {unit}
           </span>
 
         </div>
 
-        <div className="relative">
 
-          {/* Scale */}
+        {/* Range Bar */}
+
+        <div className="relative h-2">
+
+          {/* Base */}
 
           <div
-            className="h-[2px] rounded-full"
+            className="
+              absolute
+              left-0
+              right-0
+              top-1/2
+              -translate-y-1/2
+              h-[3px]
+              rounded-full
+            "
             style={{
-              background: "#374151",
+              background: `${theme.textSecondary}25`,
             }}
           />
 
           {/* Healthy Zone */}
 
           <div
-            className="absolute top-0 h-[2px]"
+            className="
+              absolute
+              top-1/2
+              -translate-y-1/2
+              h-[3px]
+              rounded-full
+            "
             style={{
               left: "18%",
               width: "64%",
               background: "#22C55E",
+              opacity: 0.8,
             }}
           />
 
           {/* Indicator */}
 
           <div
-            className="absolute -top-[6px] transition-all duration-700"
+            className="
+              absolute
+              -top-[5px]
+              transition-all
+              duration-700
+            "
             style={{
               left: `${percent}%`,
               transform: "translateX(-50%)",
@@ -483,9 +558,17 @@ function VitalMetricCard({
           >
 
             <div
-              className="w-4 h-4 rounded-full border-[3px] border-white shadow-lg"
+              className="
+                w-4
+                h-4
+                rounded-full
+                border-[3px]
+                border-white
+                shadow-md
+              "
               style={{
                 background: theme.primary,
+                borderColor: theme.surface,
               }}
             />
 
@@ -493,44 +576,40 @@ function VitalMetricCard({
 
         </div>
 
+
+        {/* Range Labels */}
+
         <div
-          className="flex justify-between mt-2 text-[11px]"
-          style={{ color: theme.textSecondary }}
+          className="
+            flex
+            justify-between
+            mt-2
+            text-[10px]
+          "
+          style={{
+            color: theme.textSecondary,
+          }}
         >
 
-          <span>Low</span>
-
-          <span
-            className="font-medium"
-            style={{ color: "#22C55E" }}
-          >
-            Healthy
+          <span>
+            Warning
           </span>
 
-          <span>High</span>
+          <span
+            className="font-semibold"
+            style={{
+              color: "#22C55E",
+            }}
+          >
+            Normal
+          </span>
+
+          <span>
+            Critical
+          </span>
 
         </div>
 
-      </div>
-
-            {/* Hover / Tap Hint */}
-
-      <div
-        className={`
-          text-center
-          text-[10px]
-          transition-all
-          duration-300
-          ${expanded
-            ? "opacity-0 h-0 mt-0"
-            : "opacity-100 h-auto mt-2"
-          }
-        `}
-        style={{
-          color: theme.textSecondary,
-        }}
-      >
-        Hover or tap for details
       </div>
 
     </div>
