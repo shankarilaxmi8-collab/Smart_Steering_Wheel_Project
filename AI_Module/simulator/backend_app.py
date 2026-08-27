@@ -13,11 +13,17 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(CURRENT_DIR))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from AI_Module.AIML.Week4.predict_risk import RiskPredictor
+try:
+    from AI_Module.AIML.Week4.predict_risk import RiskPredictor
+    predictor = RiskPredictor()
+except Exception as e:
+    print(
+        f"[Warning] Could not load RiskPredictor ML module: {e}. Using fallback evaluation.")
+    predictor = None
 
 app = FastAPI(title="Smart Steering Wheel Simulator Backend")
 
-# Allow all origins for seamless local <-> Codespace streaming
+# Enable full CORS for local camera to cloud Codespace communication
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -26,46 +32,88 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-predictor = RiskPredictor()
-
-# State shared between DMS and Simulator (None by default so manual UI buttons work)
+# Shared State between DMS camera and 3D WebGL Frontend
 latest_dms_state = {
-    "status": "STANDBY",
-    "stress_mode": None,
-    "timestamp": 0
+    "status": "ATTENTIVE",
+    "stress_mode": "normal",
+    "timestamp": time.time()
 }
 
+# One-way safety latch: once emergency triggers, stay in emergency until manually reset
+emergency_latched = False
+
+
 class DMSEvent(BaseModel):
-    status: str
-    stress_mode: str
+    status: Optional[str] = "ATTENTIVE"
+    state: Optional[str] = None
+    stress_mode: Optional[str] = "normal"
+    stress_level: Optional[str] = None
+    dms_state: Optional[str] = None
+
 
 class TelemetryPayload(BaseModel):
     speed: Optional[int] = 0
-    stress_mode: Optional[str] = "normal"
+    stress_mode: Optional[str] = None
+
 
 @app.get("/")
 async def serve_index():
     return FileResponse(os.path.join(CURRENT_DIR, "index.html"))
 
+
 @app.post("/api/dms_event")
 async def receive_dms(event: DMSEvent):
-    global latest_dms_state
+    global latest_dms_state, emergency_latched
+
+    # Resolve aliases
+    status = event.status or event.state or event.dms_state or "ATTENTIVE"
+    mode = event.stress_mode or event.stress_level or "normal"
+    mode = mode.lower()
+
+    if mode == "cardiac":
+        emergency_latched = True
+
     latest_dms_state = {
-        "status": event.status,
-        "stress_mode": event.stress_mode,
+        "status": status,
+        "stress_mode": mode,
         "timestamp": time.time()
     }
-    print(f"[DMS Received] {event.status} -> Triggering {event.stress_mode}")
-    return {"message": "DMS event received", "current_state": latest_dms_state}
+    print(
+        f"[DMS Received] Status: {status} | Mode: {mode} | Latch: {emergency_latched}")
+    return {"message": "DMS event registered", "current_state": latest_dms_state}
+
 
 @app.get("/api/dms_event")
 async def get_dms():
     return latest_dms_state
 
+
+@app.post("/api/reset_emergency")
+async def reset_emergency():
+    global emergency_latched, latest_dms_state
+    emergency_latched = False
+    latest_dms_state = {
+        "status": "ATTENTIVE",
+        "stress_mode": "normal",
+        "timestamp": time.time()
+    }
+    return {"message": "Emergency latch reset"}
+
+
 @app.post("/api/telemetry")
 async def process_telemetry(payload: TelemetryPayload):
-    mode = payload.stress_mode.lower() if payload.stress_mode else "normal"
-    speed = payload.speed
+    global latest_dms_state, emergency_latched
+    speed = payload.speed or 0
+
+    # DMS camera takes priority over frontend default payload
+    if emergency_latched:
+        mode = "cardiac"
+    elif latest_dms_state["stress_mode"] in ["warning", "cardiac"]:
+        mode = latest_dms_state["stress_mode"]
+    elif payload.stress_mode:
+        mode = payload.stress_mode.lower()
+    else:
+        mode = "normal"
 
     if mode == "cardiac":
         sensor_frame = {
@@ -86,6 +134,8 @@ async def process_telemetry(payload: TelemetryPayload):
             }
         }
         emergency_active = True
+        default_status = "CRITICAL"
+        default_risk = 94.5
     elif mode == "warning":
         sensor_frame = {
             "heart_rate_bpm": 102.0,
@@ -105,6 +155,8 @@ async def process_telemetry(payload: TelemetryPayload):
             }
         }
         emergency_active = False
+        default_status = "WARNING"
+        default_risk = 68.0
     else:  # normal
         sensor_frame = {
             "heart_rate_bpm": 72.0,
@@ -124,12 +176,23 @@ async def process_telemetry(payload: TelemetryPayload):
             }
         }
         emergency_active = False
+        default_status = "NORMAL"
+        default_risk = 12.0
 
-    prediction_result = predictor.compute_risk(sensor_frame)
-    risk_score = prediction_result.get("risk_score", 0.0)
-    status = prediction_result.get("status", "NORMAL")
+    if predictor:
+        try:
+            prediction_result = predictor.compute_risk(sensor_frame)
+            risk_score = prediction_result.get("risk_score", default_risk)
+            status = prediction_result.get("status", default_status)
+        except Exception:
+            risk_score = default_risk
+            status = default_status
+    else:
+        risk_score = default_risk
+        status = default_status
 
-    confidence = round(100.0 - risk_score, 1) if status == "NORMAL" else round(risk_score, 1)
+    confidence = round(100.0 - risk_score,
+                       1) if status == "NORMAL" else round(risk_score, 1)
 
     return {
         "sensors": {
@@ -147,7 +210,8 @@ async def process_telemetry(payload: TelemetryPayload):
         },
         "emergency_protocol": {
             "active": emergency_active or (status == "CRITICAL")
-        }
+        },
+        "dms": latest_dms_state
     }
 
 if __name__ == "__main__":
